@@ -82,7 +82,7 @@ export function RegisterPage() {
           </div>
         </div>
 
-        <div className="text-ink-3" style={{ fontSize: 11 }}>lorestack.com · est. 2025</div>
+        <div className="text-ink-3" style={{ fontSize: 11 }}>lorestack.com · est. 2026</div>
       </div>
 
       {/* ── Right: form panel ─────────────────────────────────────────── */}

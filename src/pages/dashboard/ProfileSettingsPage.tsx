@@ -76,7 +76,7 @@ export function ProfileSettingsPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col" style={{ gap: 14 }}>
         {apiError && <FormError message={apiError.message} />}
 
-        <FormInput control={control} name="displayName" label="Display name" placeholder="Zara Khan" />
+        <FormInput control={control} name="displayName" label="Display name" placeholder="Ajay Kathwate" />
         <FormInput control={control} name="avatarUrl" label="Avatar URL" placeholder="https://example.com/avatar.png" />
 
         <div className="flex flex-col" style={{ gap: 6 }}>

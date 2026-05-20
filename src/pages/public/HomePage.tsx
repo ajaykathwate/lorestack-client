@@ -111,7 +111,7 @@ export function HomePage() {
                 >
                   {trendingBlogs[0] ? initials('A') : 'ZK'}
                 </div>
-                {trendingBlogs[0]?.authorId ? 'Author' : 'Zara Khan'} · 8 min
+                {trendingBlogs[0]?.authorId ? 'Author' : 'Ajay Kathwate'} · 8 min
               </div>
             </div>
           </div>
@@ -390,7 +390,7 @@ export function HomePage() {
             </div>
             <div className="rounded-[6px] border border-line overflow-hidden">
               {[
-                ['ZK', 'Zara Khan', 'Aurora Labs', '4.2k'],
+                ['ZK', 'Ajay Kathwate', 'Aurora Labs', '4.2k'],
                 ['ML', 'Mei Lin', 'Hexa.io', '8.4k'],
                 ['NR', 'Nikhil Rao', 'Aurora Labs', '5.6k'],
                 ['SJ', 'Sam Jacobs', '—', '3.4k'],

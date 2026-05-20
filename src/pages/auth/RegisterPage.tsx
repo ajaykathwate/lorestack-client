@@ -123,7 +123,7 @@ export function RegisterPage() {
               control={control}
               name="fullName"
               label="Full name"
-              placeholder="Zara Khan"
+              placeholder="Ajay Kathwate"
             />
             <FormInput
               control={control}

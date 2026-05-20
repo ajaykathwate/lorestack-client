@@ -69,8 +69,8 @@ export function SearchModal({ onClose }: SearchModalProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search Lorestack — blogs, tags…"
-            className="flex-1 bg-transparent text-ink placeholder:text-ink-3 focus:outline-none"
+            placeholder="Search Lorestack — blogs, tags, authors, companies…"
+            className="flex-1 px-2 py-1 rounded-md bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent transition-colors"
             style={{ fontSize: 15 }}
           />
           <kbd
@@ -122,7 +122,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
             <div className="flex flex-col items-center justify-center text-center" style={{ padding: 40, gap: 6 }}>
               <Search size={24} className="text-ink-3" />
               <p className="text-ink-3" style={{ fontSize: 13 }}>
-                Search blogs and tags on Lorestack.
+                Search on Lorestack for blogs, authors, tags, and companies.
               </p>
             </div>
           ) : (

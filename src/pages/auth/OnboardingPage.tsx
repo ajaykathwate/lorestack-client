@@ -133,7 +133,7 @@ export function OnboardingPage() {
                 control={control}
                 name="displayName"
                 label="Display name"
-                placeholder="Zara Khan"
+                placeholder="Ajay Kathwate"
               />
               <FormInput
                 control={control}

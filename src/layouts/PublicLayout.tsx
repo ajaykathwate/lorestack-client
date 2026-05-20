@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Outlet, Link, NavLink } from 'react-router-dom'
-import { PenLine } from 'lucide-react'
+import { PenLine, Search } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { useAuthStore } from '@/store/authStore'
@@ -73,7 +73,7 @@ function TopNav() {
             className="flex items-center gap-2 border border-line bg-bg-soft rounded-[6px] text-ink-3 cursor-text hover:border-line-strong transition-colors"
             style={{ padding: '8px 12px', fontSize: 13 }}
           >
-            <span className="font-mono text-ink-2" style={{ fontSize: 15 }}>⌕</span>
+            <Search size={14} className="text-ink-2" />
             <span className="flex-1 text-ink-3" style={{ fontSize: 13 }}>
               Search Lorestack — blogs, companies, people, tags…
             </span>

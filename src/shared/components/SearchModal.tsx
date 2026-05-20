@@ -4,6 +4,7 @@ import { useExplore } from '@/api/hooks/useBlogQueries'
 import { useTags } from '@/api/hooks/useTagQueries'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel } from '@/lib/utils'
+import { Search } from 'lucide-react'
 
 type FilterTab = 'all' | 'blogs' | 'tags'
 
@@ -19,9 +20,6 @@ export function SearchModal({ onClose }: SearchModalProps) {
   const { data: blogs } = useExplore()
   const { data: allTags } = useTags()
 
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -65,7 +63,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
       >
         {/* Search input */}
         <div className="flex items-center border-b border-line" style={{ padding: '14px 16px', gap: 10 }}>
-          <span className="text-ink-3 font-mono" style={{ fontSize: 16 }}>⌕</span>
+          <Search size={14} className="text-ink-2" />
           <input
             ref={inputRef}
             type="text"
@@ -122,7 +120,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
             </div>
           ) : totalCount === 0 ? (
             <div className="flex flex-col items-center justify-center text-center" style={{ padding: 40, gap: 6 }}>
-              <span className="text-ink-3 font-mono" style={{ fontSize: 24 }}>⌕</span>
+              <Search size={24} className="text-ink-3" />
               <p className="text-ink-3" style={{ fontSize: 13 }}>
                 Search blogs and tags on Lorestack.
               </p>

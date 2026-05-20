@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Read(//c/Users/Ajay Kathwate/.claude/projects/c--Users-Ajay-Kathwate-Developer-lorestack-lorestack-client/memory/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Ajay Kathwate\\.claude\\projects\\c--Users-Ajay-Kathwate-Developer-lorestack-lorestack-client\\memory"
+    ]
+  }
+}

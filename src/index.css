@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Lorestack design tokens ────────────────────────────────────────────────
+   Extracted exactly from /docs/claude_design/index.html.
+   These are the ONLY color, radius, and font values used throughout the app.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --ls-bg:       #ffffff;
+  --ls-bg-soft:  #faf8f3;
+  --ls-bg-tint:  #f3f0e8;
+  --ls-bg-deep:  #ece8dc;
+
+  /* Lines & borders */
+  --ls-line:        #e6e2d7;
+  --ls-line-soft:   #efece3;
+  --ls-line-strong: #cfcabb;
+
+  /* Ink scale */
+  --ls-ink:   #1c1a16;
+  --ls-ink-2: #4f4c44;
+  --ls-ink-3: #87837a;
+  --ls-ink-4: #b3afa3;
+
+  /* Accent — muted terracotta */
+  --ls-accent:      #b85a3c;
+  --ls-accent-ink:  #8c3f25;
+  --ls-accent-soft: #f6e5dc;
+
+  /* Quiet status colors */
+  --ls-warn-soft: #f3ead0;
+  --ls-warn-ink:  #6b5410;
+
+  /* Geometry */
+  --ls-r-sm: 4px;
+  --ls-r:    6px;
+  --ls-r-lg: 10px;
+
+  /* ── shadcn/ui compatibility (HSL format) ─────────────────────────────────
+     Maps Lorestack design tokens to shadcn's expected variable names.
+     Used by all shadcn components via bg-background, text-foreground, etc.
+     ────────────────────────────────────────────────────────────────────────*/
+  --background:          0 0% 100%;        /* #ffffff  → ls-bg      */
+  --foreground:          40 11% 10%;       /* #1c1a16  → ls-ink     */
+
+  --card:                0 0% 100%;
+  --card-foreground:     40 11% 10%;
+
+  --popover:             0 0% 100%;
+  --popover-foreground:  40 11% 10%;
+
+  --primary:             40 11% 10%;       /* dark ink fill for primary buttons */
+  --primary-foreground:  0 0% 100%;
+
+  --secondary:           45 33% 97%;       /* #faf8f3  → bg-soft    */
+  --secondary-foreground: 43 7% 29%;       /* #4f4c44  → ink-2      */
+
+  --muted:               45 33% 93%;       /* #f3f0e8  → bg-tint    */
+  --muted-foreground:    37 5% 50%;        /* #87837a  → ink-3      */
+
+  --accent:              18 65% 91%;       /* #f6e5dc  → accent-soft (hover bg) */
+  --accent-foreground:   14 58% 34%;       /* #8c3f25  → accent-ink  */
+
+  --destructive:         0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:              45 21% 87%;       /* #e6e2d7  → ls-line    */
+  --input:               45 21% 87%;
+  --ring:                14 52% 47%;       /* #b85a3c  → ls-accent  */
+
+  --radius:              0.375rem;         /* ~6px     → ls-r       */
+}
+
+/* ── Base resets ──────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif text-ink;
+  }
+
+  code, kbd, pre {
+    @apply font-mono;
+  }
+
+  /* Focus ring matches accent color */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}

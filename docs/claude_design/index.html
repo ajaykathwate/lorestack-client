@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Lorestack · Wireframes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; height:100%; background:#f4f2ec; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* ─── Lorestack design tokens ────────────────────────────────────────────
+     White-theme only. Warm-neutral palette with a single calm accent.
+     Goal: editorial calm — nothing screams for attention except primary CTAs
+     and active states. Everything else is shades of ink. */
+  :root {
+    /* Surfaces (white-on-white-on-cream layering) */
+    --bg:          #ffffff;          /* primary surface */
+    --bg-soft:     #faf8f3;          /* warm off-white — sidebars, hero strips */
+    --bg-tint:     #f3f0e8;          /* code blocks, hover, callouts */
+    --bg-deep:     #ece8dc;          /* footer, deep sections */
+
+    /* Lines & borders */
+    --line:        #e6e2d7;          /* default border */
+    --line-soft:   #efece3;          /* subtle divider */
+    --line-strong: #cfcabb;          /* hover / focus border */
+
+    /* Ink scale (warm near-black through to placeholder) */
+    --ink:         #1c1a16;          /* headlines, primary text */
+    --ink-2:       #4f4c44;          /* body, secondary */
+    --ink-3:       #87837a;          /* meta, captions, muted */
+    --ink-4:       #b3afa3;          /* placeholders, decorative */
+
+    /* Single accent — muted terracotta. Used only for:
+         primary CTA fill, active tab underline, the wordmark period,
+         active filter chip, focus ring, link underline on hover.
+       Do not introduce other saturated colors. */
+    --accent:      #b85a3c;
+    --accent-ink:  #8c3f25;          /* darker variant for accent text on bg */
+    --accent-soft: #f6e5dc;          /* tint for hover / active background */
+
+    /* Quiet status colors — used sparingly (notifications, schedule states) */
+    --warn-soft:   #f3ead0;          /* yellow tint, no border */
+    --warn-ink:    #6b5410;
+
+    /* Type system */
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans:  'Inter', system-ui, sans-serif;
+    --mono:  'JetBrains Mono', ui-monospace, monospace;
+
+    /* Geometry */
+    --r-sm: 4px;
+    --r:    6px;
+    --r-lg: 10px;
+    --stroke: 1px;
+  }
+
+  /* ── Frame chrome ── */
+  .wf-frame { width:100%; height:100%; background:var(--bg); color:var(--ink); overflow:hidden; position:relative; font-family: var(--sans); font-size:13px; line-height:1.45; }
+  .wf-frame * { box-sizing:border-box; }
+
+  /* ── Boxes ── */
+  .wf-box { border:var(--stroke) solid var(--line); background:var(--bg); border-radius:var(--r-sm); }
+  .wf-box.soft   { background:var(--bg-soft); }
+  .wf-box.tint   { background:var(--bg-tint); }
+  .wf-box.accent { background:var(--accent-soft); border-color:var(--accent-soft); }
+  .wf-box.dashed { border-style:dashed; border-color:var(--line-strong); }
+  .wf-box.flat   { border:none; background:transparent; }
+  .wf-divider { height:0; border-top:var(--stroke) solid var(--line); }
+  .wf-divider.soft { border-color:var(--line-soft); }
+
+  /* ── Buttons — three quiet variants ── */
+  .wf-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding:8px 14px; border:var(--stroke) solid var(--line);
+    background:var(--bg); color:var(--ink); border-radius:var(--r-sm);
+    font:500 12px/1 var(--sans); cursor:pointer; transition:background .15s, border-color .15s;
+  }
+  .wf-btn:hover  { background:var(--bg-soft); border-color:var(--line-strong); }
+  .wf-btn.primary { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .wf-btn.primary:hover { background:#000; }
+  .wf-btn.accent  { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .wf-btn.accent:hover { background:var(--accent-ink); }
+  .wf-btn.ghost   { background:transparent; border-color:transparent; color:var(--ink-2); }
+  .wf-btn.ghost:hover { background:var(--bg-tint); color:var(--ink); }
+  .wf-btn.sm { padding:5px 10px; font-size:11px; }
+  .wf-btn.lg { padding:11px 20px; font-size:13px; }
+
+  /* ── Inputs ── */
+  .wf-input {
+    display:flex; align-items:center; padding:9px 12px;
+    border:var(--stroke) solid var(--line); background:var(--bg);
+    border-radius:var(--r-sm); color:var(--ink-2);
+    min-height:38px; font-size:13px;
+  }
+  .wf-input:hover { border-color:var(--line-strong); }
+
+  /* ── Chips — only one variant per state (default / solid / active accent) ── */
+  .wf-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border:var(--stroke) solid var(--line);
+    border-radius:99px; background:var(--bg);
+    font-size:11px; color:var(--ink-2); cursor:pointer;
+    transition: background .12s, border-color .12s, color .12s;
+  }
+  .wf-chip:hover { border-color:var(--line-strong); color:var(--ink); }
+  .wf-chip.solid {                                /* "active filter" — dark fill */
+    background:var(--ink); color:var(--bg); border-color:var(--ink);
+  }
+  .wf-chip.accent {                                /* sparingly — for impact metrics, etc */
+    background:var(--accent-soft); border-color:var(--accent-soft);
+    color:var(--accent-ink); font-weight:500;
+  }
+
+  /* ── Badges — neutral by default; "accent" reserved for one-per-screen highlights ── */
+  .wf-badge {
+    display:inline-flex; padding:2px 8px;
+    font:500 10px/1.6 var(--mono); letter-spacing:.4px; text-transform:uppercase;
+    border:var(--stroke) solid var(--line); border-radius:3px;
+    background:var(--bg-soft); color:var(--ink-2);
+  }
+  .wf-badge.accent { background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent-soft); }
+  .wf-badge.yellow { background:var(--warn-soft); border-color:var(--warn-soft); color:var(--warn-ink); }
+
+  /* ── Image placeholders — soft cream, single faint diagonal mark ── */
+  .wf-img {
+    background:
+      linear-gradient(135deg, transparent 49.7%, var(--line) 49.7% 50.3%, transparent 50.3%),
+      var(--bg-soft);
+    border:var(--stroke) solid var(--line);
+    border-radius:var(--r-sm);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--ink-3);
+    font:500 10px/1 var(--mono); letter-spacing:.4px; text-transform:uppercase;
+  }
+  .wf-avatar {
+    border-radius:99px;
+    background:var(--bg-soft);
+    border:var(--stroke) solid var(--line);
+    display:inline-flex; align-items:center; justify-content:center;
+    color:var(--ink-2); font:600 11px var(--mono);
+  }
+  .wf-logo {
+    width:32px; height:32px; border:var(--stroke) solid var(--line); border-radius:var(--r-sm);
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--bg-soft); font:600 13px var(--mono); color:var(--ink);
+  }
+
+  /* ── Type helpers ── */
+  .wf-serif { font-family: var(--serif); }
+  .wf-mono  { font-family: var(--mono); }
+  .wf-h1 { font-family: var(--serif); font-weight:600; font-size:32px; line-height:1.1; letter-spacing:-.5px; margin:0; color:var(--ink); }
+  .wf-h2 { font-family: var(--serif); font-weight:600; font-size:22px; line-height:1.15; margin:0; color:var(--ink); }
+  .wf-h3 { font-family: var(--serif); font-weight:600; font-size:16px; line-height:1.2; margin:0; color:var(--ink); }
+  .wf-eyebrow { font:600 10px/1 var(--mono); letter-spacing:1.2px; text-transform:uppercase; color:var(--ink-3); }
+  .wf-muted   { color:var(--ink-3); }
+  .wf-muted2  { color:var(--ink-2); }
+
+  /* Fake text bars — softer */
+  .wf-line-1, .wf-line-2, .wf-line-3 { display:block; height:6px; border-radius:2px; background:var(--bg-tint); margin-bottom:6px; }
+  .wf-line-2 { height:5px; background:var(--bg-soft); }
+  .wf-line-3 { height:5px; background:var(--bg-soft); width:78%; }
+  .wf-textblock { display:flex; flex-direction:column; gap:0; }
+
+  /* ── Annotations — muted, not screaming red ── */
+  .wf-annot {
+    position:absolute; pointer-events:none;
+    font-family: 'Caveat', cursive; color: var(--accent-ink);
+    font-size:15px; line-height:1.2; max-width:200px; opacity:.92;
+  }
+  .wf-annot .pin {
+    display:inline-block; width:16px; height:16px; border-radius:99px;
+    background:var(--accent); color:#fff; font:600 10px/16px var(--mono);
+    text-align:center; margin-right:6px; vertical-align:middle;
+  }
+
+  /* Frame title bar (DC label) */
+  .wf-frame-title { font-family: var(--mono); font-size:11px; color: var(--ink-3); letter-spacing:.2px; text-transform:uppercase; }
+
+  .wf-pad { padding:18px; }
+  .wf-grid { display:grid; gap:14px; }
+
+  /* Mobile device chrome */
+  .wf-mobile { border-radius:28px; box-shadow:inset 0 0 0 var(--stroke) var(--line-strong); padding:0; overflow:hidden; background:var(--bg); }
+  .wf-statusbar { display:flex; justify-content:space-between; padding:10px 18px 6px; font:600 10px var(--mono); color:var(--ink-2); }
+
+  /* Hide DC's add controls when not hovering */
+  .dc-add-section, .dc-add-artboard { opacity:.35; }
+
+  /* Tweak-driven content states */
+  body.no-annot .wf-annot { display:none; }
+  body.state-empty .wf-when-empty { display:block; }
+  body.state-empty .wf-when-full { display:none; }
+  body.state-full  .wf-when-empty { display:none; }
+  body.state-full  .wf-when-full  { display:block; }
+
+  /* ── Compatibility shims ──
+     Older frame code references the old --wf-* variable names + .wf-rough class.
+     Map them to the new tokens so we don't need to edit every frame file. */
+  :root {
+    --wf-bg:          var(--bg);
+    --wf-ink:         var(--ink);
+    --wf-ink-2:       var(--ink-2);
+    --wf-ink-3:       var(--ink-3);
+    --wf-line:        var(--line);
+    --wf-line-soft:   var(--line-soft);
+    --wf-fill:        var(--bg-soft);
+    --wf-fill-2:      var(--bg-tint);
+    --wf-accent:      var(--accent);
+    --wf-accent-soft: var(--accent-soft);
+    --wf-yellow:      #e8d68a;
+    --wf-stroke-w:    var(--stroke);
+    --wf-hand:        'Caveat', cursive;
+    --wf-serif:       var(--serif);
+    --wf-sans:        var(--sans);
+    --wf-mono:        var(--mono);
+  }
+  .wf-rough { /* no-op now — used to apply the sketchy wobble filter */ }
+</style>
+</head>
+<body class="state-full">
+
+<!-- SVG wobble filter — applied to .wf-rough elements in sketchy mode -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wf-wobble" x="-2%" y="-2%" width="104%" height="104%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="wireframe-primitives.jsx"></script>
+<script type="text/babel" src="frames-auth.jsx"></script>
+<script type="text/babel" src="frames-write.jsx"></script>
+<script type="text/babel" src="frames-home.jsx"></script>
+<script type="text/babel" src="frames-public.jsx"></script>
+<script type="text/babel" src="frames-company.jsx"></script>
+<script type="text/babel" src="frames-admin.jsx"></script>
+<script type="text/babel" src="frames-extras.jsx"></script>
+<script type="text/babel" src="frames-mobile.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+</body>
+</html>

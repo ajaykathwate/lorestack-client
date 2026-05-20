@@ -19,10 +19,13 @@ import { OnboardingPage } from '@/pages/auth/OnboardingPage'
 // Public pages
 import { HomePage } from '@/pages/public/HomePage'
 import { ExplorePage } from '@/pages/public/ExplorePage'
+import { TagsPage } from '@/pages/public/TagsPage'
+import { CompaniesPage } from '@/pages/public/CompaniesPage'
 import { BlogPage } from '@/pages/public/BlogPage'
 import { TagPage } from '@/pages/public/TagPage'
 import { AuthorProfilePage } from '@/pages/public/AuthorProfilePage'
 import { CompanyProfilePage } from '@/pages/public/CompanyProfilePage'
+import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 
 // Dashboard pages
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
@@ -43,10 +46,13 @@ const router = createBrowserRouter([
     children: [
       { path: ROUTES.HOME,            element: <HomePage /> },
       { path: ROUTES.EXPLORE,         element: <ExplorePage /> },
+      { path: ROUTES.TAGS,            element: <TagsPage /> },
+      { path: ROUTES.COMPANIES,       element: <CompaniesPage /> },
       { path: ROUTES.BLOG,            element: <BlogPage /> },
       { path: ROUTES.TAG,             element: <TagPage /> },
       { path: ROUTES.AUTHOR_PROFILE,  element: <AuthorProfilePage /> },
       { path: ROUTES.COMPANY_PROFILE, element: <CompanyProfilePage /> },
+      { path: '*',                    element: <NotFoundPage /> },
     ],
   },
 
@@ -115,21 +121,6 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── 404 ─────────────────────────────────────────────────────────────────────
-  {
-    path: '*',
-    element: (
-      <div className="min-h-screen flex items-center justify-center bg-bg font-sans">
-        <div className="text-center">
-          <p className="font-mono text-xs text-ink-3 uppercase tracking-widest mb-2">404</p>
-          <h1 className="font-serif text-3xl text-ink mb-4">Page not found</h1>
-          <a href="/" className="text-sm text-ls-accent underline underline-offset-2">
-            Back to homepage
-          </a>
-        </div>
-      </div>
-    ),
-  },
 ])
 
 export function AppRouter() {

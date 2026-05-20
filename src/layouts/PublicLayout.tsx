@@ -1,24 +1,43 @@
+import { useState, useEffect, useCallback } from 'react'
 import { Outlet, Link, NavLink } from 'react-router-dom'
 import { PenLine } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
+import { SearchModal } from '@/shared/components/SearchModal'
 
 const NAV_LINKS = [
   { label: 'Explore',   to: ROUTES.EXPLORE },
-  { label: 'Tags',      to: '/tags' },
-  { label: 'Companies', to: '/companies' },
+  { label: 'Tags',      to: ROUTES.TAGS },
+  { label: 'Companies', to: ROUTES.COMPANIES },
 ]
 
 function TopNav() {
   const { isAuthenticated, authorProfile } = useAuthStore()
+  const [showSearch, setShowSearch] = useState(false)
   const initials = authorProfile?.displayName
     ? authorProfile.displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
 
+  const openSearch = useCallback(() => setShowSearch(true), [])
+  const closeSearch = useCallback(() => setShowSearch(false), [])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setShowSearch(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
-    <header className="sticky top-0 z-50 bg-bg border-b border-line">
+    <>
+      {showSearch && <SearchModal onClose={closeSearch} />}
+      <header className="sticky top-0 z-50 bg-bg border-b border-line">
       <div
         className="grid items-center gap-6 px-6"
         style={{ gridTemplateColumns: 'auto 1fr auto', height: 56 }}
@@ -50,6 +69,7 @@ function TopNav() {
         {/* Center: search bar */}
         <div className="max-w-[520px] w-full mx-auto hidden md:block">
           <div
+            onClick={openSearch}
             className="flex items-center gap-2 border border-line bg-bg-soft rounded-[6px] text-ink-3 cursor-text hover:border-line-strong transition-colors"
             style={{ padding: '8px 12px', fontSize: 13 }}
           >
@@ -106,6 +126,7 @@ function TopNav() {
         </div>
       </div>
     </header>
+    </>
   )
 }
 

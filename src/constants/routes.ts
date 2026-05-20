@@ -3,6 +3,8 @@ export const ROUTES = {
   // ── Public ──────────────────────────────────────────────────────────────
   HOME: '/',
   EXPLORE: '/explore',
+  TAGS: '/tags',
+  COMPANIES: '/companies',
   BLOG: '/blog/:slug',
   TAG: '/tag/:slug',
   AUTHOR_PROFILE: '/author/:username',

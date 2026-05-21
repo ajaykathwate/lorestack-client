@@ -46,7 +46,9 @@ export const authService = {
     apiClient.post<ApiResponse<MessageResponse>>('/auth/change-password', payload),
 
   onboarding: (payload: OnboardingPayload) =>
-    apiClient.post<ApiResponse<AuthorProfile>>('/auth/onboarding', payload),
+    apiClient.post<ApiResponse<AuthorProfile>>('/auth/onboarding', payload, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 
   me: () =>
     apiClient.get<ApiResponse<User>>('/users/me'),

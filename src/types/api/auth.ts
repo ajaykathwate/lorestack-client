@@ -64,10 +64,8 @@ export interface LogoutPayload {
   refreshToken: string
 }
 
-export interface OnboardingPayload {
-  displayName: string
-  avatarUrl?: string
-}
+// multipart/form-data — fields: displayName (text), username? (text), avatar? (file)
+export type OnboardingPayload = FormData
 
 export interface ChangePasswordPayload {
   currentPassword: string

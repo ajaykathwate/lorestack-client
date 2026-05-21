@@ -16,7 +16,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   EMAIL_VERIFY: '/verify-email',
-  GOOGLE_CALLBACK: '/auth/callback',
+  GOOGLE_CALLBACK: '/api/v1/auth/google/callback',
   ONBOARDING: '/onboarding',
 
   // ── Dashboard ─────────────────────────────────────────────────────────────

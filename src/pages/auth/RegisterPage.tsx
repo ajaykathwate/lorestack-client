@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { FormInput } from '@/shared/components/forms/FormInput'
 import { SubmitButton } from '@/shared/components/forms/SubmitButton'
-import { FormError } from '@/shared/components/forms/FormError'
 import { useRegister } from '@/api/hooks/useAuthMutations'
 import { registerSchema, type RegisterFormValues } from '@/lib/validations/authSchemas'
 import { ROUTES } from '@/constants/routes'
@@ -14,22 +13,22 @@ import type { ApiError } from '@/api/client/apiError'
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { mutate, isPending, error } = useRegister()
+  const { mutate, isPending } = useRegister()
 
   const { control, handleSubmit } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
   })
 
-  const apiError = error as ApiError | null
-
   function onSubmit(values: RegisterFormValues) {
-    // confirmPassword is client-side only — strip before sending to API
     const { confirmPassword: _, ...payload } = values
     mutate(payload, {
       onSuccess: () => {
         toast.success('Check your inbox to verify your email.')
         navigate(ROUTES.LOGIN)
+      },
+      onError: (err) => {
+        toast.error((err as unknown as ApiError).message ?? 'Registration failed. Please try again.')
       },
     })
   }
@@ -117,8 +116,6 @@ export function RegisterPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col" style={{ gap: 12 }}>
-            {apiError && <FormError message={apiError.message} />}
-
             <FormInput
               control={control}
               name="fullName"

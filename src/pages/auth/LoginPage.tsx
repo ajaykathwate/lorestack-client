@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { FormInput } from '@/shared/components/forms/FormInput'
 import { SubmitButton } from '@/shared/components/forms/SubmitButton'
-import { FormError } from '@/shared/components/forms/FormError'
 import { useLogin } from '@/api/hooks/useAuthMutations'
 import { useAuthStore } from '@/store/authStore'
 import { profileService } from '@/api/services/profileService'
@@ -18,7 +17,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { setAuthorProfile } = useAuthStore()
-  const { mutate, isPending, error } = useLogin()
+  const { mutate, isPending } = useLogin()
 
   const from = (location.state as { from?: string })?.from ?? ROUTES.DASHBOARD
 
@@ -26,8 +25,6 @@ export function LoginPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   })
-
-  const apiError = error as ApiError | null
 
   function onSubmit(values: LoginFormValues) {
     mutate(values, {
@@ -41,6 +38,9 @@ export function LoginPage() {
           setAuthorProfile(null)
           navigate(ROUTES.ONBOARDING, { replace: true })
         }
+      },
+      onError: (err) => {
+        toast.error((err as unknown as ApiError).message ?? 'Login failed. Please try again.')
       },
     })
   }
@@ -128,8 +128,6 @@ export function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col" style={{ gap: 12 }}>
-            {apiError && <FormError message={apiError.message} />}
-
             <FormInput
               control={control}
               name="email"

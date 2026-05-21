@@ -48,8 +48,20 @@ export const resetPasswordSchema = z
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
 export const onboardingSchema = z.object({
-  displayName: z.string().min(2, 'Display name must be at least 2 characters'),
-  avatarUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  displayName: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters')
+    .max(100, 'Display name must be at most 100 characters'),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(50, 'Username must be at most 50 characters')
+    .regex(
+      /^[a-z0-9][a-z0-9_-]*$/,
+      'Only lowercase letters, numbers, hyphens, and underscores; must start with a letter or number',
+    )
+    .optional()
+    .or(z.literal('')),
 })
 
 export type OnboardingFormValues = z.infer<typeof onboardingSchema>

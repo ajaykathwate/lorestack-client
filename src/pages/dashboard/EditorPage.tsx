@@ -235,6 +235,7 @@ export function EditorPage() {
   const [previewMode, setPreviewMode] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
+  const [showRail, setShowRail] = useState(true)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTime, setScheduleTime] = useState('09:00')
@@ -462,23 +463,25 @@ export function EditorPage() {
   // ── Pill label components (reused in both topbar and popovers) ───────────
   const pillLabel = (text: string) => (
     <span style={{
-      display: 'inline-flex', alignItems: 'center',
-      padding: '0 10px',
+      display: 'inline-flex', alignItems: 'center', flexShrink: 0,
+      padding: '0 8px',
       background: 'var(--ls-bg-soft)',
       borderRight: '1px solid var(--ls-line)',
       fontFamily: '"JetBrains Mono", monospace',
       fontSize: 9, fontWeight: 600,
       letterSpacing: 1.2, color: 'var(--ls-ink-3)', textTransform: 'uppercase',
-      borderRadius: '5px 0 0 5px',
+      borderRadius: '5px 0 0 5px', whiteSpace: 'nowrap',
     }}>
       {text}
     </span>
   )
 
   const pillValue = (children: React.ReactNode) => (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0 12px', fontSize: 13, fontWeight: 500 }}>
-      {children}
-      <span style={{ color: 'var(--ls-ink-3)', fontSize: 10 }}>▾</span>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 10px', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+        {children}
+      </span>
+      <span style={{ color: 'var(--ls-ink-3)', fontSize: 10, flexShrink: 0 }}>▾</span>
     </span>
   )
 
@@ -488,7 +491,7 @@ export function EditorPage() {
     borderRadius: 6,
     background: active ? 'var(--ls-bg-soft)' : 'var(--ls-bg)',
     color: 'var(--ls-ink)', cursor: 'pointer' as const,
-    height: 32,
+    height: 32, maxWidth: 220, minWidth: 0, overflow: 'hidden' as const, flexShrink: 1,
     boxShadow: active ? '0 0 0 3px var(--ls-accent-soft)' : 'none',
     fontFamily: 'inherit',
   })
@@ -516,26 +519,26 @@ export function EditorPage() {
       <header style={{
         display: 'grid', gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        padding: '14px 28px',
+        padding: '10px 16px',
         borderBottom: '1px solid var(--ls-line)',
         background: 'var(--ls-bg)',
-        gap: 24, flexShrink: 0,
+        gap: 'clamp(8px, 1.5vw, 20px)', flexShrink: 0,
       }}>
 
         {/* LEFT: My Blogs + meta pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, overflow: 'hidden' }}>
           <Link
             to={ROUTES.MY_BLOGS}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '7px 12px 7px 10px',
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '6px 8px',
               background: 'transparent', border: '1px solid transparent', borderRadius: 6,
               color: 'var(--ls-ink-2)', fontSize: 13, fontWeight: 500, textDecoration: 'none',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'nowrap', flexShrink: 0,
             }}
           >
             <span style={{ fontSize: 14, color: 'var(--ls-ink-3)' }}>‹</span>
-            My Blogs
+            <span className="hidden lg:inline">My Blogs</span>
           </Link>
 
           <div style={{ height: 20, width: 1, background: 'var(--ls-line)', flexShrink: 0 }} />
@@ -558,8 +561,8 @@ export function EditorPage() {
           </button>
         </div>
 
-        {/* CENTER: save status */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* CENTER: save status (hidden on small screens) */}
+        <div className="hidden sm:flex" style={{ alignItems: 'center', justifyContent: 'center' }}>
           {saveStatus !== 'idle' && (
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -579,11 +582,27 @@ export function EditorPage() {
         </div>
 
         {/* RIGHT: actions */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+          {/* Settings rail toggle (tablet only) */}
+          <button
+            onClick={() => setShowRail((v) => !v)}
+            className="xl:hidden"
+            style={{
+              padding: '0 10px', height: 32,
+              background: showRail ? 'var(--ls-bg-soft)' : 'transparent',
+              border: '1px solid var(--ls-line)', borderRadius: 6,
+              fontSize: 12, fontWeight: 500, color: 'var(--ls-ink-2)', cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ⚙
+          </button>
+
           <button
             onClick={() => setPreviewMode((p) => !p)}
+            className="hidden sm:block"
             style={{
-              padding: '0 14px', height: 32,
+              padding: '0 12px', height: 32,
               background: previewMode ? 'var(--ls-bg-soft)' : 'transparent',
               border: '1px solid var(--ls-line)', borderRadius: 6,
               fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
@@ -596,13 +615,15 @@ export function EditorPage() {
             onClick={handleSaveDraft}
             disabled={creating}
             style={{
-              padding: '0 14px', height: 32,
+              padding: '0 12px', height: 32,
               background: 'transparent', border: '1px solid var(--ls-line)', borderRadius: 6,
               fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
               opacity: creating ? 0.4 : 1,
+              whiteSpace: 'nowrap',
             }}
           >
-            Save draft
+            <span className="hidden sm:inline">Save draft</span>
+            <span className="sm:hidden">Save</span>
           </button>
 
           <div style={{ display: 'flex', height: 32, borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }}>
@@ -634,11 +655,11 @@ export function EditorPage() {
       </header>
 
       {/* ══ Main layout ════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 
         {/* ── Writing canvas ──────────────────────────────────────────────── */}
-        <div style={{ overflow: 'auto', display: 'flex', justifyContent: 'center', background: 'var(--ls-bg)' }}>
-          <div style={{ width: '100%', maxWidth: 780, padding: '40px 48px 96px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ overflow: 'auto', display: 'flex', justifyContent: 'center', background: 'var(--ls-bg)', flex: 1, minWidth: 0 }}>
+          <div style={{ width: '100%', maxWidth: 780, padding: 'clamp(24px, 4vw, 40px) clamp(20px, 4vw, 48px) 96px', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             {/* Title */}
             <textarea
@@ -712,11 +733,16 @@ export function EditorPage() {
 
         {/* ── Article settings rail ──────────────────────────────────────── */}
         <aside style={{
-          borderLeft: '1px solid var(--ls-line)',
+          width: showRail ? 300 : 0,
+          minWidth: showRail ? 280 : 0,
+          maxWidth: showRail ? 320 : 0,
+          borderLeft: showRail ? '1px solid var(--ls-line)' : 'none',
           background: 'var(--ls-bg-soft)',
-          overflow: 'auto',
-          padding: '24px 22px 96px',
+          overflow: showRail ? 'auto' : 'hidden',
+          padding: showRail ? '24px 20px 96px' : 0,
           display: 'flex', flexDirection: 'column', gap: 24,
+          flexShrink: 0,
+          transition: 'width 0.2s ease, min-width 0.2s ease, padding 0.2s ease',
         }}>
 
           {/* Rail header */}

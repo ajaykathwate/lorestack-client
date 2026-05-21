@@ -78,8 +78,8 @@ export function CompanyProfilePage() {
     <div className="flex flex-col">
       {/* Banner */}
       <div
-        className="border-b border-line"
-        style={{ padding: '40px 48px 24px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 20, alignItems: 'flex-start' }}
+        className="border-b border-line px-4 sm:px-8 lg:px-12 flex flex-wrap gap-5"
+        style={{ paddingTop: 32, paddingBottom: 24, alignItems: 'flex-start' }}
       >
         {company.logoUrl ? (
           <img
@@ -97,7 +97,7 @@ export function CompanyProfilePage() {
           </div>
         )}
 
-        <div>
+        <div className="flex-1 min-w-0">
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Company</span>
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 34, marginTop: 6 }}>{company.name}</h1>
           <p className="font-serif text-ink-2" style={{ maxWidth: 540, marginTop: 8, fontSize: 15 }}>
@@ -147,7 +147,7 @@ export function CompanyProfilePage() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex border-b border-line" style={{ gap: 24, padding: '0 48px' }}>
+      <div className="flex border-b border-line px-4 sm:px-8 lg:px-12" style={{ gap: 24 }}>
         {([
           { key: 'blogs', label: `Blogs · ${allArticles.length}` },
           { key: 'team', label: `Team · ${team.length}` },
@@ -172,7 +172,7 @@ export function CompanyProfilePage() {
 
       {/* Tab content */}
       {activeTab === 'blogs' && (
-        <div style={{ padding: '24px 48px', display: 'grid', gridTemplateColumns: '1fr 280px', gap: 32 }}>
+        <div className="px-4 sm:px-8 lg:px-12 py-6 grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 480px), 1fr))' }}>
           <div>
             {/* Filter + sort bar */}
             {allArticles.length > 0 && (
@@ -345,13 +345,13 @@ export function CompanyProfilePage() {
       )}
 
       {activeTab === 'team' && (
-        <div style={{ padding: '24px 48px' }}>
+        <div className="px-4 sm:px-8 lg:px-12 py-6">
           {team.length === 0 ? (
             <div className="rounded-[6px] border border-line flex items-center justify-center" style={{ padding: 40 }}>
               <p className="text-ink-3" style={{ fontSize: 13 }}>No team members to show.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
               {team.map((member) => (
                 <div key={member.id} className="rounded-[6px] border border-line flex items-center" style={{ padding: '12px 14px', gap: 12 }}>
                   <div
@@ -380,7 +380,7 @@ export function CompanyProfilePage() {
       )}
 
       {activeTab === 'timeline' && (
-        <div style={{ padding: '24px 48px', display: 'grid', gridTemplateColumns: '180px 1fr', gap: 40, position: 'relative' }}>
+        <div className="px-4 sm:px-8 lg:px-12 py-6 grid gap-8 lg:gap-10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 560px), 1fr))', position: 'relative' }}>
           <div style={{ position: 'sticky', top: 0, height: 'fit-content' }}>
             <div className="font-mono uppercase text-ink-3" style={{ fontSize: 10, letterSpacing: '1.2px', marginBottom: 8 }}>
               Jump to

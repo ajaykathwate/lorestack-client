@@ -130,7 +130,7 @@ export function DashboardLayout() {
             'fixed md:static inset-y-0 left-0 z-50 flex flex-col border-r border-line bg-bg transition-transform duration-200',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           )}
-          style={{ width: 220 }}
+          style={{ width: 'clamp(180px, 15vw, 220px)' }}
         >
           {/* Mobile close button */}
           <div className="h-[46px] border-b border-line flex items-center justify-end px-4 md:hidden">
@@ -147,7 +147,7 @@ export function DashboardLayout() {
         </aside>
 
         {/* Main area */}
-        <main className="flex-1 min-w-0 p-6">
+        <main className="flex-1 min-w-0 p-4 lg:p-6">
           <Outlet />
         </main>
       </div>

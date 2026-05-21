@@ -260,7 +260,7 @@ export function ExplorePage() {
   const activeFilterCount = (activeType !== 'all' ? 1 : 0) + (tagParam ? 1 : 0) + (dateRange !== 'all' ? 1 : 0)
 
   return (
-    <div style={{ padding: '0 48px 56px' }}>
+    <div className="px-4 sm:px-8 lg:px-12 pb-14">
       {/* ── Header ── */}
       <div style={{ padding: '28px 0 22px' }}>
         <span className="font-mono uppercase text-ink-3" style={{ fontSize: 10, letterSpacing: '1.4px' }}>
@@ -301,7 +301,7 @@ export function ExplorePage() {
 
       {/* ── Filter bar ── */}
       <div
-        className="flex items-center gap-3 border-b border-line"
+        className="flex flex-wrap items-center gap-3 border-b border-line"
         style={{ padding: '10px 0', fontSize: 12 }}
       >
         <span className="text-ink-3">All articles within</span>
@@ -376,9 +376,7 @@ export function ExplorePage() {
       {isLoading && (
         <div style={{ marginTop: 28 }}>
           <div className="animate-pulse rounded-[6px] bg-bg-tint border border-line" style={{ height: 240, marginBottom: 28 }} />
-          <div
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse rounded-[6px] bg-bg-tint border border-line" style={{ height: 240 }} />
             ))}
@@ -437,7 +435,7 @@ export function ExplorePage() {
           {pageArticles.length === 0 ? (
             <p className="text-ink-3" style={{ fontSize: 13, paddingTop: 8 }}>No more articles on this page.</p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px]">
               {pageArticles.map((blog) => (
                 <ArticleCard key={blog.id} blog={blog} />
               ))}

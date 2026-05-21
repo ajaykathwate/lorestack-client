@@ -14,10 +14,10 @@ export function PublicLayout() {
       {/* Footer */}
       <footer className="border-t border-line bg-bg-deep">
         <div
-          className="max-w-6xl mx-auto px-6 py-8 grid gap-6 text-ink-2"
-          style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr', fontSize: 13 }}
+          className="max-w-6xl mx-auto px-6 py-8 grid gap-8 text-ink-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+          style={{ fontSize: 13 }}
         >
-          <div>
+          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <Wordmark size={17} asLink={false} />
             <p className="text-ink-3 leading-relaxed mt-2.5 max-w-[240px]" style={{ fontSize: 12 }}>
               A home for engineering stories. Made with care for the people who actually ship.

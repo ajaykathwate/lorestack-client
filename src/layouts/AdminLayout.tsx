@@ -62,7 +62,7 @@ export function AdminLayout() {
         {/* Sidebar */}
         <nav
           className="flex-shrink-0 border-r border-line bg-bg-soft flex flex-col"
-          style={{ width: 200, padding: '16px 0', overflowY: 'auto' }}
+          style={{ width: 'clamp(160px, 13vw, 200px)', padding: '16px 0', overflowY: 'auto' }}
         >
           <div className="font-mono uppercase text-ink-3" style={{ fontSize: 10, letterSpacing: '1.2px', padding: '0 16px 8px' }}>
             Admin

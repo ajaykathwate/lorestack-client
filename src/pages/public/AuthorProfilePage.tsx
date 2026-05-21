@@ -36,8 +36,8 @@ export function AuthorProfilePage() {
     <div className="flex flex-col">
       {/* Profile header */}
       <div
-        className="border-b border-line"
-        style={{ padding: '40px 48px 24px', display: 'flex', gap: 24, alignItems: 'flex-start' }}
+        className="border-b border-line px-4 sm:px-8 lg:px-12 flex flex-wrap gap-6"
+        style={{ paddingTop: 32, paddingBottom: 24, alignItems: 'flex-start' }}
       >
         {profile.avatarUrl ? (
           <img
@@ -112,8 +112,8 @@ export function AuthorProfilePage() {
 
       {/* Writing for strip */}
       <div
-        className="border-b border-line bg-bg-soft flex items-center"
-        style={{ padding: '18px 48px', gap: 14 }}
+        className="border-b border-line bg-bg-soft flex flex-wrap items-center px-4 sm:px-8 lg:px-12 py-4"
+        style={{ gap: 14 }}
       >
         <span className="font-mono uppercase text-ink-3 flex-shrink-0" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
           Writing for
@@ -132,7 +132,7 @@ export function AuthorProfilePage() {
       </div>
 
       {/* Articles */}
-      <div style={{ padding: '24px 48px' }}>
+      <div className="px-4 sm:px-8 lg:px-12 py-6">
         <div className="flex justify-between items-baseline" style={{ marginBottom: 14 }}>
           <h3 className="font-serif font-bold text-ink" style={{ fontSize: 20 }}>
             Articles <span className="text-ink-3 font-normal">· {articles.length}</span>
@@ -140,7 +140,7 @@ export function AuthorProfilePage() {
         </div>
 
         {blogsLoading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 200 }} />
             ))}
@@ -150,7 +150,7 @@ export function AuthorProfilePage() {
             <p className="text-ink-3" style={{ fontSize: 13 }}>No published articles yet.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
             {articles.map((blog) => (
               <Link
                 key={blog.id}

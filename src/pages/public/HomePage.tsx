@@ -45,89 +45,88 @@ export function HomePage() {
     <div className="flex flex-col">
       {/* ── HERO ── */}
       {!isAuthenticated ? (
-        <section
-          className="border-b border-line"
-          style={{ padding: '48px 56px 32px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 48, alignItems: 'center' }}
-        >
-          <div>
-            <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
-              A home for engineering stories
-            </span>
-            <h1
-              className="font-serif font-bold text-ink"
-              style={{ fontSize: 54, lineHeight: 1.02, marginTop: 10, maxWidth: 580 }}
-            >
-              Long-form writing for the people who actually{' '}
-              <em className="text-ls-accent not-italic">ship</em>.
-            </h1>
-            <p className="font-serif text-ink-2" style={{ fontSize: 17, lineHeight: 1.55, marginTop: 16, maxWidth: 520 }}>
-              Engineering blogs, architecture deep-dives, post-mortems and build-in-public timelines — under your name or your company's.
-            </p>
-            <div className="flex" style={{ gap: 10, marginTop: 24 }}>
-              <Link
-                to={ROUTES.REGISTER}
-                className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-                style={{ padding: '10px 20px', fontSize: 14 }}
+        <section className="border-b border-line px-4 sm:px-8 lg:px-14 pt-10 sm:pt-12 pb-8">
+          <div className="grid gap-10 lg:gap-12 items-center" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))' }}>
+            <div>
+              <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
+                A home for engineering stories
+              </span>
+              <h1
+                className="font-serif font-bold text-ink"
+                style={{ fontSize: 'clamp(36px, 5vw, 54px)', lineHeight: 1.02, marginTop: 10, maxWidth: 580 }}
               >
-                Start writing — it's free
-              </Link>
-              <Link
-                to={ROUTES.EXPLORE}
-                className="border border-line text-ink font-medium rounded-[6px] hover:bg-bg-tint transition-colors"
-                style={{ padding: '10px 20px', fontSize: 14 }}
-              >
-                Explore articles
-              </Link>
-            </div>
-            <div
-              className="flex"
-              style={{ gap: 36, marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--ls-line-soft)' }}
-            >
-              {STATS.map(([n, l]) => (
-                <div key={l}>
-                  <div className="font-serif font-semibold text-ink" style={{ fontSize: 22 }}>{n}</div>
-                  <div className="text-ink-3" style={{ fontSize: 11, marginTop: 2 }}>{l}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="rounded-[8px] bg-bg-tint border border-line" style={{ height: 300 }} />
-            {trendingBlogs[0] && (
-              <div
-                className="absolute bg-bg border border-line rounded-[6px] shadow-sm"
-                style={{ bottom: -20, left: -20, right: 32, padding: 14 }}
-              >
-                <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                  This week's lead
-                </span>
-                <div className="font-serif font-semibold text-ink" style={{ fontSize: 18, marginTop: 8, lineHeight: 1.25 }}>
-                  {trendingBlogs[0].title}
-                </div>
-                <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
-                  <div
-                    className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
-                    style={{ width: 16, height: 16, fontSize: 8 }}
-                  >
-                    {initials(trendingBlogs[0].title)}
-                  </div>
-                  8 min read
-                </div>
+                Long-form writing for the people who actually{' '}
+                <em className="text-ls-accent not-italic">ship</em>.
+              </h1>
+              <p className="font-serif text-ink-2" style={{ fontSize: 'clamp(15px, 2vw, 17px)', lineHeight: 1.55, marginTop: 16, maxWidth: 520 }}>
+                Engineering blogs, architecture deep-dives, post-mortems and build-in-public timelines — under your name or your company's.
+              </p>
+              <div className="flex flex-wrap" style={{ gap: 10, marginTop: 24 }}>
+                <Link
+                  to={ROUTES.REGISTER}
+                  className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
+                  style={{ padding: '10px 20px', fontSize: 14 }}
+                >
+                  Start writing — it's free
+                </Link>
+                <Link
+                  to={ROUTES.EXPLORE}
+                  className="border border-line text-ink font-medium rounded-[6px] hover:bg-bg-tint transition-colors"
+                  style={{ padding: '10px 20px', fontSize: 14 }}
+                >
+                  Explore articles
+                </Link>
               </div>
-            )}
+              <div
+                className="flex flex-wrap"
+                style={{ gap: 24, marginTop: 28, paddingTop: 18, borderTop: '1px solid var(--ls-line-soft)' }}
+              >
+                {STATS.map(([n, l]) => (
+                  <div key={l}>
+                    <div className="font-serif font-semibold text-ink" style={{ fontSize: 22 }}>{n}</div>
+                    <div className="text-ink-3" style={{ fontSize: 11, marginTop: 2 }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative hidden sm:block">
+              <div className="rounded-[8px] bg-bg-tint border border-line" style={{ height: 280 }} />
+              {trendingBlogs[0] && (
+                <div
+                  className="absolute bg-bg border border-line rounded-[6px] shadow-sm"
+                  style={{ bottom: -20, left: -16, right: 28, padding: 14 }}
+                >
+                  <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
+                    This week's lead
+                  </span>
+                  <div className="font-serif font-semibold text-ink" style={{ fontSize: 17, marginTop: 8, lineHeight: 1.25 }}>
+                    {trendingBlogs[0].title}
+                  </div>
+                  <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
+                    <div
+                      className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
+                      style={{ width: 16, height: 16, fontSize: 8 }}
+                    >
+                      {initials(trendingBlogs[0].title)}
+                    </div>
+                    8 min read
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
       ) : (
-        <section className="border-b border-line bg-bg-soft" style={{ padding: '24px 56px' }}>
-          <div className="flex items-center justify-between">
+        <section className="border-b border-line bg-bg-soft px-4 sm:px-8 lg:px-14 py-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Good morning</span>
               <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
                 Welcome back, {authorProfile?.displayName ?? 'there'}.
               </h1>
             </div>
-            <div className="flex" style={{ gap: 8 }}>
+            <div className="flex flex-wrap" style={{ gap: 8 }}>
               <Link
                 to={ROUTES.DRAFTS}
                 className="border border-line text-ink-2 font-medium rounded-[6px] hover:bg-bg-tint transition-colors"
@@ -155,17 +154,15 @@ export function HomePage() {
       )}
 
       {/* ── BROWSE BY TYPE ── */}
-      <section className="flex items-center" style={{ padding: '24px 56px 0', gap: 14, overflow: 'hidden' }}>
+      <section className="flex items-center px-4 sm:px-8 lg:px-14 pt-6" style={{ gap: 14, overflow: 'hidden' }}>
         <span className="font-mono uppercase text-ink-3 flex-shrink-0" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
-          Browse by type
+          Browse
         </span>
-        <div className="flex overflow-x-auto" style={{ gap: 6, flex: 1 }}>
+        <div className="flex overflow-x-auto" style={{ gap: 6, flex: 1, scrollbarWidth: 'none' }}>
           {TYPE_PILLS.map((pill) => (
             <button
               key={pill.value}
-              onClick={() => {
-                setActiveType(pill.value)
-              }}
+              onClick={() => setActiveType(pill.value)}
               className={`flex-shrink-0 rounded-full border transition-colors font-sans ${
                 activeType === pill.value
                   ? 'bg-ink text-bg border-ink'
@@ -180,30 +177,31 @@ export function HomePage() {
       </section>
 
       {/* ── TRENDING THIS WEEK ── */}
-      <section style={{ padding: '18px 56px 32px' }}>
+      <section className="px-4 sm:px-8 lg:px-14 pt-5 pb-8">
         <div className="flex items-baseline" style={{ gap: 14, marginBottom: 14 }}>
           <h2 className="font-serif font-bold text-ink" style={{ fontSize: 22 }}>Trending this week</h2>
           <div className="flex-1 border-t border-line" />
-          <Link to={ROUTES.EXPLORE} className="text-ls-accent underline underline-offset-2" style={{ fontSize: 11 }}>
+          <Link to={ROUTES.EXPLORE} className="text-ls-accent underline underline-offset-2 flex-shrink-0" style={{ fontSize: 11 }}>
             See all →
           </Link>
         </div>
 
         {trendingBlogs.length === 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 18 }}>
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: i === 0 ? 380 : 200 }} />
+              <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: i === 0 ? 320 : 180 }} />
             ))}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 18 }}>
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
             {/* Big feature card */}
             {trendingBlogs[0] && (
               <Link
                 to={buildRoute.blog(trendingBlogs[0].slug)}
-                className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
+                className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors sm:row-span-2"
+                style={{ gridRow: 'span 1' }}
               >
-                <div className="bg-bg-tint" style={{ height: 260 }} />
+                <div className="bg-bg-tint flex-shrink-0" style={{ height: 200 }} />
                 <div className="flex flex-col" style={{ padding: '18px 20px', gap: 8 }}>
                   <div className="flex items-center" style={{ gap: 8 }}>
                     <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
@@ -211,7 +209,7 @@ export function HomePage() {
                     </span>
                     <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>#1 trending</span>
                   </div>
-                  <h3 className="font-serif font-bold text-ink" style={{ fontSize: 24, lineHeight: 1.15 }}>
+                  <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, lineHeight: 1.15 }}>
                     {trendingBlogs[0].title}
                   </h3>
                   {trendingBlogs[0].summary && (
@@ -226,39 +224,37 @@ export function HomePage() {
               </Link>
             )}
 
-            {/* Right side grid */}
-            <div style={{ display: 'grid', gridColumn: 'span 2', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              {trendingBlogs.slice(1, 5).map((blog, i) => (
-                <Link
-                  key={blog.id}
-                  to={buildRoute.blog(blog.slug)}
-                  className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
-                >
-                  <div className="bg-bg-tint" style={{ height: 100 }} />
-                  <div className="flex flex-col" style={{ padding: '10px 12px', gap: 6 }}>
-                    <div className="flex justify-between items-center">
-                      <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                        {articleTypeLabel(blog.articleType)}
-                      </span>
-                      <span className="font-mono text-ink-3" style={{ fontSize: 10 }}>#{i + 2}</span>
-                    </div>
-                    <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.25 }}>
-                      {blog.title}
-                    </div>
-                    <div className="text-ink-3" style={{ fontSize: 11 }}>
-                      {formatDateShort(blog.publishedAt ?? blog.createdAt)}
-                    </div>
+            {/* Remaining cards */}
+            {trendingBlogs.slice(1, 5).map((blog, i) => (
+              <Link
+                key={blog.id}
+                to={buildRoute.blog(blog.slug)}
+                className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
+              >
+                <div className="bg-bg-tint flex-shrink-0" style={{ height: 90 }} />
+                <div className="flex flex-col" style={{ padding: '10px 12px', gap: 6 }}>
+                  <div className="flex justify-between items-center">
+                    <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
+                      {articleTypeLabel(blog.articleType)}
+                    </span>
+                    <span className="font-mono text-ink-3" style={{ fontSize: 10 }}>#{i + 2}</span>
                   </div>
-                </Link>
-              ))}
-            </div>
+                  <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.25 }}>
+                    {blog.title}
+                  </div>
+                  <div className="text-ink-3" style={{ fontSize: 11 }}>
+                    {formatDateShort(blog.publishedAt ?? blog.createdAt)}
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </section>
 
 
       {/* ── DEEP DIVES + RIGHT RAIL ── */}
-      <section style={{ padding: '32px 56px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 36 }}>
+      <section className="px-4 sm:px-8 lg:px-14 py-8 grid gap-8 lg:gap-9" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 480px), 1fr))' }}>
         {/* Recent deep dives */}
         <div>
           <div className="flex items-baseline" style={{ gap: 14, marginBottom: 14 }}>
@@ -271,7 +267,7 @@ export function HomePage() {
                 key={blog.id}
                 to={buildRoute.blog(blog.slug)}
                 className="hover:bg-bg-tint transition-colors"
-                style={{ display: 'grid', gridTemplateColumns: '40px 1fr 160px', gap: 14, padding: '14px 0', borderTop: '1px solid var(--ls-line-soft)', alignItems: 'center' }}
+                style={{ display: 'grid', gridTemplateColumns: '36px 1fr auto', gap: 12, padding: '12px 0', borderTop: '1px solid var(--ls-line-soft)', alignItems: 'center' }}
               >
                 <span className="font-serif font-semibold text-ink-3" style={{ fontSize: 18 }}>0{i + 1}</span>
                 <div>
@@ -283,11 +279,11 @@ export function HomePage() {
                       {formatDateShort(blog.publishedAt ?? blog.createdAt)}
                     </span>
                   </div>
-                  <h3 className="font-serif font-semibold text-ink" style={{ fontSize: 16, marginTop: 6, lineHeight: 1.3 }}>
+                  <h3 className="font-serif font-semibold text-ink" style={{ fontSize: 15, marginTop: 6, lineHeight: 1.3 }}>
                     {blog.title}
                   </h3>
                 </div>
-                <div className="bg-bg-tint rounded-[4px]" style={{ height: 68 }} />
+                <div className="bg-bg-tint rounded-[4px] flex-shrink-0 hidden sm:block" style={{ height: 60, width: 90 }} />
               </Link>
             ))}
 
@@ -299,7 +295,6 @@ export function HomePage() {
 
         {/* Right rail */}
         <div className="flex flex-col" style={{ gap: 24 }}>
-          {/* Trending tags */}
           {trendingTags.length > 0 && (
             <div>
               <div
@@ -332,77 +327,74 @@ export function HomePage() {
       {/* ── WRITER CTA (logged out only) ── */}
       {!isAuthenticated && (
         <section
-          className="text-bg"
-          style={{ padding: '48px 56px', background: 'var(--ls-ink)', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32, alignItems: 'center' }}
+          className="text-bg px-4 sm:px-8 lg:px-14 py-10 sm:py-12"
+          style={{ background: 'var(--ls-ink)' }}
         >
-          <div>
-            <span className="font-mono uppercase text-ls-accent" style={{ fontSize: 10, letterSpacing: 1.2 }}>
-              For writers
-            </span>
-            <h2 className="font-serif font-bold" style={{ fontSize: 30, color: 'var(--ls-bg)', marginTop: 8, maxWidth: 580 }}>
-              Publish under your name, your company, or both. We handle the SEO, the OG images, and the build-in-public timeline.
-            </h2>
-            <ul className="flex" style={{ margin: '16px 0 0', padding: 0, listStyle: 'none', gap: 24, fontSize: 13, opacity: 0.85 }}>
-              <li>— Auto-generated tag pages</li>
-              <li>— Per-blog analytics</li>
-              <li>— Scheduled publishing</li>
-              <li>— No ads, ever</li>
-            </ul>
-          </div>
-          <div className="flex flex-col items-end" style={{ gap: 10 }}>
-            <Link
-              to={ROUTES.REGISTER}
-              className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-              style={{ padding: '12px 24px', fontSize: 14 }}
-            >
-              Create your account
-            </Link>
-            <button
-              className="border text-bg rounded-[6px] transition-colors"
-              style={{ padding: '12px 24px', fontSize: 14, borderColor: 'var(--ls-bg)', background: 'transparent' }}
-            >
-              Read the writer guide
-            </button>
+          <div className="grid gap-8 items-center" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
+            <div>
+              <span className="font-mono uppercase text-ls-accent" style={{ fontSize: 10, letterSpacing: 1.2 }}>
+                For writers
+              </span>
+              <h2 className="font-serif font-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)', color: 'var(--ls-bg)', marginTop: 8, maxWidth: 580 }}>
+                Publish under your name, your company, or both. We handle the SEO, the OG images, and the build-in-public timeline.
+              </h2>
+              <ul className="flex flex-wrap" style={{ margin: '16px 0 0', padding: 0, listStyle: 'none', gap: '8px 24px', fontSize: 13, opacity: 0.85 }}>
+                <li>— Auto-generated tag pages</li>
+                <li>— Per-blog analytics</li>
+                <li>— Scheduled publishing</li>
+                <li>— No ads, ever</li>
+              </ul>
+            </div>
+            <div className="flex flex-col sm:items-end" style={{ gap: 10 }}>
+              <Link
+                to={ROUTES.REGISTER}
+                className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors text-center"
+                style={{ padding: '12px 24px', fontSize: 14 }}
+              >
+                Create your account
+              </Link>
+              <button
+                className="border text-bg rounded-[6px] transition-colors text-center"
+                style={{ padding: '12px 24px', fontSize: 14, borderColor: 'var(--ls-bg)', background: 'transparent' }}
+              >
+                Read the writer guide
+              </button>
+            </div>
           </div>
         </section>
       )}
 
       {/* ── NEWSLETTER ── */}
-      <section
-        className="border-t border-line"
-        style={{ padding: '32px 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'center' }}
-      >
-        <div>
-          <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
-            The weekly digest
-          </span>
-          <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, marginTop: 6 }}>
-            The best engineering writing, in your inbox each Friday.
-          </h3>
-          <p className="text-ink-2" style={{ margin: '6px 0 0', fontSize: 13 }}>
-            Hand-picked. 5-minute read. Unsubscribe anytime.
-          </p>
-        </div>
-        <div className="flex" style={{ gap: 8 }}>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@studio.dev"
-            className="flex-1 rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong transition-colors"
-            style={{ height: 44, padding: '0 14px', fontSize: 13 }}
-          />
-          <button
-            onClick={() => {
-              if (email) {
-                navigate(ROUTES.REGISTER)
-              }
-            }}
-            className="bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
-            style={{ height: 44, padding: '0 20px', fontSize: 14 }}
-          >
-            Subscribe
-          </button>
+      <section className="border-t border-line px-4 sm:px-8 lg:px-14 py-8">
+        <div className="grid gap-8 items-center" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
+          <div>
+            <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
+              The weekly digest
+            </span>
+            <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, marginTop: 6 }}>
+              The best engineering writing, in your inbox each Friday.
+            </h3>
+            <p className="text-ink-2" style={{ margin: '6px 0 0', fontSize: 13 }}>
+              Hand-picked. 5-minute read. Unsubscribe anytime.
+            </p>
+          </div>
+          <div className="flex" style={{ gap: 8 }}>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@studio.dev"
+              className="flex-1 min-w-0 rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong transition-colors"
+              style={{ height: 44, padding: '0 14px', fontSize: 13 }}
+            />
+            <button
+              onClick={() => { if (email) navigate(ROUTES.REGISTER) }}
+              className="flex-shrink-0 bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
+              style={{ height: 44, padding: '0 18px', fontSize: 14 }}
+            >
+              Subscribe
+            </button>
+          </div>
         </div>
       </section>
     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { PenLine, Search, Bell, LogOut, User, LayoutDashboard, Home, Settings, X } from 'lucide-react'
+import { PenLine, Search, Bell, LogOut, User, LayoutDashboard, Home, Settings, X, Menu } from 'lucide-react'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { useAuthStore } from '@/store/authStore'
@@ -27,8 +27,8 @@ function NotificationDrawer({ onClose }: { onClose: () => void }) {
       className="fixed z-50 bg-bg border border-line rounded-[6px] flex flex-col"
       style={{
         top: 62,
-        right: 24,
-        width: 380,
+        right: 16,
+        width: 'min(380px, calc(100vw - 32px))',
         maxHeight: 520,
         boxShadow: '0 12px 40px rgba(0,0,0,.18)',
       }}
@@ -88,6 +88,7 @@ export function TopNav() {
   const [showSearch, setShowSearch] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showNotif, setShowNotif] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
 
@@ -102,7 +103,7 @@ export function TopNav() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setShowSearch(true) }
-      if (e.key === 'Escape') { setShowMenu(false); setShowNotif(false) }
+      if (e.key === 'Escape') { setShowMenu(false); setShowNotif(false); setMobileMenuOpen(false) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -119,7 +120,11 @@ export function TopNav() {
   }, [])
 
   // Close on route change
-  useEffect(() => { setShowMenu(false); setShowNotif(false) }, [location.pathname])
+  useEffect(() => {
+    setShowMenu(false)
+    setShowNotif(false)
+    setMobileMenuOpen(false)
+  }, [location.pathname])
 
   const profileHref = authorProfile?.username
     ? buildRoute.author(authorProfile.username)
@@ -136,24 +141,149 @@ export function TopNav() {
         </div>
       )}
 
+      {/* ── Mobile menu drawer ── */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-bg overflow-auto flex flex-col"
+          style={{ top: 56, boxShadow: '0 8px 32px rgba(0,0,0,.15)' }}
+        >
+          {/* Nav links */}
+          <nav className="flex flex-col p-3 gap-0.5 border-b border-line">
+            {NAV_LINKS.map(({ label, to }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'px-3 py-3 rounded-[4px] font-medium transition-colors',
+                    isActive
+                      ? 'bg-bg-tint text-ink'
+                      : 'text-ink-2 hover:text-ink hover:bg-bg-tint',
+                  )
+                }
+                style={{ fontSize: 15 }}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Auth section */}
+          <div className="flex flex-col p-3 gap-2">
+            {isAuthenticated ? (
+              <>
+                {authorProfile && (
+                  <div className="px-3 py-2.5 border border-line rounded-[6px] bg-bg-soft mb-1">
+                    <div className="font-semibold text-ink" style={{ fontSize: 13 }}>
+                      {authorProfile.displayName}
+                    </div>
+                    {authorProfile.username && (
+                      <div className="text-ink-3 font-mono" style={{ fontSize: 11 }}>
+                        @{authorProfile.username}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <Link
+                  to={ROUTES.EDITOR_NEW}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
+                  style={{ padding: '11px 16px', fontSize: 14 }}
+                >
+                  <PenLine size={15} />
+                  Write
+                </Link>
+                <Link
+                  to={ROUTES.DASHBOARD}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[4px] transition-colors"
+                  style={{ fontSize: 14 }}
+                >
+                  <LayoutDashboard size={14} className="flex-shrink-0" />
+                  Dashboard
+                </Link>
+                <Link
+                  to={ROUTES.HOME}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[4px] transition-colors"
+                  style={{ fontSize: 14 }}
+                >
+                  <Home size={14} className="flex-shrink-0" />
+                  Home
+                </Link>
+                <Link
+                  to={profileHref}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[4px] transition-colors"
+                  style={{ fontSize: 14 }}
+                >
+                  <User size={14} className="flex-shrink-0" />
+                  Profile
+                </Link>
+                <Link
+                  to={ROUTES.PROFILE_SETTINGS}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[4px] transition-colors"
+                  style={{ fontSize: 14 }}
+                >
+                  <Settings size={14} className="flex-shrink-0" />
+                  Settings
+                </Link>
+                <div className="border-t border-line-soft my-1" />
+                <button
+                  onClick={() => { setMobileMenuOpen(false); logout() }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[4px] transition-colors w-full text-left"
+                  style={{ fontSize: 14 }}
+                >
+                  <LogOut size={14} className="flex-shrink-0" />
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to={ROUTES.LOGIN}
+                  state={{ from: location.pathname }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="border border-line text-ink font-medium rounded-[6px] text-center hover:bg-bg-tint transition-colors"
+                  style={{ padding: '11px 16px', fontSize: 14 }}
+                >
+                  Log in
+                </Link>
+                <Link
+                  to={ROUTES.REGISTER}
+                  state={{ from: location.pathname }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors text-center"
+                  style={{ padding: '11px 16px', fontSize: 14 }}
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <header className="sticky top-0 z-50 bg-bg border-b border-line">
         <div
-          className="grid items-center gap-6 px-6"
-          style={{ gridTemplateColumns: 'auto 1fr auto', height: 56 }}
+          className="grid items-center px-4 sm:px-6"
+          style={{ gridTemplateColumns: 'auto 1fr auto', height: 56, gap: 'clamp(12px, 2vw, 24px)' }}
         >
-          {/* Left: wordmark + nav */}
-          <div className="flex items-center gap-7">
+          {/* Left: wordmark + desktop nav */}
+          <div className="flex items-center gap-5 lg:gap-7">
             <Link to={ROUTES.HOME}>
               <Wordmark size={19} />
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-5 lg:gap-6">
               {NAV_LINKS.map(({ label, to }) => (
                 <NavLink
                   key={to}
                   to={to}
                   className={({ isActive }) =>
                     cn(
-                      'pb-[2px] transition-colors',
+                      'pb-[2px] transition-colors whitespace-nowrap',
                       isActive
                         ? 'font-semibold text-ink border-b-2 border-ls-accent'
                         : 'text-ink-2 hover:text-ink',
@@ -167,33 +297,42 @@ export function TopNav() {
             </nav>
           </div>
 
-          {/* Center: search */}
+          {/* Center: search bar (desktop only) */}
           <div className="max-w-[520px] w-full mx-auto hidden md:block">
             <div
               onClick={openSearch}
               className="flex items-center gap-2 border border-line bg-bg-soft rounded-[6px] text-ink-3 cursor-text hover:border-line-strong transition-colors"
               style={{ padding: '8px 12px', fontSize: 13 }}
             >
-              <Search size={14} className="text-ink-2" />
-              <span className="flex-1 text-ink-3" style={{ fontSize: 13 }}>
+              <Search size={14} className="text-ink-2 flex-shrink-0" />
+              <span className="flex-1 text-ink-3 truncate" style={{ fontSize: 13 }}>
                 Search Lorestack — blogs, companies, people, tags…
               </span>
-              <span className="hidden lg:flex gap-1 font-mono text-ink-3" style={{ fontSize: 10 }}>
+              <span className="hidden lg:flex gap-1 font-mono text-ink-3 flex-shrink-0" style={{ fontSize: 10 }}>
                 <span className="border border-line-soft rounded-[3px] bg-bg" style={{ padding: '2px 5px' }}>⌘</span>
                 <span className="border border-line-soft rounded-[3px] bg-bg" style={{ padding: '2px 5px' }}>K</span>
               </span>
             </div>
           </div>
 
-          {/* Right: auth */}
-          <div className="flex items-center gap-2.5">
+          {/* Right: auth controls + mobile icons */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Mobile search icon */}
+            <button
+              onClick={openSearch}
+              className="md:hidden text-ink-2 hover:text-ink transition-colors p-1.5 rounded-[4px]"
+              aria-label="Search"
+            >
+              <Search size={16} />
+            </button>
+
             {isAuthenticated ? (
               <>
-                {/* Bell → notification drawer */}
+                {/* Bell — hidden on mobile (shown in mobile menu) */}
                 <button
                   onClick={() => setShowNotif((v) => !v)}
                   className={cn(
-                    'text-ink-2 hover:text-ink transition-colors p-1 rounded-[4px]',
+                    'hidden sm:flex text-ink-2 hover:text-ink transition-colors p-1.5 rounded-[4px]',
                     showNotif && 'bg-bg-tint text-ink',
                   )}
                   title="Notifications"
@@ -202,17 +341,18 @@ export function TopNav() {
                   <Bell size={16} />
                 </button>
 
+                {/* Write button — hidden on mobile */}
                 <Link
                   to={ROUTES.EDITOR_NEW}
-                  className="flex items-center gap-1.5 bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
+                  className="hidden sm:flex items-center gap-1.5 bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
                   style={{ padding: '6px 12px', fontSize: 13 }}
                 >
                   <PenLine size={14} />
                   Write
                 </Link>
 
-                {/* Avatar dropdown */}
-                <div className="relative" ref={menuRef}>
+                {/* Avatar dropdown — desktop only */}
+                <div className="relative hidden md:block" ref={menuRef}>
                   <button
                     onClick={() => setShowMenu((v) => !v)}
                     className={cn(
@@ -260,7 +400,6 @@ export function TopNav() {
                           <LayoutDashboard size={13} className="flex-shrink-0" />
                           Dashboard
                         </Link>
-                        {/* Profile → public author page */}
                         <Link
                           to={profileHref}
                           className="flex items-center gap-2.5 px-3 py-2 text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
@@ -295,10 +434,11 @@ export function TopNav() {
               </>
             ) : (
               <>
+                {/* Login/Signup — hidden on mobile (shown in drawer) */}
                 <Link
                   to={ROUTES.LOGIN}
                   state={{ from: location.pathname }}
-                  className="font-medium text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[6px] transition-colors"
+                  className="hidden sm:block font-medium text-ink-2 hover:text-ink hover:bg-bg-tint rounded-[6px] transition-colors"
                   style={{ padding: '6px 12px', fontSize: 13 }}
                 >
                   Log in
@@ -306,13 +446,22 @@ export function TopNav() {
                 <Link
                   to={ROUTES.REGISTER}
                   state={{ from: location.pathname }}
-                  className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
+                  className="hidden sm:block bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
                   style={{ padding: '6px 12px', fontSize: 13 }}
                 >
                   Sign up
                 </Link>
               </>
             )}
+
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="md:hidden text-ink-2 hover:text-ink transition-colors p-1.5 rounded-[4px]"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
         </div>
       </header>

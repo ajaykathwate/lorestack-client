@@ -58,7 +58,7 @@ export function BlogPage() {
     <div className="flex flex-col">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr min(740px, 100%) 1fr' }}>
         <div />
-        <article style={{ padding: '48px 0 80px' }}>
+        <article className="px-4 sm:px-6 lg:px-0" style={{ paddingTop: 40, paddingBottom: 80 }}>
 
           {/* Article type badge */}
           <span
@@ -210,12 +210,7 @@ export function BlogPage() {
 
           {/* Author + company cards */}
           <div
-            style={{
-              marginTop: 40,
-              display: 'grid',
-              gridTemplateColumns: company && companyHandle ? '1fr 1fr' : '1fr',
-              gap: 14,
-            }}
+            className={`grid gap-4 mt-10 ${company && companyHandle ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}
           >
             {/* Author card */}
             <div className="rounded-[8px] border border-line flex" style={{ padding: 18, gap: 14 }}>

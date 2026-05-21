@@ -57,7 +57,8 @@ const App = () => {
                 <div>④ Public Discovery</div>
                 <div>⑤ Company</div>
                 <div>⑥ User &amp; System</div>
-                <div>⑦ Platform Admin</div>
+                <div>⑦ Marketing &amp; Legal</div>
+                <div>⑧ Platform Admin</div>
               </div>
               <span style={{flex:1}}/>
               <Box variant="soft" style={{padding:10,fontSize:11,color:'var(--wf-ink-2)'}}>
@@ -104,7 +105,7 @@ const App = () => {
           {D('home-public', '07a · Homepage — logged out', HomepagePublic, 1280, 2900)}
           {D('home-loggedin', '07b · Homepage — logged in', HomepageLoggedIn, 1280, 2300)}
           {D('search-modal', '18 · Search modal', SearchModalFrame)}
-          {D('explore', '10 · Explore', Explore)}
+          {D('explore', '10 · Explore (redesigned)', Explore, 1280, 2050)}
           {D('tag', '11 · Tag page', TagPage, 1280, 1100)}
           {D('not-found', '27 · 404 / not found', NotFound)}
           {M('m-home', '07M · Homepage', MHomepage)}
@@ -127,7 +128,13 @@ const App = () => {
           {D('notifications', '26 · Notifications drawer', Notifications)}
         </DCSection>
 
-        <DCSection id="admin" title="⑦ Platform Admin" subtitle="Internal Lorestack staff · curation + moderation">
+        <DCSection id="legal" title="⑦ Marketing & Legal" subtitle="Contact us · Privacy policy · Terms of service">
+          {D('contact', '28 · Contact us', ContactUs, 1280, 1900)}
+          {D('privacy', '29 · Privacy policy', PrivacyPolicy, 1280, 2400)}
+          {D('terms',   '30 · Terms of service', TermsOfService, 1280, 2650)}
+        </DCSection>
+
+        <DCSection id="admin" title="⑧ Platform Admin" subtitle="Internal Lorestack staff · curation + moderation">
           {D('admin-overview', '16 · Admin overview', AdminOverview)}
           {D('admin-tags', '17 · Tag moderation', AdminTags)}
         </DCSection>

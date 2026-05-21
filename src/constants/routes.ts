@@ -29,6 +29,17 @@ export const ROUTES = {
   PROFILE_SETTINGS: '/me/profile',
   NOTIFICATIONS: '/me/notifications',
 
+  // ── Settings ──────────────────────────────────────────────────────────
+  SETTINGS_ACCOUNT:       '/me/settings/account',
+  SETTINGS_NOTIFICATIONS: '/me/settings/notifications',
+  SETTINGS_SECURITY:      '/me/settings/security',
+  SETTINGS_CONNECTED:     '/me/settings/connected',
+  SETTINGS_EMAIL:         '/me/settings/email',
+  SETTINGS_DELETE:        '/me/settings/delete',
+
+  // ── Create company ────────────────────────────────────────────────────
+  CREATE_COMPANY: '/me/create-company',
+
   // ── Company (owner/member) ─────────────────────────────────────────────
   COMPANY_DASHBOARD: '/me/company/:handle',
   COMPANY_SETTINGS: '/me/company/:handle/settings',

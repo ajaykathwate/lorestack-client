@@ -38,9 +38,14 @@ import { EditorPage } from '@/pages/dashboard/EditorPage'
 import { CompanyDashboardPage } from '@/pages/dashboard/CompanyDashboardPage'
 import { CompanySettingsPage } from '@/pages/dashboard/CompanySettingsPage'
 import { TeamManagementPage } from '@/pages/dashboard/TeamManagementPage'
+import { CreateCompanyPage } from '@/pages/dashboard/CreateCompanyPage'
+
+// Settings pages (all render inside DashboardLayout)
+import { AccountSettingsPage } from '@/pages/dashboard/settings/AccountSettingsPage'
+import { SettingsPlaceholderPage } from '@/pages/dashboard/settings/SettingsPlaceholderPage'
 
 const router = createBrowserRouter([
-  // ── Public routes (no auth required) ────────────────────────────────────────
+  // ── Public routes ────────────────────────────────────────────────────────────
   {
     element: <PublicLayout />,
     children: [
@@ -56,15 +61,13 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── Auth routes: Register + Login (full split-page layout, no AuthLayout card) ──
+  // ── Auth / guest routes ───────────────────────────────────────────────────
   {
     element: <GuestGuard />,
     children: [
-      { path: ROUTES.REGISTER, element: <RegisterPage /> },
-      { path: ROUTES.LOGIN,    element: <LoginPage /> },
-      { path: ROUTES.GOOGLE_CALLBACK, element: <GoogleCallbackPage /> },
-
-      // Forgot + Reset use the centered card AuthLayout
+      { path: ROUTES.REGISTER,         element: <RegisterPage /> },
+      { path: ROUTES.LOGIN,            element: <LoginPage /> },
+      { path: ROUTES.GOOGLE_CALLBACK,  element: <GoogleCallbackPage /> },
       {
         element: <AuthLayout />,
         children: [
@@ -76,7 +79,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── Onboarding (authenticated, but no authorProfile required yet) ─────────
+  // ── Onboarding ───────────────────────────────────────────────────────────
   {
     element: <AuthGuard skipOnboardingRedirect />,
     children: [
@@ -84,43 +87,50 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── Protected dashboard routes (auth + onboarding required) ───────────────
+  // ── Protected dashboard routes ────────────────────────────────────────────
   {
     element: <AuthGuard />,
     children: [
       {
         element: <DashboardLayout />,
         children: [
-          { path: ROUTES.DASHBOARD,        element: <DashboardPage /> },
-          { path: ROUTES.MY_BLOGS,         element: <MyBlogsPage /> },
-          { path: ROUTES.DRAFTS,           element: <DraftsPage /> },
-          { path: ROUTES.SCHEDULED,        element: <ScheduledPage /> },
-          { path: ROUTES.PROFILE_SETTINGS, element: <ProfileSettingsPage /> },
-          { path: ROUTES.NOTIFICATIONS,    element: <NotificationsPage /> },
+          // Dashboard & writing
+          { path: ROUTES.DASHBOARD,          element: <DashboardPage /> },
+          { path: ROUTES.MY_BLOGS,           element: <MyBlogsPage /> },
+          { path: ROUTES.DRAFTS,             element: <DraftsPage /> },
+          { path: ROUTES.SCHEDULED,          element: <ScheduledPage /> },
+          { path: ROUTES.NOTIFICATIONS,      element: <NotificationsPage /> },
+          { path: ROUTES.CREATE_COMPANY,     element: <CreateCompanyPage /> },
           { path: ROUTES.COMPANY_DASHBOARD,  element: <CompanyDashboardPage /> },
           { path: ROUTES.COMPANY_SETTINGS,   element: <CompanySettingsPage /> },
           { path: ROUTES.TEAM_MANAGEMENT,    element: <TeamManagementPage /> },
+
+          // Settings (all inside DashboardLayout sidebar)
+          { path: ROUTES.PROFILE_SETTINGS,       element: <ProfileSettingsPage /> },
+          { path: ROUTES.SETTINGS_ACCOUNT,       element: <AccountSettingsPage /> },
+          { path: ROUTES.SETTINGS_NOTIFICATIONS, element: <SettingsPlaceholderPage title="Notifications" description="Control which notifications you receive." /> },
+          { path: ROUTES.SETTINGS_SECURITY,      element: <SettingsPlaceholderPage title="Security" description="Two-factor authentication and session management." /> },
+          { path: ROUTES.SETTINGS_CONNECTED,     element: <SettingsPlaceholderPage title="Connected accounts" description="Link your GitHub, Google, and Twitter accounts." /> },
+          { path: ROUTES.SETTINGS_EMAIL,         element: <SettingsPlaceholderPage title="Email preferences" description="Choose which emails you receive from Lorestack." /> },
+          { path: ROUTES.SETTINGS_DELETE,        element: <SettingsPlaceholderPage title="Delete account" description="Permanently delete your account and all your data." /> },
         ],
       },
-      // Editor uses its own full-screen layout (no DashboardLayout chrome)
+      // Editor: full-screen layout, no sidebar
       { path: ROUTES.EDITOR_NEW, element: <EditorPage /> },
       { path: ROUTES.EDITOR,     element: <EditorPage /> },
     ],
   },
 
-  // ── Admin routes ─────────────────────────────────────────────────────────────
+  // ── Admin routes ─────────────────────────────────────────────────────────
   {
     element: <AuthGuard />,
     children: [
       {
         element: <RoleGuard allowedRoles={['platform_admin']} />,
-        children: [
-          // Admin pages: Phase 3+ scope
-        ],
+        children: [],
       },
     ],
   },
-
 ])
 
 export function AppRouter() {

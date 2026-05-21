@@ -231,3 +231,32 @@
   border-radius: 4px;
   color: var(--ls-ink);
 }
+
+/* ── Premium editor toolbar — layout fixes ─────────────────────────────────
+   Quill's default snow CSS uses float:left on buttons and fixed widths on
+   pickers that overflow our two-row toolbar box. These overrides enforce
+   flex alignment and compact picker widths to match the wireframe. */
+
+/* Remove float so buttons participate in our flex layout */
+.editor-quill-wrap .ql-toolbar.ql-snow button {
+  float: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ql-formats spans — inline-flex so they sit correctly in the flex row */
+.editor-quill-wrap .ql-toolbar.ql-snow .ql-formats {
+  display: inline-flex !important;
+  align-items: center;
+  margin-right: 0 !important;
+}
+
+/* Compact picker widths to match wireframe (default Quill is 108/98/98px) */
+.editor-quill-wrap .ql-toolbar .ql-picker.ql-font   { width: 90px; }
+.editor-quill-wrap .ql-toolbar .ql-picker.ql-size   { width: 52px; }
+.editor-quill-wrap .ql-toolbar .ql-picker.ql-header { width: 84px; }
+
+/* Editor title + summary placeholder colors */
+.editor-title-input::placeholder   { color: var(--ls-ink-4); font-style: normal; }
+.editor-summary-input::placeholder { color: var(--ls-ink-4); font-style: italic; }

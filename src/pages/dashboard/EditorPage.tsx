@@ -7,7 +7,7 @@ import 'react-quill/dist/quill.snow.css'
 
 marked.setOptions({ breaks: true, gfm: true })
 
-// ── Register custom fonts & sizes with Quill ────────────────────────────────
+// ── Register custom fonts & sizes ──────────────────────────────────────────
 const Font = Quill.import('formats/font') as any
 Font.whitelist = ['sans', 'serif', 'mono']
 Quill.register(Font, true)
@@ -15,7 +15,6 @@ Quill.register(Font, true)
 const Size = Quill.import('attributors/style/size') as any
 Size.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px']
 Quill.register(Size, true)
-// ────────────────────────────────────────────────────────────────────────────
 
 function normalizeToHtml(body: string): string {
   if (!body) return ''
@@ -27,29 +26,34 @@ import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@/api/hooks/useBlogMutations'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
-import { articleTypeLabel, initials } from '@/lib/utils'
+import { initials } from '@/lib/utils'
 import type { ArticleType } from '@/types/api'
 
-const ARTICLE_TYPES: ArticleType[] = [
-  'engineering_blog', 'architecture_deep_dive', 'case_study', 'scaling_story',
-  'failure_postmortem', 'ai_experiment', 'founder_note', 'tutorial',
-  'opinion_essay', 'project_showcase', 'open_source_release', 'other',
-]
-
-const QUILL_MODULES = {
-  toolbar: {
-    container: '#quill-toolbar',
-  },
+const ARTICLE_TYPE_META: Record<ArticleType, { label: string; desc: string }> = {
+  engineering_blog:     { label: 'Engineering blog',     desc: 'How we solve technical problems' },
+  architecture_deep_dive: { label: 'Architecture deep dive', desc: 'System design and trade-offs' },
+  case_study:           { label: 'Case study',           desc: 'A specific customer or project' },
+  scaling_story:        { label: 'Scaling story',        desc: 'Hitting and beating growth bottlenecks' },
+  failure_postmortem:   { label: 'Failure postmortem',   desc: 'What broke, why, what we learned' },
+  ai_experiment:        { label: 'AI experiment',        desc: 'Working with LLMs, agents, models' },
+  founder_note:         { label: 'Founder note',         desc: 'Strategy, vision, behind-the-scenes' },
+  tutorial:             { label: 'Tutorial',             desc: 'Step-by-step how-to' },
+  opinion_essay:        { label: 'Opinion essay',        desc: 'A strong, well-reasoned take' },
+  project_showcase:     { label: 'Project showcase',     desc: 'Something you shipped this week' },
+  open_source_release:  { label: 'Open source release',  desc: 'OSS releases, contributions, RFCs' },
+  other:                { label: 'Other',                desc: 'Anything else worth writing about' },
 }
+
+const ARTICLE_TYPES = Object.keys(ARTICLE_TYPE_META) as ArticleType[]
+
+const QUILL_MODULES = { toolbar: { container: '#quill-toolbar' } }
 
 const QUILL_FORMATS = [
   'font', 'size', 'header',
   'bold', 'italic', 'underline', 'strike',
   'color', 'background',
   'blockquote', 'code-block',
-  'list', 'indent',
-  'align',
-  'script',
+  'list', 'indent', 'align', 'script',
   'link', 'image',
 ]
 
@@ -57,101 +61,149 @@ type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'idle'
 
 const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000
 
-// Custom Quill toolbar rendered as JSX so we control every pixel
-function QuillToolbar() {
+// ── Two-row Quill toolbar ──────────────────────────────────────────────────
+function QuillToolbar({ wordCount }: { wordCount: number }) {
   return (
-    <div
-      id="quill-toolbar"
-      style={{
-        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2,
-        padding: '6px 0', borderBottom: '1px solid var(--ls-line)',
-        background: 'var(--ls-bg)', position: 'sticky', top: 0, zIndex: 10,
-      }}
-    >
-      {/* Font family */}
-      <span className="ql-formats">
-        <select className="ql-font" title="Font family" defaultValue="">
-          <option value="">Default</option>
-          <option value="serif">Serif</option>
-          <option value="mono">Monospace</option>
-        </select>
-      </span>
+    <div id="quill-toolbar" style={{ marginTop: 4 }}>
+      {/* Primary row — styled box */}
+      <div style={{
+        position: 'relative',
+        display: 'flex', alignItems: 'center', gap: 4,
+        padding: '6px 76px 6px 10px',
+        background: 'var(--ls-bg-soft)',
+        border: '1px solid var(--ls-line)', borderRadius: 8,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.6)',
+        minWidth: 0,
+      }}>
+        <span className="ql-formats" style={{ margin: 0 }}>
+          <select className="ql-font" defaultValue="" title="Font family">
+            <option value="">Default</option>
+            <option value="serif">Serif</option>
+            <option value="mono">Monospace</option>
+          </select>
+        </span>
 
-      {/* Font size */}
-      <span className="ql-formats">
-        <select className="ql-size" title="Font size" defaultValue="">
-          <option value="12px">12</option>
-          <option value="14px">14</option>
-          <option value="">16</option>
-          <option value="18px">18</option>
-          <option value="20px">20</option>
-          <option value="24px">24</option>
-          <option value="28px">28</option>
-          <option value="32px">32</option>
-        </select>
-      </span>
+        <span className="ql-formats" style={{ margin: 0 }}>
+          <select className="ql-size" defaultValue="" title="Font size">
+            <option value="12px">12</option>
+            <option value="14px">14</option>
+            <option value="">16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
+            <option value="28px">28</option>
+            <option value="32px">32</option>
+          </select>
+        </span>
 
-      {/* Headings */}
-      <span className="ql-formats">
-        <select className="ql-header" title="Heading" defaultValue="">
-          <option value="1">H1</option>
-          <option value="2">H2</option>
-          <option value="3">H3</option>
-          <option value="4">H4</option>
-          <option value="">Normal</option>
-        </select>
-      </span>
+        <span className="ql-formats" style={{ margin: 0 }}>
+          <select className="ql-header" defaultValue="" title="Heading">
+            <option value="1">H1</option>
+            <option value="2">H2</option>
+            <option value="3">H3</option>
+            <option value="4">H4</option>
+            <option value="">Normal</option>
+          </select>
+        </span>
 
-      {/* Inline formatting */}
-      <span className="ql-formats">
-        <button className="ql-bold" title="Bold" />
-        <button className="ql-italic" title="Italic" />
-        <button className="ql-underline" title="Underline" />
-        <button className="ql-strike" title="Strikethrough" />
-      </span>
+        <span style={{ width: 1, height: 20, background: 'var(--ls-line)', margin: '0 2px', flexShrink: 0 }} />
 
-      {/* Color & highlight */}
-      <span className="ql-formats">
-        <select className="ql-color" title="Text color" />
-        <select className="ql-background" title="Highlight color" />
-      </span>
+        <span className="ql-formats" style={{ margin: 0, display: 'flex', gap: 1 }}>
+          <button className="ql-bold" title="Bold" />
+          <button className="ql-italic" title="Italic" />
+          <button className="ql-underline" title="Underline" />
+          <button className="ql-strike" title="Strikethrough" />
+        </span>
 
-      {/* Script */}
-      <span className="ql-formats">
-        <button className="ql-script" value="sub" title="Subscript" />
-        <button className="ql-script" value="super" title="Superscript" />
-      </span>
+        <span className="ql-formats" style={{ margin: 0, display: 'flex', gap: 1 }}>
+          <select className="ql-color" title="Text color" />
+          <select className="ql-background" title="Highlight color" />
+        </span>
 
-      {/* Blocks */}
-      <span className="ql-formats">
-        <button className="ql-blockquote" title="Blockquote" />
-        <button className="ql-code-block" title="Code block" />
-      </span>
+        <span className="ql-formats" style={{ margin: 0, display: 'flex', gap: 1 }}>
+          <button className="ql-script" value="sub" title="Subscript" />
+          <button className="ql-script" value="super" title="Superscript" />
+        </span>
 
-      {/* Lists */}
-      <span className="ql-formats">
-        <button className="ql-list" value="ordered" title="Ordered list" />
-        <button className="ql-list" value="bullet" title="Bullet list" />
-        <button className="ql-indent" value="-1" title="Outdent" />
-        <button className="ql-indent" value="+1" title="Indent" />
-      </span>
+        <span style={{ width: 1, height: 20, background: 'var(--ls-line)', margin: '0 2px', flexShrink: 0 }} />
 
-      {/* Alignment */}
-      <span className="ql-formats">
-        <select className="ql-align" title="Alignment" />
-      </span>
+        <span className="ql-formats" style={{ margin: 0, display: 'flex', gap: 1 }}>
+          <button className="ql-blockquote" title="Blockquote" />
+          <button className="ql-code-block" title="Code block" />
+        </span>
 
-      {/* Media */}
-      <span className="ql-formats">
-        <button className="ql-link" title="Link" />
-        <button className="ql-image" title="Image" />
-      </span>
+        {/* Word count pinned inside the right edge of the box */}
+        <span style={{
+          position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+          fontFamily: '"JetBrains Mono", monospace',
+          fontSize: 11, color: 'var(--ls-ink-3)', whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+        }}>
+          {wordCount} words
+        </span>
+      </div>
 
-      {/* Clear */}
-      <span className="ql-formats">
-        <button className="ql-clean" title="Clear formatting" />
-      </span>
+      {/* Secondary row — borderless */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        padding: '6px 10px',
+        borderBottom: '1px solid var(--ls-line-soft)',
+        marginTop: 4,
+      }}>
+        <span className="ql-formats" style={{ margin: 0, display: 'flex', gap: 1 }}>
+          <button className="ql-list" value="ordered" title="Ordered list" />
+          <button className="ql-list" value="bullet" title="Bullet list" />
+          <button className="ql-indent" value="-1" title="Outdent" />
+          <button className="ql-indent" value="+1" title="Indent" />
+        </span>
+
+        <span className="ql-formats" style={{ margin: '0 0 0 6px', display: 'flex' }}>
+          <select className="ql-align" title="Alignment" />
+        </span>
+
+        <span style={{ width: 1, height: 18, background: 'var(--ls-line-soft)', margin: '0 6px', flexShrink: 0 }} />
+
+        <span className="ql-formats" style={{ margin: 0, display: 'flex', gap: 1 }}>
+          <button className="ql-link" title="Link" />
+          <button className="ql-image" title="Image" />
+        </span>
+
+        <span style={{ width: 1, height: 18, background: 'var(--ls-line-soft)', margin: '0 6px', flexShrink: 0 }} />
+
+        <span className="ql-formats" style={{ margin: 0 }}>
+          <button className="ql-clean" title="Clear formatting" />
+        </span>
+      </div>
     </div>
+  )
+}
+
+// ── Shared popover shell ───────────────────────────────────────────────────
+function Popover({
+  pos, width, onClose, children,
+}: {
+  pos: { top: number; left: number }
+  width: number
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <>
+      <div
+        style={{ position: 'fixed', inset: 0, background: 'rgba(20,18,14,.12)', zIndex: 50 }}
+        onClick={onClose}
+      />
+      <div style={{
+        position: 'fixed', top: pos.top, left: pos.left,
+        width, zIndex: 51,
+        background: 'var(--ls-bg)',
+        border: '1px solid var(--ls-line)', borderRadius: 10,
+        boxShadow: '0 18px 48px rgba(20,18,14,.18), 0 0 0 1px rgba(20,18,14,.02)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      }}>
+        {children}
+      </div>
+    </>
   )
 }
 
@@ -177,9 +229,12 @@ export function EditorPage() {
   const [tagInput, setTagInput] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [summary, setSummary] = useState('')
+  const [seoTitle, setSeoTitle] = useState('')
+  const [seoDesc, setSeoDesc] = useState('')
+  const [showSeo, setShowSeo] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
-
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTime, setScheduleTime] = useState('09:00')
@@ -187,47 +242,48 @@ export function EditorPage() {
     () => Intl.DateTimeFormat().resolvedOptions().timeZone
   )
 
-  // Article type dropdown
-  const [showTypeDropdown, setShowTypeDropdown] = useState(false)
-  const typeDropdownRef = useRef<HTMLDivElement>(null)
+  // FORMAT popover
+  const formatBtnRef = useRef<HTMLButtonElement>(null)
+  const [showFormatPopover, setShowFormatPopover] = useState(false)
+  const [formatPopoverPos, setFormatPopoverPos] = useState<{ top: number; left: number } | null>(null)
 
-  // Company drawer
-  const [showCompanyDrawer, setShowCompanyDrawer] = useState(false)
-  const [companySearch, setCompanySearch] = useState('')
-  const companySearchRef = useRef<HTMLInputElement>(null)
+  // PUBLICATION popover
+  const pubBtnRef = useRef<HTMLButtonElement>(null)
+  const [showPubPopover, setShowPubPopover] = useState(false)
+  const [pubPopoverPos, setPubPopoverPos] = useState<{ top: number; left: number } | null>(null)
 
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialized = useRef(false)
   const coverFileRef = useRef<HTMLInputElement>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
 
-  // Close type dropdown on outside click
+  function openFormatPopover() {
+    if (formatBtnRef.current) {
+      const r = formatBtnRef.current.getBoundingClientRect()
+      setFormatPopoverPos({ top: r.bottom + 8, left: r.left })
+    }
+    setShowFormatPopover(true)
+  }
+
+  function openPubPopover() {
+    if (pubBtnRef.current) {
+      const r = pubBtnRef.current.getBoundingClientRect()
+      setPubPopoverPos({ top: r.bottom + 8, left: r.left })
+    }
+    setShowPubPopover(true)
+  }
+
+  // Close on Escape
   useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target as Node)) {
-        setShowTypeDropdown(false)
+    function handler(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setShowFormatPopover(false)
+        setShowPubPopover(false)
       }
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
   }, [])
-
-  // Focus search when company drawer opens
-  useEffect(() => {
-    if (showCompanyDrawer) {
-      setTimeout(() => companySearchRef.current?.focus(), 50)
-    } else {
-      setCompanySearch('')
-    }
-  }, [showCompanyDrawer])
-
-  const filteredCompanies = useMemo(() => {
-    if (!companySearch.trim()) return []
-    const q = companySearch.toLowerCase()
-    return (companies ?? []).filter(
-      (c) => c.name.toLowerCase().includes(q) || c.handle.toLowerCase().includes(q)
-    )
-  }, [companies, companySearch])
 
   const selectedCompany = useMemo(
     () => (companies ?? []).find((c) => c.id === companyId) ?? null,
@@ -244,6 +300,8 @@ export function EditorPage() {
       setTags(existingBlog.tags.map((t) => t.name))
       setCoverImageUrl(existingBlog.coverImageUrl ?? '')
       setSummary(existingBlog.summary ?? '')
+      setSeoTitle(existingBlog.seoTitleOverride ?? '')
+      setSeoDesc(existingBlog.seoDescOverride ?? '')
       setSaveStatus('saved')
     }
   }, [existingBlog])
@@ -262,6 +320,8 @@ export function EditorPage() {
         tags,
         ...(coverImageUrl ? { coverImageUrl } : {}),
         ...(summary ? { summary } : {}),
+        ...(seoTitle ? { seoTitleOverride: seoTitle } : {}),
+        ...(seoDesc ? { seoDescOverride: seoDesc } : {}),
       }
 
       if (!slug) {
@@ -288,7 +348,7 @@ export function EditorPage() {
         })
       }
     },
-    [title, body, articleType, companyId, tags, coverImageUrl, summary, currentSlug, createBlog, updateBlog, navigate],
+    [title, body, articleType, companyId, tags, coverImageUrl, summary, seoTitle, seoDesc, currentSlug, createBlog, updateBlog, navigate],
   )
 
   const scheduleAutosave = useCallback(() => {
@@ -321,16 +381,24 @@ export function EditorPage() {
 
     if (saveStatus === 'unsaved') {
       const slug = currentSlug
-      const payload = { title: title.trim() || 'Untitled', body, articleType, ...(companyId ? { companyId } : {}), tags, ...(coverImageUrl ? { coverImageUrl } : {}), ...(summary ? { summary } : {}) }
+      const payload = {
+        title: title.trim() || 'Untitled', body, articleType,
+        ...(companyId ? { companyId } : {}), tags,
+        ...(coverImageUrl ? { coverImageUrl } : {}),
+        ...(summary ? { summary } : {}),
+      }
       setSaveStatus('saving')
       updateBlog({ slug, payload }, {
         onSuccess: (blog) => {
           setSaveStatus('saved')
           const latestSlug = blog.slug ?? slug
-          if (blog.slug && blog.slug !== slug) { setCurrentSlug(latestSlug); navigate(buildRoute.editor(latestSlug), { replace: true }) }
+          if (blog.slug && blog.slug !== slug) {
+            setCurrentSlug(latestSlug)
+            navigate(buildRoute.editor(latestSlug), { replace: true })
+          }
           doPublish(latestSlug)
         },
-        onError: () => { setSaveStatus('unsaved'); toast.error('Could not save before publishing. Try saving manually first.') },
+        onError: () => { setSaveStatus('unsaved'); toast.error('Could not save before publishing.') },
       })
     } else {
       doPublish(currentSlug)
@@ -377,124 +445,149 @@ export function EditorPage() {
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
   const todayISO = new Date().toISOString().slice(0, 10)
 
-  const statusDot = { idle: 'transparent', saved: '#22c55e', saving: '#eab308', unsaved: 'var(--ls-accent)' }[saveStatus]
-  const statusLabel = { idle: '', saved: 'Saved', saving: 'Saving…', unsaved: 'Unsaved changes' }[saveStatus]
+  const statusDot = {
+    idle: 'transparent',
+    saved: '#5a8b5e',
+    saving: 'var(--ls-ink-3)',
+    unsaved: 'var(--ls-accent)',
+  }[saveStatus]
 
-  // Shared input style for sidebar
-  const sideInput: React.CSSProperties = {
-    width: '100%', boxSizing: 'border-box',
-    border: '1px solid var(--ls-line)', borderRadius: 6,
-    padding: '7px 10px', fontSize: 12,
-    background: 'var(--ls-bg)', color: 'var(--ls-ink)',
-    outline: 'none', fontFamily: 'inherit',
-  }
+  const statusLabel = {
+    idle: '',
+    saved: 'All changes saved',
+    saving: 'Saving…',
+    unsaved: 'Unsaved changes',
+  }[saveStatus]
+
+  // ── Pill label components (reused in both topbar and popovers) ───────────
+  const pillLabel = (text: string) => (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      padding: '0 10px',
+      background: 'var(--ls-bg-soft)',
+      borderRight: '1px solid var(--ls-line)',
+      fontFamily: '"JetBrains Mono", monospace',
+      fontSize: 9, fontWeight: 600,
+      letterSpacing: 1.2, color: 'var(--ls-ink-3)', textTransform: 'uppercase',
+      borderRadius: '5px 0 0 5px',
+    }}>
+      {text}
+    </span>
+  )
+
+  const pillValue = (children: React.ReactNode) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0 12px', fontSize: 13, fontWeight: 500 }}>
+      {children}
+      <span style={{ color: 'var(--ls-ink-3)', fontSize: 10 }}>▾</span>
+    </span>
+  )
+
+  const pillBtn = (active: boolean) => ({
+    display: 'inline-flex' as const, alignItems: 'stretch' as const,
+    border: `1px solid ${active ? 'var(--ls-accent)' : 'var(--ls-line)'}`,
+    borderRadius: 6,
+    background: active ? 'var(--ls-bg-soft)' : 'var(--ls-bg)',
+    color: 'var(--ls-ink)', cursor: 'pointer' as const,
+    height: 32,
+    boxShadow: active ? '0 0 0 3px var(--ls-accent-soft)' : 'none',
+    fontFamily: 'inherit',
+  })
+
+  const companyBadge = (company: typeof selectedCompany) => (
+    company ? (
+      company.logoUrl ? (
+        <img src={company.logoUrl} alt="" style={{ width: 16, height: 16, borderRadius: 3, objectFit: 'cover' }} />
+      ) : (
+        <span style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--ls-bg-tint)', border: '1px solid var(--ls-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 9, fontWeight: 600, color: 'var(--ls-ink-2)' }}>
+          {initials(company.name).charAt(0)}
+        </span>
+      )
+    ) : (
+      <span style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--ls-bg-tint)', border: '1px solid var(--ls-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 9, fontWeight: 600, color: 'var(--ls-ink-2)' }}>
+        P
+      </span>
+    )
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--ls-bg)' }}>
 
-      {/* ══ Topbar ═══════════════════════════════════════════════════════════ */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 0,
-        height: 52, flexShrink: 0,
+      {/* ══ TOPBAR — 3-zone grid ═══════════════════════════════════════════════ */}
+      <header style={{
+        display: 'grid', gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center',
+        padding: '14px 28px',
         borderBottom: '1px solid var(--ls-line)',
-        background: 'var(--ls-bg)', paddingRight: 16,
+        background: 'var(--ls-bg)',
+        gap: 24, flexShrink: 0,
       }}>
 
-        {/* Back */}
-        <Link
-          to={ROUTES.MY_BLOGS}
-          className="text-ink-3 hover:text-ink transition-colors"
-          style={{ fontSize: 13, textDecoration: 'none', padding: '0 16px', height: '100%', display: 'flex', alignItems: 'center', borderRight: '1px solid var(--ls-line)' }}
-        >
-          ← My Blogs
-        </Link>
-
-        {/* Article type — custom dropdown */}
-        <div ref={typeDropdownRef} style={{ position: 'relative' }}>
-          <button
-            onClick={() => setShowTypeDropdown((v) => !v)}
-            className="flex items-center gap-1.5 text-ink-2 hover:text-ink hover:bg-bg-tint transition-colors"
+        {/* LEFT: My Blogs + meta pills */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <Link
+            to={ROUTES.MY_BLOGS}
             style={{
-              height: 52, padding: '0 14px', fontSize: 12, border: 'none',
-              borderRight: '1px solid var(--ls-line)', background: 'transparent',
-              cursor: 'pointer', gap: 6,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '7px 12px 7px 10px',
+              background: 'transparent', border: '1px solid transparent', borderRadius: 6,
+              color: 'var(--ls-ink-2)', fontSize: 13, fontWeight: 500, textDecoration: 'none',
+              whiteSpace: 'nowrap',
             }}
           >
-            <span className="font-mono" style={{ fontSize: 10, color: 'var(--ls-ink-3)', letterSpacing: '0.5px' }}>TYPE</span>
-            <span style={{ fontWeight: 500 }}>{articleTypeLabel(articleType)}</span>
-            <span style={{ fontSize: 9, color: 'var(--ls-ink-3)', marginLeft: 2 }}>▾</span>
+            <span style={{ fontSize: 14, color: 'var(--ls-ink-3)' }}>‹</span>
+            My Blogs
+          </Link>
+
+          <div style={{ height: 20, width: 1, background: 'var(--ls-line)', flexShrink: 0 }} />
+
+          {/* FORMAT pill */}
+          <button ref={formatBtnRef} onClick={openFormatPopover} style={pillBtn(showFormatPopover)}>
+            {pillLabel('Article Type')}
+            {pillValue(<>{ARTICLE_TYPE_META[articleType].label}</>)}
           </button>
 
-          {showTypeDropdown && (
-            <div style={{
-              position: 'absolute', top: 52, left: 0, zIndex: 100,
-              background: 'var(--ls-bg)', border: '1px solid var(--ls-line)',
-              borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-              minWidth: 220, padding: 6, maxHeight: 360, overflowY: 'auto',
-            }}>
-              {ARTICLE_TYPES.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => { setArticleType(type); setSaveStatus('unsaved'); setShowTypeDropdown(false) }}
-                  className="w-full text-left transition-colors rounded-[5px]"
-                  style={{
-                    padding: '8px 12px', fontSize: 13, border: 'none', cursor: 'pointer',
-                    background: type === articleType ? 'var(--ls-bg-tint)' : 'transparent',
-                    color: type === articleType ? 'var(--ls-ink)' : 'var(--ls-ink-2)',
-                    fontWeight: type === articleType ? 600 : 400,
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  }}
-                >
-                  {articleTypeLabel(type)}
-                  {type === articleType && <span style={{ fontSize: 12, color: 'var(--ls-accent)' }}>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* PUBLICATION pill */}
+          <button ref={pubBtnRef} onClick={openPubPopover} style={pillBtn(showPubPopover)}>
+            {pillLabel('Company')}
+            {pillValue(
+              <>
+                {companyBadge(selectedCompany)}
+                {selectedCompany ? selectedCompany.name : 'Personal'}
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Company — drawer trigger */}
-        <button
-          onClick={() => setShowCompanyDrawer(true)}
-          className="flex items-center transition-colors hover:bg-bg-tint"
-          style={{
-            height: 52, padding: '0 14px', fontSize: 12, border: 'none',
-            borderRight: '1px solid var(--ls-line)', background: 'transparent',
-            cursor: 'pointer', gap: 6,
-          }}
-        >
-          <span className="font-mono" style={{ fontSize: 10, color: 'var(--ls-ink-3)', letterSpacing: '0.5px' }}>FOR</span>
-          {selectedCompany ? (
-            <span className="font-semibold text-ink">{selectedCompany.name}</span>
-          ) : (
-            <span className="text-ink-2">Personal</span>
-          )}
-          <span style={{ fontSize: 9, color: 'var(--ls-ink-3)', marginLeft: 2 }}>▾</span>
-        </button>
-
-        {/* Save status — center */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }}>
+        {/* CENTER: save status */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {saveStatus !== 'idle' && (
-            <>
-              <span style={{ width: 6, height: 6, borderRadius: 99, background: statusDot, flexShrink: 0 }} />
-              <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>{statusLabel}</span>
-            </>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '6px 12px',
+              background: 'var(--ls-bg-soft)', border: '1px solid var(--ls-line-soft)',
+              borderRadius: 99,
+              fontSize: 12, fontWeight: 500, color: 'var(--ls-ink-2)',
+              whiteSpace: 'nowrap',
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: 99, background: statusDot, flexShrink: 0 }} />
+              {statusLabel}
+              {saveStatus === 'saved' && wordCount > 0 && (
+                <span style={{ color: 'var(--ls-ink-4)', fontSize: 11 }}>· {readMin} min read</span>
+              )}
+            </span>
           )}
         </div>
 
-        {/* Word count */}
-        {wordCount > 0 && (
-          <span className="font-mono text-ink-3" style={{ fontSize: 11, marginRight: 14, whiteSpace: 'nowrap' }}>
-            {wordCount.toLocaleString()} words · {readMin} min
-          </span>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center" style={{ gap: 8 }}>
+        {/* RIGHT: actions */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
           <button
             onClick={() => setPreviewMode((p) => !p)}
-            className="border border-line rounded-[6px] text-ink-2 hover:bg-bg-tint transition-colors"
-            style={{ padding: '5px 12px', fontSize: 12, background: previewMode ? 'var(--ls-bg-tint)' : 'transparent' }}
+            style={{
+              padding: '0 14px', height: 32,
+              background: previewMode ? 'var(--ls-bg-soft)' : 'transparent',
+              border: '1px solid var(--ls-line)', borderRadius: 6,
+              fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
+            }}
           >
             {previewMode ? 'Edit' : 'Preview'}
           </button>
@@ -502,80 +595,107 @@ export function EditorPage() {
           <button
             onClick={handleSaveDraft}
             disabled={creating}
-            className="border border-line rounded-[6px] text-ink-2 hover:bg-bg-tint transition-colors disabled:opacity-40"
-            style={{ padding: '5px 12px', fontSize: 12 }}
+            style={{
+              padding: '0 14px', height: 32,
+              background: 'transparent', border: '1px solid var(--ls-line)', borderRadius: 6,
+              fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
+              opacity: creating ? 0.4 : 1,
+            }}
           >
             Save draft
           </button>
 
-          <div style={{ display: 'flex', border: '1px solid var(--ls-ink)', borderRadius: 6, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', height: 32, borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }}>
             <button
               onClick={handlePublish}
               disabled={publishing || !currentSlug}
-              className="font-medium disabled:opacity-40"
-              style={{ padding: '5px 14px', fontSize: 12, background: 'var(--ls-ink)', color: 'var(--ls-bg)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer' }}
+              style={{
+                padding: '0 18px', background: 'var(--ls-ink)', border: 'none',
+                color: 'var(--ls-bg)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                opacity: (publishing || !currentSlug) ? 0.5 : 1,
+              }}
             >
               {publishing ? 'Publishing…' : 'Publish'}
             </button>
             <button
               onClick={() => setShowScheduleModal(true)}
               disabled={!currentSlug}
-              className="disabled:opacity-40"
-              style={{ padding: '5px 8px', fontSize: 11, background: 'var(--ls-ink)', color: 'var(--ls-bg)', border: 'none', cursor: 'pointer' }}
+              style={{
+                padding: '0 9px', background: 'var(--ls-ink)', border: 'none',
+                borderLeft: '1px solid rgba(255,255,255,.15)',
+                color: 'var(--ls-bg)', fontSize: 10, cursor: 'pointer',
+                opacity: !currentSlug ? 0.5 : 1,
+              }}
             >
               ▾
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* ══ Main layout ═══════════════════════════════════════════════════════ */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      {/* ══ Main layout ════════════════════════════════════════════════════════ */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', flex: 1, minHeight: 0 }}>
 
-        {/* ── Writing pane ────────────────────────────────────────────────── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', background: 'var(--ls-bg)', padding: '48px 40px 80px' }}>
-          <div style={{ width: '100%', maxWidth: 720 }}>
+        {/* ── Writing canvas ──────────────────────────────────────────────── */}
+        <div style={{ overflow: 'auto', display: 'flex', justifyContent: 'center', background: 'var(--ls-bg)' }}>
+          <div style={{ width: '100%', maxWidth: 780, padding: '40px 48px 96px', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             {/* Title */}
             <textarea
+              className="editor-title-input"
               value={title}
-              onChange={(e) => { setTitle(e.target.value); if (initialized.current) setSaveStatus('unsaved') }}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (initialized.current) setSaveStatus('unsaved')
+                // auto-grow
+                const el = e.target
+                el.style.height = 'auto'
+                el.style.height = el.scrollHeight + 'px'
+              }}
               placeholder="Article title…"
-              rows={2}
+              rows={1}
               style={{
-                width: '100%', background: 'transparent', color: 'var(--ls-ink)',
-                fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700,
-                fontSize: 40, lineHeight: 1.15, border: 'none', outline: 'none',
-                resize: 'none', overflow: 'hidden', boxSizing: 'border-box', marginBottom: 6,
+                width: '100%', background: 'transparent',
+                color: 'var(--ls-ink)',
+                fontFamily: '"Source Serif 4", Georgia, serif',
+                fontWeight: 700, fontSize: 52, lineHeight: 1.1,
+                letterSpacing: '-1px',
+                border: 'none', outline: 'none',
+                resize: 'none', overflow: 'hidden', boxSizing: 'border-box', margin: 0,
+                minHeight: 64,
               }}
             />
 
-            {/* Summary */}
-            <input
-              type="text"
-              value={summary}
-              onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
-              placeholder="A one-line summary shown on article cards…"
-              style={{
-                width: '100%', background: 'transparent', color: 'var(--ls-ink-2)',
-                fontFamily: '"Source Serif 4", Georgia, serif', fontStyle: 'italic',
-                fontSize: 17, border: 'none', outline: 'none', boxSizing: 'border-box',
-                borderBottom: '1px dashed var(--ls-line-soft)', paddingBottom: 14, marginBottom: 0,
-              }}
-            />
+            {/* Summary line */}
+            <div style={{ paddingBottom: 8, borderBottom: '1px dashed var(--ls-line)' }}>
+              <input
+                className="editor-summary-input"
+                type="text"
+                value={summary}
+                onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
+                placeholder="A one-line summary shown on article cards…"
+                style={{
+                  width: '100%', background: 'transparent',
+                  color: 'var(--ls-ink-2)',
+                  fontFamily: '"Source Serif 4", Georgia, serif',
+                  fontStyle: 'italic', fontSize: 19,
+                  border: 'none', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+            </div>
 
-            {/* Toolbar + body */}
+            {/* Quill editor or preview */}
             {previewMode ? (
-              <div className="ql-snow" style={{ marginTop: 28, minHeight: 480 }}>
+              <div className="ql-snow" style={{ minHeight: 480 }}>
                 <div
                   className="ql-editor"
-                  style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 18, lineHeight: 1.8, color: 'var(--ls-ink)', padding: 0 }}
+                  style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 19, lineHeight: 1.7, color: 'var(--ls-ink)', padding: 0 }}
                   dangerouslySetInnerHTML={{ __html: body || '<p style="color:var(--ls-ink-4)"><em>Nothing to preview yet.</em></p>' }}
                 />
               </div>
             ) : (
-              <div className="editor-quill-wrap" style={{ marginTop: 0 }}>
-                <QuillToolbar />
+              <div className="editor-quill-wrap">
+                <QuillToolbar wordCount={wordCount} />
                 <ReactQuill
                   theme="snow"
                   value={body}
@@ -590,196 +710,334 @@ export function EditorPage() {
           </div>
         </div>
 
-        {/* ── Settings rail ─────────────────────────────────────────────── */}
-        <div style={{ width: 272, flexShrink: 0, borderLeft: '1px solid var(--ls-line)', display: 'flex', flexDirection: 'column', overflowY: 'auto', background: 'var(--ls-bg)' }}>
-          <div style={{ padding: '13px 18px 11px', borderBottom: '1px solid var(--ls-line)', fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.4px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
-            Article settings
+        {/* ── Article settings rail ──────────────────────────────────────── */}
+        <aside style={{
+          borderLeft: '1px solid var(--ls-line)',
+          background: 'var(--ls-bg-soft)',
+          overflow: 'auto',
+          padding: '24px 22px 96px',
+          display: 'flex', flexDirection: 'column', gap: 24,
+        }}>
+
+          {/* Rail header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid var(--ls-line)' }}>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, fontWeight: 600, letterSpacing: 1.6, textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
+              Article Settings
+            </span>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--ls-ink-3)' }}>1 of 3</span>
           </div>
 
           {/* Tags */}
-          <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--ls-line-soft)' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)' }}>Tags</span>
-              <span style={{ fontSize: 10, color: 'var(--ls-ink-3)', fontFamily: 'monospace' }}>{tags.length} / 5</span>
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Tags</h3>
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--ls-ink-3)' }}>{tags.length} / 5</span>
             </div>
-            <input
-              ref={tagInputRef}
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() }
-                if (e.key === 'Backspace' && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1])
-              }}
-              placeholder={tags.length < 5 ? '+ Add tag, press Enter' : 'Max 5 tags reached'}
-              disabled={tags.length >= 5}
-              style={{ ...sideInput, marginBottom: tags.length > 0 ? 10 : 0 }}
-            />
-            {tags.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {tags.map((tag) => (
-                  <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ls-ink)', color: 'var(--ls-bg)', borderRadius: 99, fontSize: 11, padding: '3px 9px' }}>
-                    {tag}
-                    <button type="button" onClick={() => removeTag(tag)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', lineHeight: 1, padding: 0, fontSize: 13 }}>×</button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Cover image */}
-          <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--ls-line-soft)' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)', marginBottom: 10 }}>Cover image</div>
-            {coverImageUrl ? (
-              <div style={{ position: 'relative', marginBottom: 8 }}>
-                <img src={coverImageUrl} alt="Cover" style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--ls-line)', display: 'block' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                <button onClick={() => { setCoverImageUrl(''); setSaveStatus('unsaved') }} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: 99, width: 20, height: 20, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
-              </div>
-            ) : (
-              <button onClick={() => coverFileRef.current?.click()} style={{ width: '100%', height: 90, border: '1.5px dashed var(--ls-line)', borderRadius: 6, background: 'var(--ls-bg-soft)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 11, color: 'var(--ls-ink-3)', cursor: 'pointer', marginBottom: 8 }}>
-                <span style={{ fontSize: 18 }}>↑</span>
-                <span>Upload image</span>
-              </button>
-            )}
-            <input ref={coverFileRef} type="file" accept="image/*" onChange={handleCoverFile} style={{ display: 'none' }} />
-            <input type="url" value={coverImageUrl} onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }} placeholder="…or paste a URL" style={{ ...sideInput, fontSize: 11 }} />
-          </div>
-
-          {/* Summary */}
-          <div style={{ padding: '16px 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)' }}>Summary</span>
-              <span style={{ fontSize: 10, color: summary.length > 280 ? '#ef4444' : 'var(--ls-ink-3)', fontFamily: 'monospace' }}>{summary.length} / 300</span>
-            </div>
-            <textarea
-              value={summary}
-              onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
-              rows={3}
-              placeholder="A brief summary shown on cards and search results…"
-              style={{ ...sideInput, resize: 'none', fontFamily: '"Source Serif 4", Georgia, serif', lineHeight: 1.5, fontSize: 11 }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ══ Company drawer ════════════════════════════════════════════════════ */}
-      {showCompanyDrawer && (
-        <>
-          {/* Backdrop */}
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.25)' }}
-            onClick={() => setShowCompanyDrawer(false)}
-          />
-
-          {/* Panel */}
-          <div style={{
-            position: 'fixed', top: 52, left: 0, bottom: 0, zIndex: 50,
-            width: 340, background: 'var(--ls-bg)',
-            borderRight: '1px solid var(--ls-line)',
-            boxShadow: '4px 0 32px rgba(0,0,0,0.12)',
-            display: 'flex', flexDirection: 'column',
-          }}>
-            {/* Drawer header */}
-            <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid var(--ls-line)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.3px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
-                  Publish under
+            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
+              Help readers and SEO find this. Press Enter to add.
+            </p>
+            <div style={{
+              padding: '10px 12px',
+              background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 6,
+              minHeight: 42, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6,
+            }}>
+              {tags.map((tag) => (
+                <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ls-ink)', color: 'var(--ls-bg)', borderRadius: 99, fontSize: 11, padding: '3px 9px' }}>
+                  {tag}
+                  <button type="button" onClick={() => removeTag(tag)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.55)', cursor: 'pointer', lineHeight: 1, padding: 0, fontSize: 13 }}>×</button>
                 </span>
-                <button onClick={() => setShowCompanyDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--ls-ink-3)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
-              </div>
+              ))}
               <input
-                ref={companySearchRef}
-                type="text"
-                value={companySearch}
-                onChange={(e) => setCompanySearch(e.target.value)}
-                placeholder="Search companies…"
+                ref={tagInputRef}
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() }
+                  if (e.key === 'Backspace' && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1])
+                }}
+                placeholder={tags.length === 0 ? '+ Add tag, press Enter' : tags.length < 5 ? '+ Add more…' : ''}
+                disabled={tags.length >= 5}
                 style={{
-                  width: '100%', boxSizing: 'border-box',
-                  border: '1px solid var(--ls-line)', borderRadius: 7,
-                  padding: '9px 12px', fontSize: 13,
-                  background: 'var(--ls-bg-soft)', color: 'var(--ls-ink)',
-                  outline: 'none',
+                  flex: 1, minWidth: 120, border: 'none', outline: 'none',
+                  background: 'transparent', fontSize: 13,
+                  color: tags.length === 0 ? 'var(--ls-ink-4)' : 'var(--ls-ink)',
                 }}
               />
             </div>
+          </section>
 
-            {/* Personal option */}
-            <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--ls-line-soft)' }}>
-              <button
-                onClick={() => { setCompanyId(''); setSaveStatus('unsaved'); setShowCompanyDrawer(false) }}
-                className="w-full flex items-center gap-3 rounded-[6px] transition-colors hover:bg-bg-tint"
-                style={{ padding: '10px 10px', border: 'none', background: companyId === '' ? 'var(--ls-bg-tint)' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
+          {/* Cover image */}
+          <section>
+            <h3 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Cover image</h3>
+            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
+              Shown on cards and social previews. Recommended 1200×630.
+            </p>
+
+            {coverImageUrl ? (
+              <div style={{ position: 'relative', marginBottom: 10 }}>
+                <img
+                  src={coverImageUrl}
+                  alt="Cover"
+                  style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--ls-line)', display: 'block' }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+                <button
+                  onClick={() => { setCoverImageUrl(''); setSaveStatus('unsaved') }}
+                  style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,.55)', color: '#fff', border: 'none', borderRadius: 99, width: 22, height: 22, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => coverFileRef.current?.click()}
+                style={{ padding: '28px 16px', background: 'var(--ls-bg)', border: '1px dashed var(--ls-line-strong)', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', marginBottom: 10 }}
               >
-                <div style={{ width: 36, height: 36, borderRadius: 99, background: 'var(--ls-bg-deep)', border: '1px solid var(--ls-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
-                  ✎
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)' }}>Personal</div>
-                  <div style={{ fontSize: 11, color: 'var(--ls-ink-3)' }}>Publish as yourself</div>
-                </div>
-                {companyId === '' && <span style={{ marginLeft: 'auto', color: 'var(--ls-accent)', fontSize: 14 }}>✓</span>}
-              </button>
-            </div>
+                <span style={{ width: 36, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--ls-bg-soft)', border: '1px solid var(--ls-line)', borderRadius: 99, color: 'var(--ls-ink-2)', fontSize: 16 }}>↑</span>
+                <span style={{ fontSize: 13, color: 'var(--ls-ink)', fontWeight: 500 }}>Upload image</span>
+                <span style={{ fontSize: 11, color: 'var(--ls-ink-3)' }}>or drop a file · PNG, JPG, WebP · max 4MB</span>
+              </div>
+            )}
 
-            {/* Results area */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
-              {companySearch.trim() === '' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, padding: '40px 20px', textAlign: 'center' }}>
-                  <span style={{ fontSize: 28 }}>🏢</span>
-                  <p style={{ fontSize: 13, color: 'var(--ls-ink-3)', margin: 0 }}>
-                    Search to find a company
-                  </p>
-                  <p style={{ fontSize: 11, color: 'var(--ls-ink-4)', margin: 0 }}>
-                    Type the company name or handle above
-                  </p>
+            <input ref={coverFileRef} type="file" accept="image/*" onChange={handleCoverFile} style={{ display: 'none' }} />
+
+            {!coverImageUrl && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '10px 0' }}>
+                  <span style={{ flex: 1, height: 1, background: 'var(--ls-line-soft)' }} />
+                  <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, fontWeight: 500, color: 'var(--ls-ink-3)', letterSpacing: 0.6 }}>OR</span>
+                  <span style={{ flex: 1, height: 1, background: 'var(--ls-line-soft)' }} />
                 </div>
-              ) : filteredCompanies.length === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', gap: 6 }}>
-                  <p style={{ fontSize: 13, color: 'var(--ls-ink-3)', margin: 0 }}>No companies match "{companySearch}"</p>
-                  <p style={{ fontSize: 11, color: 'var(--ls-ink-4)', margin: 0 }}>Only companies you belong to will appear here</p>
+                <div style={{ padding: '10px 12px', background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 6 }}>
+                  <input
+                    type="url"
+                    value={coverImageUrl}
+                    onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }}
+                    placeholder="…or paste a URL"
+                    style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--ls-ink)' }}
+                  />
                 </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {filteredCompanies.map((company) => (
-                    <button
-                      key={company.id}
-                      onClick={() => { setCompanyId(company.id); setSaveStatus('unsaved'); setShowCompanyDrawer(false) }}
-                      className="w-full flex items-center gap-3 rounded-[6px] transition-colors hover:bg-bg-tint"
-                      style={{ padding: '10px 10px', border: 'none', background: companyId === company.id ? 'var(--ls-bg-tint)' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
-                    >
-                      {company.logoUrl ? (
-                        <img src={company.logoUrl} alt={company.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--ls-line)' }} />
-                      ) : (
-                        <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--ls-bg-deep)', border: '1px solid var(--ls-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--ls-ink-2)', flexShrink: 0 }}>
-                          {initials(company.name)}
-                        </div>
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{company.name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', fontFamily: '"JetBrains Mono", monospace' }}>@{company.handle}</div>
-                      </div>
-                      {companyId === company.id && <span style={{ color: 'var(--ls-accent)', fontSize: 14, flexShrink: 0 }}>✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
+              </>
+            )}
+          </section>
+
+          {/* Summary */}
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Summary</h3>
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: summary.length > 280 ? '#ef4444' : 'var(--ls-ink-3)' }}>
+                {summary.length} / 300
+              </span>
             </div>
+            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
+              A brief description that shows on cards, search, and social.
+            </p>
+            <textarea
+              value={summary}
+              onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
+              rows={4}
+              placeholder="A brief summary shown on cards and search results…"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '12px 14px',
+                background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 6,
+                minHeight: 96, color: 'var(--ls-ink)', fontSize: 13, lineHeight: 1.55,
+                fontFamily: '"Source Serif 4", Georgia, serif', fontStyle: 'italic',
+                resize: 'none', outline: 'none',
+              }}
+            />
+          </section>
+
+          {/* SEO — collapsible */}
+          <section style={{ borderTop: '1px solid var(--ls-line)', paddingTop: 18 }}>
+            <button
+              onClick={() => setShowSeo((v) => !v)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}
+            >
+              SEO settings
+              <span style={{ color: 'var(--ls-ink-3)', fontSize: 12 }}>{showSeo ? '▴' : '▾'}</span>
+            </button>
+
+            {showSeo && (
+              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <input
+                  type="text"
+                  value={seoTitle}
+                  onChange={(e) => { setSeoTitle(e.target.value); setSaveStatus('unsaved') }}
+                  placeholder="SEO title override…"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1px solid var(--ls-line)', borderRadius: 6, fontSize: 12, background: 'var(--ls-bg)', color: 'var(--ls-ink)', outline: 'none' }}
+                />
+                <textarea
+                  rows={2}
+                  value={seoDesc}
+                  onChange={(e) => { setSeoDesc(e.target.value); setSaveStatus('unsaved') }}
+                  placeholder="SEO description override…"
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1px solid var(--ls-line)', borderRadius: 6, fontSize: 12, background: 'var(--ls-bg)', color: 'var(--ls-ink)', outline: 'none', resize: 'none' }}
+                />
+              </div>
+            )}
+          </section>
+        </aside>
+      </div>
+
+      {/* ══ ARTICLE TYPE popover ═══════════════════════════════════════════════ */}
+      {showFormatPopover && formatPopoverPos && (
+        <Popover pos={formatPopoverPos} width={340} onClose={() => setShowFormatPopover(false)}>
+          {/* Header */}
+          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--ls-line-soft)' }}>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, fontWeight: 600, letterSpacing: 1.6, textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
+              Article Type
+            </span>
+            <h3 style={{ margin: '4px 0 0', fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 600, fontSize: 16, color: 'var(--ls-ink)' }}>
+              What kind of post is this?
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--ls-ink-3)', lineHeight: 1.55 }}>
+              Drives the badge readers see and where it appears in Explore.
+            </p>
           </div>
-        </>
+
+          {/* List */}
+          <div style={{ maxHeight: 380, overflowY: 'auto' }}>
+            {ARTICLE_TYPES.map((type, i) => {
+              const meta = ARTICLE_TYPE_META[type]
+              const active = type === articleType
+              return (
+                <button
+                  key={type}
+                  onClick={() => { setArticleType(type); setSaveStatus('unsaved'); setShowFormatPopover(false) }}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10,
+                    padding: '10px 14px',
+                    background: active ? 'var(--ls-accent-soft)' : 'transparent',
+                    border: 'none',
+                    borderBottom: i < ARTICLE_TYPES.length - 1 ? '1px solid var(--ls-line-soft)' : 'none',
+                    cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
+                  <span style={{
+                    width: 18, height: 18, borderRadius: 99, flexShrink: 0, marginTop: 1,
+                    border: `1.5px solid ${active ? 'var(--ls-accent)' : 'var(--ls-line-strong)'}`,
+                    background: active ? 'var(--ls-accent)' : 'var(--ls-bg)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {active && <span style={{ width: 6, height: 6, borderRadius: 99, background: '#fff' }} />}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: active ? 600 : 500, fontSize: 13, lineHeight: 1.3, color: active ? 'var(--ls-accent-ink)' : 'var(--ls-ink)' }}>
+                      {meta.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', marginTop: 2, lineHeight: 1.4 }}>
+                      {meta.desc}
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </Popover>
       )}
 
-      {/* ══ Schedule modal ════════════════════════════════════════════════════ */}
+      {/* ══ COMPANY popover ════════════════════════════════════════════════════ */}
+      {showPubPopover && pubPopoverPos && (
+        <Popover pos={pubPopoverPos} width={320} onClose={() => setShowPubPopover(false)}>
+          {/* Header */}
+          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--ls-line-soft)' }}>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, fontWeight: 600, letterSpacing: 1.6, textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
+              Company
+            </span>
+            <h3 style={{ margin: '4px 0 0', fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 600, fontSize: 16, color: 'var(--ls-ink)' }}>
+              Where should this be published?
+            </h3>
+          </div>
+
+          {/* Company list + personal option */}
+          <div style={{ maxHeight: 320, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Personal option */}
+            <button
+              onClick={() => { setCompanyId(''); setSaveStatus('unsaved'); setShowPubPopover(false) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 10px',
+                background: !companyId ? 'var(--ls-bg-tint)' : 'transparent',
+                border: '1px solid transparent', borderRadius: 6,
+                cursor: 'pointer', textAlign: 'left', width: '100%',
+              }}
+            >
+              <span style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--ls-bg-soft)', border: '1px solid var(--ls-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 11, fontWeight: 600, color: 'var(--ls-ink-2)', flexShrink: 0 }}>P</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)' }}>Personal</div>
+                <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', marginTop: 1 }}>Publish under your name</div>
+              </div>
+              {!companyId && <span style={{ color: 'var(--ls-accent)', fontSize: 14, flexShrink: 0 }}>✓</span>}
+            </button>
+
+            {/* User's companies */}
+            {(companies ?? []).map((company) => (
+              <button
+                key={company.id}
+                onClick={() => { setCompanyId(company.id); setSaveStatus('unsaved'); setShowPubPopover(false) }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 10px',
+                  background: companyId === company.id ? 'var(--ls-bg-tint)' : 'transparent',
+                  border: '1px solid transparent', borderRadius: 6,
+                  cursor: 'pointer', textAlign: 'left', width: '100%',
+                }}
+              >
+                {company.logoUrl ? (
+                  <img src={company.logoUrl} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--ls-bg-soft)', border: '1px solid var(--ls-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 13, fontWeight: 700, color: 'var(--ls-ink-2)', flexShrink: 0 }}>
+                    {initials(company.name).charAt(0)}
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{company.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', fontFamily: '"JetBrains Mono", monospace' }}>@{company.handle}</div>
+                </div>
+                {companyId === company.id && <span style={{ color: 'var(--ls-accent)', fontSize: 14, flexShrink: 0 }}>✓</span>}
+              </button>
+            ))}
+          </div>
+
+          {/* Create company option */}
+          <div style={{ padding: '8px 10px', borderTop: '1px solid var(--ls-line-soft)' }}>
+            <Link
+              to={ROUTES.CREATE_COMPANY}
+              onClick={() => setShowPubPopover(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', background: 'transparent', border: '1px solid transparent', borderRadius: 6, cursor: 'pointer', textDecoration: 'none' }}
+            >
+              <span style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--ls-accent-soft)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ls-accent-ink)', fontSize: 18, fontWeight: 600, flexShrink: 0 }}>+</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)' }}>Create a new company</div>
+                <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', marginTop: 1 }}>Set up a brand, invite teammates</div>
+              </div>
+            </Link>
+          </div>
+        </Popover>
+      )}
+
+      {/* ══ Schedule modal ═════════════════════════════════════════════════════ */}
       {showScheduleModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)' }} onClick={() => setShowScheduleModal(false)}>
-          <div style={{ background: 'var(--ls-bg)', borderRadius: 10, border: '1px solid var(--ls-line)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)', width: 440, padding: 28 }} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)' }}
+          onClick={() => setShowScheduleModal(false)}
+        >
+          <div
+            style={{ background: 'var(--ls-bg)', borderRadius: 10, border: '1px solid var(--ls-line)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)', width: 440, padding: 28 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
               <h3 style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700, fontSize: 20, color: 'var(--ls-ink)', margin: 0 }}>Schedule blog</h3>
               <button onClick={() => setShowScheduleModal(false)} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ls-ink-3)', lineHeight: 1 }}>×</button>
             </div>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ls-ink-2)', lineHeight: 1.5 }}>Set when this blog should auto-publish. You can edit or cancel anytime before.</p>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ls-ink-2)', lineHeight: 1.5 }}>
+              Set when this blog should auto-publish. You can edit or cancel anytime before.
+            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               {[
                 { label: 'Date', type: 'date', value: scheduleDate, min: todayISO, onChange: (v: string) => setScheduleDate(v) },
-                { label: 'Time', type: 'time', value: scheduleTime, onChange: (v: string) => setScheduleTime(v) },
+                { label: 'Time', type: 'time', value: scheduleTime, min: undefined, onChange: (v: string) => setScheduleTime(v) },
               ].map(({ label, type, value, min, onChange }) => (
                 <div key={label}>
                   <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--ls-ink-3)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</label>

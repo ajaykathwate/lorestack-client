@@ -29,4 +29,15 @@ export const QUERY_KEYS = {
     TRENDING: ['tags', 'trending'] as const,
     BY_SLUG: (slug: string) => ['tags', slug] as const,
   },
+
+  ADMIN: {
+    STATS:        ['admin', 'stats'] as const,
+    MODERATION:   ['admin', 'moderation'] as const,
+    FEATURED:     ['admin', 'featured'] as const,
+    TAGS:         ['admin', 'tags'] as const,
+    USERS:        ['admin', 'users'] as const,
+    COMPANIES:    ['admin', 'companies'] as const,
+    REPORTS:      ['admin', 'reports'] as const,
+    AUDIT_LOG:    ['admin', 'audit-log'] as const,
+  },
 } as const

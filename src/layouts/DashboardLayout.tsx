@@ -15,7 +15,7 @@ interface SidebarItem {
   external?: boolean
 }
 
-function buildSidebarItems(companyHandles: string[], username?: string): SidebarItem[] {
+function buildSidebarItems(companyHandles: string[], username?: string, isAdmin?: boolean): SidebarItem[] {
   return [
     { type: 'link', label: 'Dashboard', to: ROUTES.DASHBOARD, icon: '⌂' },
 
@@ -51,12 +51,18 @@ function buildSidebarItems(companyHandles: string[], username?: string): Sidebar
 
     { type: 'heading', label: 'Danger' },
     { type: 'link', label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,        icon: '×' },
+
+    ...(isAdmin ? [
+      { type: 'heading' as const, label: 'Platform' },
+      { type: 'link' as const, label: 'Admin panel', to: ROUTES.ADMIN_OVERVIEW, icon: '⚑' },
+    ] : []),
   ]
 }
 
 function SidebarNav() {
-  const { authorProfile } = useAuthStore()
-  const items = buildSidebarItems([], authorProfile?.username)
+  const { authorProfile, user } = useAuthStore()
+  const isAdmin = user?.platformRole === 'platform_admin'
+  const items = buildSidebarItems([], authorProfile?.username, isAdmin)
 
   return (
     <nav className="flex-1 py-3 px-2 flex flex-col gap-0 overflow-y-auto">

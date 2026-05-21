@@ -6,6 +6,7 @@ import { RoleGuard } from './guards/RoleGuard'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
+import { AdminLayout } from '@/layouts/AdminLayout'
 
 // Auth pages
 import { RegisterPage } from '@/pages/auth/RegisterPage'
@@ -43,6 +44,15 @@ import { CreateCompanyPage } from '@/pages/dashboard/CreateCompanyPage'
 // Settings pages (all render inside DashboardLayout)
 import { AccountSettingsPage } from '@/pages/dashboard/settings/AccountSettingsPage'
 import { SettingsPlaceholderPage } from '@/pages/dashboard/settings/SettingsPlaceholderPage'
+
+// Admin pages
+import { AdminOverviewPage } from '@/pages/admin/AdminOverviewPage'
+import { AdminFeaturedPage } from '@/pages/admin/AdminFeaturedPage'
+import { AdminModerationPage } from '@/pages/admin/AdminModerationPage'
+import { AdminTagsPage } from '@/pages/admin/AdminTagsPage'
+import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
+import { AdminCompaniesPage } from '@/pages/admin/AdminCompaniesPage'
+import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
 
 const router = createBrowserRouter([
   // ── Public routes ────────────────────────────────────────────────────────────
@@ -121,13 +131,26 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── Admin routes ─────────────────────────────────────────────────────────
+  // ── Admin routes (platform_admin only) ───────────────────────────────────
   {
     element: <AuthGuard />,
     children: [
       {
         element: <RoleGuard allowedRoles={['platform_admin']} />,
-        children: [],
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              { path: ROUTES.ADMIN_OVERVIEW,   element: <AdminOverviewPage /> },
+              { path: ROUTES.ADMIN_FEATURED,   element: <AdminFeaturedPage /> },
+              { path: ROUTES.ADMIN_MODERATION, element: <AdminModerationPage /> },
+              { path: ROUTES.ADMIN_TAGS,       element: <AdminTagsPage /> },
+              { path: ROUTES.ADMIN_USERS,      element: <AdminUsersPage /> },
+              { path: ROUTES.ADMIN_COMPANIES,  element: <AdminCompaniesPage /> },
+              { path: ROUTES.ADMIN_REPORTS,    element: <AdminReportsPage /> },
+            ],
+          },
+        ],
       },
     ],
   },

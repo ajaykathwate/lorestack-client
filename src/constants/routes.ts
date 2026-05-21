@@ -44,6 +44,15 @@ export const ROUTES = {
   COMPANY_DASHBOARD: '/me/company/:handle',
   COMPANY_SETTINGS: '/me/company/:handle/settings',
   TEAM_MANAGEMENT: '/me/company/:handle/team',
+
+  // ── Platform admin (platform_admin role only) ──────────────────────────
+  ADMIN_OVERVIEW:   '/admin',
+  ADMIN_FEATURED:   '/admin/featured',
+  ADMIN_MODERATION: '/admin/moderation',
+  ADMIN_TAGS:       '/admin/tags',
+  ADMIN_USERS:      '/admin/users',
+  ADMIN_COMPANIES:  '/admin/companies',
+  ADMIN_REPORTS:    '/admin/reports',
 } as const
 
 // Helpers to build concrete URLs from parameterised routes.

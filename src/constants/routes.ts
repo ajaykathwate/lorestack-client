@@ -24,6 +24,7 @@ export const ROUTES = {
   MY_BLOGS: '/me/blogs',
   DRAFTS: '/me/drafts',
   SCHEDULED: '/me/scheduled',
+  ARCHIVED: '/me/archived',
   EDITOR_NEW: '/write',
   EDITOR: '/write/:slug',
   PROFILE_SETTINGS: '/me/profile',

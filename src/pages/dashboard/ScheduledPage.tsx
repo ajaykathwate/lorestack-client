@@ -1,22 +1,22 @@
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
-import { useUnarchiveBlog } from '@/api/hooks/useBlogMutations'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate } from '@/lib/utils'
 
+function timeUntil(iso: string): string {
+  const diff = new Date(iso).getTime() - Date.now()
+  if (diff <= 0) return 'publishing soon'
+  const days = Math.floor(diff / 86_400_000)
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000)
+  if (days > 0) return `in ${days}d ${hours}h`
+  const mins = Math.floor((diff % 3_600_000) / 60_000)
+  if (hours > 0) return `in ${hours}h ${mins}m`
+  return `in ${mins}m`
+}
+
 export function ScheduledPage() {
   const { data: blogs, isLoading } = useMyBlogs()
-  const { mutate: unarchive } = useUnarchiveBlog()
-
   const scheduled = (blogs ?? []).filter((b) => b.status === 'scheduled')
-
-  function handleUnschedule(slug: string) {
-    unarchive(slug, {
-      onSuccess: () => toast.success('Moved back to drafts.'),
-      onError: () => toast.error('Failed to unschedule.'),
-    })
-  }
 
   return (
     <div className="flex flex-col" style={{ gap: 0 }}>
@@ -24,7 +24,8 @@ export function ScheduledPage() {
         <div>
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
-            Scheduled <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}>· {scheduled.length}</span>
+            Scheduled{' '}
+            <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}>· {scheduled.length}</span>
           </h1>
         </div>
         <Link
@@ -37,16 +38,16 @@ export function ScheduledPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col" style={{ gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 72 }} />
+            <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 200 }} />
           ))}
         </div>
       ) : scheduled.length === 0 ? (
         <div className="rounded-[6px] border border-line flex flex-col items-center justify-center text-center" style={{ padding: 40 }}>
           <h3 className="font-serif font-bold text-ink" style={{ fontSize: 18, marginTop: 14 }}>No scheduled posts</h3>
           <p className="text-ink-2" style={{ margin: '6px 0 16px', fontSize: 13 }}>
-            Schedule a draft to publish it automatically at a set time.
+            Open a draft in the editor and click Publish ▾ → Schedule.
           </p>
           <Link
             to={ROUTES.DRAFTS}
@@ -57,51 +58,58 @@ export function ScheduledPage() {
           </Link>
         </div>
       ) : (
-        <div className="rounded-[6px] border border-line overflow-hidden">
-          {scheduled.map((blog, i) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          {scheduled.map((blog) => (
             <div
               key={blog.id}
-              style={{
-                padding: '14px 16px',
-                borderTop: i ? '1px solid var(--ls-line-soft)' : 'none',
-                display: 'grid',
-                gridTemplateColumns: '1fr auto',
-                gap: 14,
-                alignItems: 'center',
-              }}
+              className="rounded-[6px] border border-line overflow-hidden flex flex-col"
             >
-              <div>
-                <div className="flex items-center" style={{ gap: 8, marginBottom: 4 }}>
-                  <span className="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-[3px]" style={{ fontSize: 10, padding: '2px 5px' }}>
+              {blog.coverImageUrl ? (
+                <img
+                  src={blog.coverImageUrl}
+                  alt=""
+                  style={{ width: '100%', height: 92, objectFit: 'cover', display: 'block' }}
+                />
+              ) : (
+                <div className="bg-bg-tint" style={{ height: 92 }} />
+              )}
+              <div className="flex flex-col flex-1" style={{ padding: '10px 12px', gap: 6 }}>
+                <div className="flex items-center" style={{ gap: 6, flexWrap: 'wrap' }}>
+                  <span className="font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 5px', background: '#fefce8', border: '1px solid #fef08a', color: '#854d0e' }}>
+                    scheduled
+                  </span>
+                  <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 5px' }}>
                     {articleTypeLabel(blog.articleType)}
                   </span>
-                  <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>
-                    ⏱ Publishes {blog.scheduledAt ? formatDate(blog.scheduledAt) : '—'}
-                  </span>
                 </div>
-                <div className="font-serif font-semibold text-ink" style={{ fontSize: 15, lineHeight: 1.2 }}>
-                  {blog.title}
+                <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.25 }}>
+                  {blog.title || <em className="text-ink-3">Untitled</em>}
                 </div>
-              </div>
-              <div className="flex" style={{ gap: 8 }}>
-                <Link
-                  to={buildRoute.editor(blog.slug)}
-                  className="border border-line text-ink-2 font-medium rounded-[4px] hover:bg-bg-tint transition-colors"
-                  style={{ padding: '6px 12px', fontSize: 12 }}
-                >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handleUnschedule(blog.slug)}
-                  className="text-ink-3 hover:text-red-500 transition-colors"
-                  style={{ padding: '6px 8px', fontSize: 12 }}
-                >
-                  Unschedule
-                </button>
+                {blog.scheduledAt && (
+                  <div className="font-mono text-ink-3" style={{ fontSize: 10 }}>
+                    ⏱ {formatDate(blog.scheduledAt)} · {timeUntil(blog.scheduledAt)}
+                  </div>
+                )}
+                <div className="flex items-center text-ink-3 mt-auto" style={{ fontSize: 11, gap: 6 }}>
+                  <span className="flex-1" />
+                  <Link
+                    to={buildRoute.editor(blog.slug)}
+                    className="text-ink-2 hover:text-ink transition-colors"
+                    style={{ fontSize: 12 }}
+                  >
+                    Edit / Reschedule
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {scheduled.length > 0 && (
+        <p className="text-ink-3" style={{ fontSize: 11, marginTop: 12 }}>
+          To cancel a scheduled post, open it in the editor and republish as a draft.
+        </p>
       )}
     </div>
   )

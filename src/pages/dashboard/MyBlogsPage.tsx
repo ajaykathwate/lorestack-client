@@ -1,21 +1,21 @@
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
-import { useDeleteBlog } from '@/api/hooks/useBlogMutations'
+import { useArchiveBlog } from '@/api/hooks/useBlogMutations'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort } from '@/lib/utils'
 
 export function MyBlogsPage() {
   const { data: blogs, isLoading } = useMyBlogs()
-  const { mutate: deleteBlog } = useDeleteBlog()
+  const { mutate: archiveBlog } = useArchiveBlog()
 
   const published = (blogs ?? []).filter((b) => b.status === 'published')
 
-  function handleDelete(slug: string) {
-    if (!confirm('Delete this blog permanently?')) return
-    deleteBlog(slug, {
-      onSuccess: () => toast.success('Blog deleted.'),
-      onError: () => toast.error('Failed to delete blog.'),
+  function handleArchive(slug: string, title: string) {
+    if (!confirm(`Archive "${title}"? It will be hidden from public pages.`)) return
+    archiveBlog(slug, {
+      onSuccess: () => toast.success('Blog archived.'),
+      onError: () => toast.error('Failed to archive.'),
     })
   }
 
@@ -25,7 +25,8 @@ export function MyBlogsPage() {
         <div>
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
-            My published blogs
+            Published{' '}
+            <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}>· {published.length}</span>
           </h1>
         </div>
         <Link
@@ -64,7 +65,15 @@ export function MyBlogsPage() {
               key={blog.id}
               className="rounded-[6px] border border-line overflow-hidden flex flex-col"
             >
-              <div className="bg-bg-tint" style={{ height: 92 }} />
+              {blog.coverImageUrl ? (
+                <img
+                  src={blog.coverImageUrl}
+                  alt=""
+                  style={{ width: '100%', height: 92, objectFit: 'cover', display: 'block' }}
+                />
+              ) : (
+                <div className="bg-bg-tint" style={{ height: 92 }} />
+              )}
               <div className="flex flex-col flex-1" style={{ padding: '10px 12px', gap: 6 }}>
                 <span className="border border-line text-ink-2 rounded-[3px] self-start" style={{ fontSize: 10, padding: '2px 6px' }}>
                   {articleTypeLabel(blog.articleType)}
@@ -76,6 +85,15 @@ export function MyBlogsPage() {
                   {blog.publishedAt ? formatDateShort(blog.publishedAt) : '—'}
                   <span className="flex-1" />
                   <div className="flex" style={{ gap: 8 }}>
+                    <a
+                      href={buildRoute.blog(blog.slug)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-ink-3 hover:text-ink transition-colors"
+                      style={{ fontSize: 12 }}
+                    >
+                      View
+                    </a>
                     <Link
                       to={buildRoute.editor(blog.slug)}
                       className="text-ink-3 hover:text-ink transition-colors"
@@ -84,11 +102,11 @@ export function MyBlogsPage() {
                       Edit
                     </Link>
                     <button
-                      onClick={() => handleDelete(blog.slug)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
+                      onClick={() => handleArchive(blog.slug, blog.title)}
+                      className="text-ink-3 hover:text-amber-600 transition-colors"
                       style={{ fontSize: 12 }}
                     >
-                      Delete
+                      Archive
                     </button>
                   </div>
                 </div>

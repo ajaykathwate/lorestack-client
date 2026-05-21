@@ -1,29 +1,21 @@
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
-import { useDeleteBlog, usePublishBlog } from '@/api/hooks/useBlogMutations'
+import { useUnarchiveBlog } from '@/api/hooks/useBlogMutations'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort } from '@/lib/utils'
 
-export function DraftsPage() {
+export function ArchivedPage() {
   const { data: blogs, isLoading } = useMyBlogs()
-  const { mutate: deleteBlog } = useDeleteBlog()
-  const { mutate: publishBlog } = usePublishBlog()
+  const { mutate: unarchiveBlog } = useUnarchiveBlog()
 
-  const drafts = (blogs ?? []).filter((b) => b.status === 'draft')
+  const archived = (blogs ?? []).filter((b) => b.status === 'archived')
 
-  function handleDelete(slug: string) {
-    if (!confirm('Delete this draft permanently?')) return
-    deleteBlog(slug, {
-      onSuccess: () => toast.success('Draft deleted.'),
-      onError: () => toast.error('Failed to delete draft.'),
-    })
-  }
-
-  function handlePublish(slug: string, title: string) {
-    publishBlog(slug, {
-      onSuccess: () => toast.success(`"${title}" published!`),
-      onError: () => toast.error('Failed to publish.'),
+  function handleUnarchive(slug: string, title: string) {
+    if (!confirm(`Unarchive "${title}"? It will be republished.`)) return
+    unarchiveBlog(slug, {
+      onSuccess: () => toast.success('Blog unarchived and republished.'),
+      onError: () => toast.error('Failed to unarchive.'),
     })
   }
 
@@ -33,8 +25,8 @@ export function DraftsPage() {
         <div>
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
-            Drafts{' '}
-            <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}>· {drafts.length}</span>
+            Archived{' '}
+            <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}>· {archived.length}</span>
           </h1>
         </div>
         <Link
@@ -42,7 +34,7 @@ export function DraftsPage() {
           className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
           style={{ padding: '8px 16px', fontSize: 13 }}
         >
-          + New draft
+          + Write blog
         </Link>
       </div>
 
@@ -52,24 +44,20 @@ export function DraftsPage() {
             <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 200 }} />
           ))}
         </div>
-      ) : drafts.length === 0 ? (
+      ) : archived.length === 0 ? (
         <div className="rounded-[6px] border border-line flex flex-col items-center justify-center text-center" style={{ padding: 40 }}>
-          <h3 className="font-serif font-bold text-ink" style={{ fontSize: 18, marginTop: 14 }}>No drafts</h3>
-          <p className="text-ink-2" style={{ margin: '6px 0 16px', fontSize: 13 }}>Start writing to save a draft.</p>
-          <Link
-            to={ROUTES.EDITOR_NEW}
-            className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-            style={{ padding: '8px 16px', fontSize: 13 }}
-          >
-            + Write blog
-          </Link>
+          <h3 className="font-serif font-bold text-ink" style={{ fontSize: 18, marginTop: 14 }}>No archived blogs</h3>
+          <p className="text-ink-2" style={{ margin: '6px 0 16px', fontSize: 13 }}>
+            Archive a published blog from the Published tab to hide it from public pages.
+          </p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-          {drafts.map((blog) => (
+          {archived.map((blog) => (
             <div
               key={blog.id}
               className="rounded-[6px] border border-line overflow-hidden flex flex-col"
+              style={{ opacity: 0.75 }}
             >
               {blog.coverImageUrl ? (
                 <img
@@ -83,7 +71,7 @@ export function DraftsPage() {
               <div className="flex flex-col flex-1" style={{ padding: '10px 12px', gap: 6 }}>
                 <div className="flex items-center" style={{ gap: 6, flexWrap: 'wrap' }}>
                   <span className="font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 5px', background: 'var(--ls-bg-soft)', color: 'var(--ls-ink-3)', border: '1px solid var(--ls-line)' }}>
-                    draft
+                    archived
                   </span>
                   <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 5px' }}>
                     {articleTypeLabel(blog.articleType)}
@@ -93,16 +81,9 @@ export function DraftsPage() {
                   {blog.title || <em className="text-ink-3">Untitled</em>}
                 </div>
                 <div className="flex items-center text-ink-3 mt-auto" style={{ fontSize: 11, gap: 6 }}>
-                  edited {formatDateShort(blog.updatedAt)}
+                  {formatDateShort(blog.updatedAt)}
                   <span className="flex-1" />
                   <div className="flex" style={{ gap: 8 }}>
-                    <button
-                      onClick={() => handlePublish(blog.slug, blog.title)}
-                      className="text-ink-2 hover:text-ink transition-colors"
-                      style={{ fontSize: 12 }}
-                    >
-                      Publish
-                    </button>
                     <Link
                       to={buildRoute.editor(blog.slug)}
                       className="text-ink-3 hover:text-ink transition-colors"
@@ -111,11 +92,11 @@ export function DraftsPage() {
                       Edit
                     </Link>
                     <button
-                      onClick={() => handleDelete(blog.slug)}
-                      className="text-ink-3 hover:text-red-500 transition-colors"
+                      onClick={() => handleUnarchive(blog.slug, blog.title)}
+                      className="text-ink-2 hover:text-ink transition-colors"
                       style={{ fontSize: 12 }}
                     >
-                      ×
+                      Unarchive
                     </button>
                   </div>
                 </div>

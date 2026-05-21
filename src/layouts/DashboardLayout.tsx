@@ -23,6 +23,7 @@ function buildSidebarItems(companyHandles: string[], username?: string, isAdmin?
     { type: 'link', label: 'Published', to: ROUTES.MY_BLOGS,  icon: '◆' },
     { type: 'link', label: 'Drafts',    to: ROUTES.DRAFTS,    icon: '◇' },
     { type: 'link', label: 'Scheduled', to: ROUTES.SCHEDULED, icon: '⏱' },
+    { type: 'link', label: 'Archived',  to: ROUTES.ARCHIVED,  icon: '⌫' },
 
     { type: 'heading', label: 'Companies' },
     ...companyHandles.map<SidebarItem>((handle) => ({

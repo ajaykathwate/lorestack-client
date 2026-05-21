@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useCompanyByHandle, useCompanyMembers, useCompanyMilestones } from '@/api/hooks/useCompanyQueries'
 import { useCompanyBlogs } from '@/api/hooks/useBlogQueries'
@@ -7,6 +7,7 @@ import { articleTypeLabel, formatDate, formatDateShort, initials } from '@/lib/u
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 type Tab = 'blogs' | 'team' | 'timeline'
+type SortOption = 'newest' | 'oldest'
 
 const MILESTONE_TYPE_LABELS: Record<string, string> = {
   launch: 'LAUNCH',
@@ -24,15 +25,34 @@ const MILESTONE_TYPE_LABELS: Record<string, string> = {
 export function CompanyProfilePage() {
   const { handle = '' } = useParams()
   const [activeTab, setActiveTab] = useState<Tab>('blogs')
+  const [articleTypeFilter, setArticleTypeFilter] = useState<string>('all')
+  const [sort, setSort] = useState<SortOption>('newest')
 
   const { data: company, isLoading } = useCompanyByHandle(handle)
   const { data: blogs } = useCompanyBlogs(handle)
   const { data: members } = useCompanyMembers(handle)
   const { data: milestones } = useCompanyMilestones(handle)
 
-  const articles = blogs ?? []
+  const allArticles = blogs ?? []
   const team = members ?? []
   const timeline = milestones ?? []
+
+  const articleTypes = useMemo(() => {
+    const types = new Set(allArticles.map((b) => b.articleType).filter(Boolean))
+    return Array.from(types) as string[]
+  }, [allArticles])
+
+  const articles = useMemo(() => {
+    let list = articleTypeFilter === 'all'
+      ? allArticles
+      : allArticles.filter((b) => b.articleType === articleTypeFilter)
+    list = [...list].sort((a, b) => {
+      const aDate = new Date(a.publishedAt ?? a.createdAt).getTime()
+      const bDate = new Date(b.publishedAt ?? b.createdAt).getTime()
+      return sort === 'newest' ? bDate - aDate : aDate - bDate
+    })
+    return list
+  }, [allArticles, articleTypeFilter, sort])
 
   if (isLoading) {
     return (
@@ -129,7 +149,7 @@ export function CompanyProfilePage() {
       {/* Tab bar */}
       <div className="flex border-b border-line" style={{ gap: 24, padding: '0 48px' }}>
         {([
-          { key: 'blogs', label: `Blogs · ${articles.length}` },
+          { key: 'blogs', label: `Blogs · ${allArticles.length}` },
           { key: 'team', label: `Team · ${team.length}` },
           { key: 'timeline', label: `Timeline · ${timeline.length}` },
         ] as { key: Tab; label: string }[]).map((tab) => (
@@ -154,9 +174,57 @@ export function CompanyProfilePage() {
       {activeTab === 'blogs' && (
         <div style={{ padding: '24px 48px', display: 'grid', gridTemplateColumns: '1fr 280px', gap: 32 }}>
           <div>
+            {/* Filter + sort bar */}
+            {allArticles.length > 0 && (
+              <div className="flex items-center justify-between" style={{ marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+                <div className="flex" style={{ gap: 6, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setArticleTypeFilter('all')}
+                    className="rounded-full font-mono transition-colors"
+                    style={{
+                      fontSize: 11,
+                      padding: '4px 12px',
+                      background: articleTypeFilter === 'all' ? 'var(--ls-ink)' : 'transparent',
+                      color: articleTypeFilter === 'all' ? 'var(--ls-bg)' : 'var(--ls-ink-3)',
+                      border: articleTypeFilter === 'all' ? '1px solid var(--ls-ink)' : '1px solid var(--ls-line)',
+                    }}
+                  >
+                    All
+                  </button>
+                  {articleTypes.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setArticleTypeFilter(type)}
+                      className="rounded-full font-mono transition-colors"
+                      style={{
+                        fontSize: 11,
+                        padding: '4px 12px',
+                        background: articleTypeFilter === type ? 'var(--ls-ink)' : 'transparent',
+                        color: articleTypeFilter === type ? 'var(--ls-bg)' : 'var(--ls-ink-3)',
+                        border: articleTypeFilter === type ? '1px solid var(--ls-ink)' : '1px solid var(--ls-line)',
+                      }}
+                    >
+                      {articleTypeLabel(type)}
+                    </button>
+                  ))}
+                </div>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortOption)}
+                  className="border border-line rounded-[4px] bg-bg text-ink-2"
+                  style={{ fontSize: 12, padding: '5px 10px', cursor: 'pointer' }}
+                >
+                  <option value="newest">Newest first</option>
+                  <option value="oldest">Oldest first</option>
+                </select>
+              </div>
+            )}
+
             {articles.length === 0 ? (
               <div className="rounded-[6px] border border-line flex items-center justify-center" style={{ padding: 40 }}>
-                <p className="text-ink-3" style={{ fontSize: 13 }}>No published articles yet.</p>
+                <p className="text-ink-3" style={{ fontSize: 13 }}>
+                  {articleTypeFilter === 'all' ? 'No published articles yet.' : `No ${articleTypeLabel(articleTypeFilter)} articles yet.`}
+                </p>
               </div>
             ) : (
               <div className="flex flex-col">
@@ -165,10 +233,13 @@ export function CompanyProfilePage() {
                     key={blog.id}
                     to={buildRoute.blog(blog.slug)}
                     className="hover:bg-bg-tint transition-colors"
-                    style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: 18, padding: '18px 0', borderTop: '1px solid var(--ls-line-soft)' }}
+                    style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 18, padding: '18px 0', borderTop: '1px solid var(--ls-line-soft)' }}
                   >
                     <div>
-                      <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
+                      <span
+                        className="font-mono rounded-[3px]"
+                        style={{ fontSize: 10, padding: '2px 6px', background: 'var(--ls-accent-soft)', color: 'var(--ls-accent-ink)' }}
+                      >
                         {articleTypeLabel(blog.articleType)}
                       </span>
                       <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, marginTop: 8 }}>
@@ -183,7 +254,16 @@ export function CompanyProfilePage() {
                         {formatDateShort(blog.publishedAt ?? blog.createdAt)}
                       </div>
                     </div>
-                    <div className="rounded-[4px] bg-bg-tint border border-line" style={{ height: 120 }} />
+                    {blog.coverImageUrl ? (
+                      <img
+                        src={blog.coverImageUrl}
+                        alt=""
+                        className="rounded-[4px] object-cover flex-shrink-0"
+                        style={{ width: 160, height: 110 }}
+                      />
+                    ) : (
+                      <div className="rounded-[4px] bg-bg-tint border border-line flex-shrink-0" style={{ width: 160, height: 110 }} />
+                    )}
                   </Link>
                 ))}
               </div>

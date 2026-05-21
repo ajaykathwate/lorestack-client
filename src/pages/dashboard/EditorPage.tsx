@@ -130,7 +130,14 @@ export function EditorPage() {
       } else {
         setSaveStatus('saving')
         updateBlog({ slug, payload }, {
-          onSuccess: () => setSaveStatus('saved'),
+          onSuccess: (blog) => {
+            setSaveStatus('saved')
+            // If backend changed the slug (e.g. title changed), keep currentSlug in sync
+            if (blog.slug && blog.slug !== slug) {
+              setCurrentSlug(blog.slug)
+              navigate(buildRoute.editor(blog.slug), { replace: true })
+            }
+          },
           onError: () => {
             setSaveStatus('unsaved')
             toast.error('Auto-save failed.')
@@ -160,10 +167,53 @@ export function EditorPage() {
 
   function handlePublish() {
     if (!currentSlug) { toast.error('Save the draft first.'); return }
-    publishBlog(currentSlug, {
-      onSuccess: () => { toast.success('Blog published!'); navigate(ROUTES.MY_BLOGS) },
-      onError: () => toast.error('Failed to publish.'),
-    })
+
+    // Flush any pending autosave before publishing so slug is up to date
+    if (autosaveTimer.current) {
+      clearTimeout(autosaveTimer.current)
+      autosaveTimer.current = null
+    }
+
+    const doPublish = (slug: string) => {
+      publishBlog(slug, {
+        onSuccess: () => { toast.success('Blog published!'); navigate(ROUTES.MY_BLOGS) },
+        onError: (err: any) => {
+          const msg = err?.response?.data?.message ?? 'Failed to publish.'
+          toast.error(msg)
+        },
+      })
+    }
+
+    if (saveStatus === 'unsaved') {
+      const slug = currentSlug
+      const payload = {
+        title: title.trim() || 'Untitled',
+        body,
+        articleType,
+        ...(companyId ? { companyId } : {}),
+        tags,
+        ...(coverImageUrl ? { coverImageUrl } : {}),
+        ...(summary ? { summary } : {}),
+      }
+      setSaveStatus('saving')
+      updateBlog({ slug, payload }, {
+        onSuccess: (blog) => {
+          setSaveStatus('saved')
+          const latestSlug = blog.slug ?? slug
+          if (blog.slug && blog.slug !== slug) {
+            setCurrentSlug(latestSlug)
+            navigate(buildRoute.editor(latestSlug), { replace: true })
+          }
+          doPublish(latestSlug)
+        },
+        onError: () => {
+          setSaveStatus('unsaved')
+          toast.error('Could not save before publishing. Try saving manually first.')
+        },
+      })
+    } else {
+      doPublish(currentSlug)
+    }
   }
 
   function handleSchedule() {
@@ -185,7 +235,10 @@ export function EditorPage() {
           setShowScheduleModal(false)
           navigate(ROUTES.SCHEDULED)
         },
-        onError: () => toast.error('Failed to schedule.'),
+        onError: (err: any) => {
+          const msg = err?.response?.data?.message ?? 'Failed to schedule.'
+          toast.error(msg)
+        },
       },
     )
   }

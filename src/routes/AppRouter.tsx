@@ -26,6 +26,7 @@ import { BlogPage } from '@/pages/public/BlogPage'
 import { TagPage } from '@/pages/public/TagPage'
 import { AuthorProfilePage } from '@/pages/public/AuthorProfilePage'
 import { CompanyProfilePage } from '@/pages/public/CompanyProfilePage'
+import { AcceptInvitePage } from '@/pages/public/AcceptInvitePage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 
 // Dashboard pages
@@ -68,6 +69,7 @@ const router = createBrowserRouter([
       { path: ROUTES.TAG,             element: <TagPage /> },
       { path: ROUTES.AUTHOR_PROFILE,  element: <AuthorProfilePage /> },
       { path: ROUTES.COMPANY_PROFILE, element: <CompanyProfilePage /> },
+      { path: ROUTES.ACCEPT_INVITE,  element: <AcceptInvitePage /> },
       { path: '*',                    element: <NotFoundPage /> },
     ],
   },

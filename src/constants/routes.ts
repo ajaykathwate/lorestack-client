@@ -9,6 +9,7 @@ export const ROUTES = {
   TAG: '/tag/:slug',
   AUTHOR_PROFILE: '/author/:username',
   COMPANY_PROFILE: '/company/:handle',
+  ACCEPT_INVITE: '/invites/:token',
 
   // ── Auth ─────────────────────────────────────────────────────────────────
   LOGIN: '/login',

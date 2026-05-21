@@ -1,9 +1,26 @@
 import { useParams, Link } from 'react-router-dom'
+import { marked } from 'marked'
 import 'react-quill/dist/quill.snow.css'
 import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate, initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
+
+// Configure marked for clean HTML output
+marked.setOptions({ breaks: true, gfm: true })
+
+function renderBody(body: string): string {
+  // If the body contains HTML tags it was saved by ReactQuill — use as-is
+  if (/<[a-z][\s\S]*>/i.test(body)) return body
+  // Otherwise treat as markdown
+  return marked.parse(body) as string
+}
+
+function plainText(body: string): string {
+  // Strip HTML tags (from Quill HTML or markdown-rendered HTML) to get plain text
+  const html = renderBody(body)
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}
 
 export function BlogPage() {
   const { slug = '' } = useParams()
@@ -29,14 +46,15 @@ export function BlogPage() {
     )
   }
 
-  const authorInitials = initials('A')
-  const plainBody = (blog.body ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-  const wordCount = plainBody ? plainBody.split(' ').filter(Boolean).length : 0
+  const plain = plainText(blog.body ?? '')
+  const wordCount = plain ? plain.split(' ').filter(Boolean).length : 0
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
+
+  const renderedBody = blog.body ? renderBody(blog.body) : null
 
   return (
     <div className="flex flex-col">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr min(680px, 100%) 1fr' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr min(720px, 100%) 1fr' }}>
         <div />
         <article style={{ padding: '40px 0 60px' }}>
 
@@ -72,7 +90,7 @@ export function BlogPage() {
               className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
               style={{ width: 36, height: 36, fontSize: 13 }}
             >
-              {authorInitials}
+              {initials('A')}
             </div>
             <div className="flex-1">
               <div className="font-semibold text-ink" style={{ fontSize: 13 }}>Author</div>
@@ -96,41 +114,36 @@ export function BlogPage() {
             </button>
           </div>
 
-          {/* Cover image */}
-          {blog.coverImageUrl ? (
+          {/* Cover image — only shown when available */}
+          {blog.coverImageUrl && (
             <img
               src={blog.coverImageUrl}
               alt={blog.title}
               className="w-full rounded-[6px] object-cover"
-              style={{ marginTop: 24, height: 300, display: 'block' }}
-            />
-          ) : (
-            <div
-              className="w-full rounded-[6px] bg-bg-tint border border-line"
-              style={{ marginTop: 24, height: 300 }}
+              style={{ marginTop: 24, maxHeight: 400, display: 'block' }}
             />
           )}
 
-          {/* Body — rendered from Quill HTML */}
-          {blog.body && (
-            <div className="ql-snow" style={{ marginTop: 28 }}>
+          {/* Body — rendered from Quill HTML or markdown */}
+          {renderedBody && (
+            <div className="ql-snow" style={{ marginTop: blog.coverImageUrl ? 28 : 24 }}>
               <div
                 className="ql-editor"
                 style={{
                   fontFamily: '"Source Serif 4", Georgia, serif',
                   fontSize: 17,
-                  lineHeight: 1.65,
+                  lineHeight: 1.7,
                   color: 'var(--ls-ink)',
                   padding: 0,
                 }}
-                dangerouslySetInnerHTML={{ __html: blog.body }}
+                dangerouslySetInnerHTML={{ __html: renderedBody }}
               />
             </div>
           )}
 
           {/* Tags */}
           {blog.tags.length > 0 && (
-            <div className="flex flex-wrap" style={{ marginTop: 32, gap: 6 }}>
+            <div className="flex flex-wrap" style={{ marginTop: 36, gap: 6 }}>
               {blog.tags.map((tag) => (
                 <Link
                   key={tag.id}
@@ -159,9 +172,10 @@ export function BlogPage() {
                 className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
                 style={{ width: 48, height: 48, fontSize: 16 }}
               >
-                {authorInitials}
+                {initials('A')}
               </div>
               <div className="flex-1">
+                <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Written by</div>
                 <div className="font-semibold text-ink" style={{ fontSize: 14 }}>Author</div>
                 <div className="text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>
                   Engineering writer
@@ -185,6 +199,7 @@ export function BlogPage() {
                   C
                 </div>
                 <div className="flex-1">
+                  <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Published by</div>
                   <div className="font-semibold text-ink" style={{ fontSize: 14 }}>Company</div>
                   <div className="text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>Engineering team</div>
                   <button

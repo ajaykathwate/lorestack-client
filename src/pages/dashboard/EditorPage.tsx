@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { marked } from 'marked'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
+
+marked.setOptions({ breaks: true, gfm: true })
+
+function normalizeToHtml(body: string): string {
+  if (!body) return ''
+  if (/<[a-z][\s\S]*>/i.test(body)) return body
+  return marked.parse(body) as string
+}
 import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@/api/hooks/useBlogMutations'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
@@ -76,7 +85,7 @@ export function EditorPage() {
     if (existingBlog && !initialized.current) {
       initialized.current = true
       setTitle(existingBlog.title)
-      setBody(existingBlog.body ?? '')
+      setBody(normalizeToHtml(existingBlog.body ?? ''))
       setArticleType(existingBlog.articleType)
       setCompanyId(existingBlog.companyId ?? '')
       setTags(existingBlog.tags.map((t) => t.name))
@@ -202,7 +211,7 @@ export function EditorPage() {
     setSaveStatus('unsaved')
   }
 
-  const plainText = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  const plainText = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const wordCount = plainText ? plainText.split(' ').filter(Boolean).length : 0
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
   const todayISO = new Date().toISOString().slice(0, 10)

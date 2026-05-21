@@ -6,18 +6,14 @@ import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate, initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
-// Configure marked for clean HTML output
 marked.setOptions({ breaks: true, gfm: true })
 
 function renderBody(body: string): string {
-  // If the body contains HTML tags it was saved by ReactQuill — use as-is
   if (/<[a-z][\s\S]*>/i.test(body)) return body
-  // Otherwise treat as markdown
   return marked.parse(body) as string
 }
 
 function plainText(body: string): string {
-  // Strip HTML tags (from Quill HTML or markdown-rendered HTML) to get plain text
   const html = renderBody(body)
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }
@@ -49,19 +45,29 @@ export function BlogPage() {
   const plain = plainText(blog.body ?? '')
   const wordCount = plain ? plain.split(' ').filter(Boolean).length : 0
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
-
   const renderedBody = blog.body ? renderBody(blog.body) : null
+
+  const author = blog.authorProfile
+  const company = blog.company
+  const authorName = author?.displayName ?? 'Author'
+  const authorUsername = author?.username
+  const companyName = company?.name ?? 'Company'
+  const companyHandle = company?.handle
 
   return (
     <div className="flex flex-col">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr min(720px, 100%) 1fr' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr min(740px, 100%) 1fr' }}>
         <div />
-        <article style={{ padding: '40px 0 60px' }}>
+        <article style={{ padding: '48px 0 80px' }}>
 
           {/* Article type badge */}
           <span
             className="inline-block font-mono rounded-[3px]"
-            style={{ fontSize: 11, padding: '3px 8px', background: 'var(--ls-accent-soft)', color: 'var(--ls-accent-ink)', border: '1px solid var(--ls-accent-soft)' }}
+            style={{
+              fontSize: 10, padding: '3px 9px',
+              background: 'var(--ls-accent-soft)', color: 'var(--ls-accent-ink)',
+              letterSpacing: '0.5px',
+            }}
           >
             {articleTypeLabel(blog.articleType)}
           </span>
@@ -69,14 +75,14 @@ export function BlogPage() {
           {/* Title */}
           <h1
             className="font-serif font-bold text-ink"
-            style={{ fontSize: 40, marginTop: 14, marginBottom: 14, lineHeight: 1.05 }}
+            style={{ fontSize: 42, marginTop: 16, marginBottom: 12, lineHeight: 1.08, letterSpacing: '-0.3px' }}
           >
             {blog.title}
           </h1>
 
-          {/* Summary / lede */}
+          {/* Summary */}
           {blog.summary && (
-            <p className="font-serif text-ink-2" style={{ fontSize: 18, lineHeight: 1.5, margin: '0 0 22px' }}>
+            <p className="font-serif text-ink-2" style={{ fontSize: 19, lineHeight: 1.55, margin: '0 0 24px' }}>
               {blog.summary}
             </p>
           )}
@@ -84,21 +90,66 @@ export function BlogPage() {
           {/* Author strip */}
           <div
             className="flex items-center"
-            style={{ gap: 12, paddingBottom: 18, borderBottom: '1px solid var(--ls-line)' }}
+            style={{ gap: 12, paddingBottom: 20, borderBottom: '1px solid var(--ls-line)' }}
           >
-            <div
-              className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-              style={{ width: 36, height: 36, fontSize: 13 }}
-            >
-              {initials('A')}
-            </div>
+            {/* Author avatar */}
+            {authorUsername ? (
+              <Link to={buildRoute.author(authorUsername)} className="flex-shrink-0">
+                {author?.avatarUrl ? (
+                  <img
+                    src={author.avatarUrl}
+                    alt={authorName}
+                    className="rounded-full object-cover"
+                    style={{ width: 38, height: 38 }}
+                  />
+                ) : (
+                  <div
+                    className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
+                    style={{ width: 38, height: 38, fontSize: 13 }}
+                  >
+                    {initials(authorName)}
+                  </div>
+                )}
+              </Link>
+            ) : (
+              <div
+                className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
+                style={{ width: 38, height: 38, fontSize: 13 }}
+              >
+                {initials(authorName)}
+              </div>
+            )}
+
             <div className="flex-1">
-              <div className="font-semibold text-ink" style={{ fontSize: 13 }}>Author</div>
-              <div className="text-ink-3" style={{ fontSize: 11 }}>
+              {authorUsername ? (
+                <Link
+                  to={buildRoute.author(authorUsername)}
+                  className="font-semibold text-ink hover:text-ls-accent transition-colors"
+                  style={{ fontSize: 13 }}
+                >
+                  {authorName}
+                </Link>
+              ) : (
+                <div className="font-semibold text-ink" style={{ fontSize: 13 }}>{authorName}</div>
+              )}
+
+              <div className="text-ink-3" style={{ fontSize: 11, marginTop: 1 }}>
                 {blog.publishedAt ? formatDate(blog.publishedAt) : 'Draft'}
                 {wordCount > 0 && ` · ${readMin} min read`}
+                {companyHandle && (
+                  <>
+                    {' · '}
+                    <Link
+                      to={buildRoute.company(companyHandle)}
+                      className="hover:text-ink transition-colors"
+                    >
+                      {companyName}
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
+
             <button
               className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
               style={{ padding: '5px 10px', fontSize: 12 }}
@@ -114,25 +165,25 @@ export function BlogPage() {
             </button>
           </div>
 
-          {/* Cover image — only shown when available */}
+          {/* Cover image */}
           {blog.coverImageUrl && (
             <img
               src={blog.coverImageUrl}
               alt={blog.title}
               className="w-full rounded-[6px] object-cover"
-              style={{ marginTop: 24, maxHeight: 400, display: 'block' }}
+              style={{ marginTop: 28, maxHeight: 420, display: 'block' }}
             />
           )}
 
-          {/* Body — rendered from Quill HTML or markdown */}
+          {/* Body */}
           {renderedBody && (
-            <div className="ql-snow" style={{ marginTop: blog.coverImageUrl ? 28 : 24 }}>
+            <div className="ql-snow" style={{ marginTop: blog.coverImageUrl ? 32 : 28 }}>
               <div
                 className="ql-editor"
                 style={{
                   fontFamily: '"Source Serif 4", Georgia, serif',
-                  fontSize: 17,
-                  lineHeight: 1.7,
+                  fontSize: 18,
+                  lineHeight: 1.75,
                   color: 'var(--ls-ink)',
                   padding: 0,
                 }}
@@ -143,7 +194,7 @@ export function BlogPage() {
 
           {/* Tags */}
           {blog.tags.length > 0 && (
-            <div className="flex flex-wrap" style={{ marginTop: 36, gap: 6 }}>
+            <div className="flex flex-wrap" style={{ marginTop: 40, gap: 6 }}>
               {blog.tags.map((tag) => (
                 <Link
                   key={tag.id}
@@ -160,54 +211,111 @@ export function BlogPage() {
           {/* Author + company cards */}
           <div
             style={{
-              marginTop: 32,
+              marginTop: 40,
               display: 'grid',
-              gridTemplateColumns: blog.companyId ? '1fr 1fr' : '1fr',
+              gridTemplateColumns: company && companyHandle ? '1fr 1fr' : '1fr',
               gap: 14,
             }}
           >
             {/* Author card */}
-            <div className="rounded-[6px] border border-line flex" style={{ padding: 16, gap: 12 }}>
-              <div
-                className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-                style={{ width: 48, height: 48, fontSize: 16 }}
-              >
-                {initials('A')}
-              </div>
-              <div className="flex-1">
-                <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Written by</div>
-                <div className="font-semibold text-ink" style={{ fontSize: 14 }}>Author</div>
-                <div className="text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>
-                  Engineering writer
-                </div>
-                <button
-                  className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
-                  style={{ padding: '3px 10px', fontSize: 11 }}
+            <div className="rounded-[8px] border border-line flex" style={{ padding: 18, gap: 14 }}>
+              {authorUsername ? (
+                <Link to={buildRoute.author(authorUsername)} className="flex-shrink-0">
+                  {author?.avatarUrl ? (
+                    <img
+                      src={author.avatarUrl}
+                      alt={authorName}
+                      className="rounded-full object-cover"
+                      style={{ width: 48, height: 48 }}
+                    />
+                  ) : (
+                    <div
+                      className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
+                      style={{ width: 48, height: 48, fontSize: 16 }}
+                    >
+                      {initials(authorName)}
+                    </div>
+                  )}
+                </Link>
+              ) : (
+                <div
+                  className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
+                  style={{ width: 48, height: 48, fontSize: 16 }}
                 >
-                  + Follow
-                </button>
+                  {initials(authorName)}
+                </div>
+              )}
+
+              <div className="flex-1 min-w-0">
+                <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Written by</div>
+                {authorUsername ? (
+                  <Link
+                    to={buildRoute.author(authorUsername)}
+                    className="font-semibold text-ink hover:text-ls-accent transition-colors block"
+                    style={{ fontSize: 14 }}
+                  >
+                    {authorName}
+                  </Link>
+                ) : (
+                  <div className="font-semibold text-ink" style={{ fontSize: 14 }}>{authorName}</div>
+                )}
+                {authorUsername && (
+                  <div className="font-mono text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>
+                    @{authorUsername}
+                  </div>
+                )}
+                {authorUsername && (
+                  <Link
+                    to={buildRoute.author(authorUsername)}
+                    className="inline-block border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
+                    style={{ padding: '3px 10px', fontSize: 11 }}
+                  >
+                    View profile →
+                  </Link>
+                )}
               </div>
             </div>
 
             {/* Company card */}
-            {blog.companyId && (
-              <div className="rounded-[6px] border border-line flex" style={{ padding: 16, gap: 12 }}>
-                <div
-                  className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
-                  style={{ width: 48, height: 48, fontSize: 18 }}
-                >
-                  C
-                </div>
-                <div className="flex-1">
+            {company && companyHandle && (
+              <div className="rounded-[8px] border border-line flex" style={{ padding: 18, gap: 14 }}>
+                <Link to={buildRoute.company(companyHandle)} className="flex-shrink-0">
+                  {company.logoUrl ? (
+                    <img
+                      src={company.logoUrl}
+                      alt={companyName}
+                      className="rounded-[6px] object-cover"
+                      style={{ width: 48, height: 48 }}
+                    />
+                  ) : (
+                    <div
+                      className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2"
+                      style={{ width: 48, height: 48, fontSize: 18 }}
+                    >
+                      {initials(companyName)}
+                    </div>
+                  )}
+                </Link>
+
+                <div className="flex-1 min-w-0">
                   <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Published by</div>
-                  <div className="font-semibold text-ink" style={{ fontSize: 14 }}>Company</div>
-                  <div className="text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>Engineering team</div>
-                  <button
-                    className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
+                  <Link
+                    to={buildRoute.company(companyHandle)}
+                    className="font-semibold text-ink hover:text-ls-accent transition-colors block"
+                    style={{ fontSize: 14 }}
+                  >
+                    {companyName}
+                  </Link>
+                  <div className="font-mono text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>
+                    @{companyHandle}
+                  </div>
+                  <Link
+                    to={buildRoute.company(companyHandle)}
+                    className="inline-block border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
                     style={{ padding: '3px 10px', fontSize: 11 }}
                   >
-                    + Follow company
-                  </button>
+                    View company →
+                  </Link>
                 </div>
               </div>
             )}

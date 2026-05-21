@@ -24,7 +24,7 @@ export function useProfileByUsername(username: string) {
 export function useAuthorBlogs(username: string) {
   return useQuery({
     queryKey: QUERY_KEYS.AUTHOR_PROFILES.BLOGS(username),
-    queryFn: () => profileService.getBlogsByUsername(username).then((r) => r.data.data),
+    queryFn: () => profileService.getBlogsByUsername(username).then((r) => r.data.data.data),
     enabled: !!username,
   })
 }

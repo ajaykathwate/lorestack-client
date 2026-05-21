@@ -1,5 +1,5 @@
 import { apiClient } from '@/api/client/axiosInstance'
-import type { AuthorProfile, UpdateProfilePayload, ApiResponse, BlogSummary } from '@/types/api'
+import type { AuthorProfile, UpdateProfilePayload, ApiResponse, PaginatedResult, BlogSummary } from '@/types/api'
 
 export const profileService = {
   getMe: () =>
@@ -12,5 +12,5 @@ export const profileService = {
     apiClient.get<ApiResponse<AuthorProfile>>(`/author-profiles/${username}`),
 
   getBlogsByUsername: (username: string) =>
-    apiClient.get<ApiResponse<BlogSummary[]>>(`/author-profiles/${username}/blogs`),
+    apiClient.get<ApiResponse<PaginatedResult<BlogSummary>>>(`/author-profiles/${username}/blogs`),
 }

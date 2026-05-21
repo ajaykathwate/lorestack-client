@@ -21,15 +21,31 @@ export interface BlogTag {
   isApproved: boolean
 }
 
+export interface BlogAuthorProfile {
+  displayName: string
+  username: string
+  avatarUrl: string | null
+}
+
+export interface BlogCompany {
+  name: string
+  handle: string
+  logoUrl: string | null
+}
+
 export interface Blog {
   id: string
   authorId: string
   companyId: string | null
+  // Embedded by the backend on GET /blogs/:slug
+  authorProfile?: BlogAuthorProfile | null
+  company?: BlogCompany | null
   title: string
   slug: string
   body: string | null
   summary: string | null
   coverImageUrl: string | null
+  ogImageUrl?: string | null
   articleType: ArticleType
   status: BlogStatus
   publishedAt: string | null

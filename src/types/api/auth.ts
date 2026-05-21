@@ -89,3 +89,14 @@ export interface MessageResponse {
 export interface ApiResponse<T> {
   data: T
 }
+
+// Shape returned by paginated list endpoints
+export interface PaginatedResult<T> {
+  data: T[]
+  meta: {
+    page: number
+    limit: number
+    total: number
+    hasNextPage: boolean
+  }
+}

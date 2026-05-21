@@ -10,7 +10,7 @@ export function useMyBlogs() {
 
   return useQuery({
     queryKey: QUERY_KEYS.BLOGS.MINE,
-    queryFn: () => blogService.getMyBlogs().then((r) => r.data.data),
+    queryFn: () => blogService.getMyBlogs().then((r) => r.data.data.data),
     enabled: isAuthenticated,
   })
 }
@@ -26,14 +26,14 @@ export function useBlogBySlug(slug: string) {
 export function useExplore(params?: ExploreParams) {
   return useQuery({
     queryKey: QUERY_KEYS.BLOGS.EXPLORE((params ?? {}) as Record<string, unknown>),
-    queryFn: () => blogService.explore(params).then((r) => r.data.data),
+    queryFn: () => blogService.explore(params).then((r) => r.data.data.data),
   })
 }
 
 export function useCompanyBlogs(handle: string) {
   return useQuery({
     queryKey: QUERY_KEYS.BLOGS.COMPANY(handle),
-    queryFn: () => companyService.getBlogs(handle).then((r) => r.data.data),
+    queryFn: () => companyService.getBlogs(handle).then((r) => r.data.data.data),
     enabled: !!handle,
   })
 }

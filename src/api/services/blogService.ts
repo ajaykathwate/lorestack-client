@@ -7,6 +7,7 @@ import type {
   ScheduleBlogPayload,
   ExploreParams,
   ApiResponse,
+  PaginatedResult,
 } from '@/types/api'
 
 export const blogService = {
@@ -14,7 +15,7 @@ export const blogService = {
     apiClient.post<ApiResponse<Blog>>('/blogs', payload),
 
   getMyBlogs: () =>
-    apiClient.get<ApiResponse<BlogSummary[]>>('/blogs/me'),
+    apiClient.get<ApiResponse<PaginatedResult<BlogSummary>>>('/blogs/me'),
 
   getBySlug: (slug: string) =>
     apiClient.get<ApiResponse<Blog>>(`/blogs/${slug}`),
@@ -38,5 +39,5 @@ export const blogService = {
     apiClient.post<ApiResponse<Blog>>(`/blogs/${slug}/unarchive`),
 
   explore: (params?: ExploreParams) =>
-    apiClient.get<ApiResponse<BlogSummary[]>>('/explore', { params }),
+    apiClient.get<ApiResponse<PaginatedResult<BlogSummary>>>('/explore', { params }),
 }

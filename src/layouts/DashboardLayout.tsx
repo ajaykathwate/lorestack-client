@@ -94,7 +94,7 @@ function SidebarNav() {
             }
             style={{ fontSize: 13 }}
           >
-            <span className="font-mono text-ink-3 w-4 flex-shrink-0" style={{ fontSize: 11 }}>
+            <span className="font-mono text-ink-3 w-4 flex-shrink-0" style={{ fontSize: 16 }}>
               {item.icon}
             </span>
             <span className="flex-1">{item.label}</span>

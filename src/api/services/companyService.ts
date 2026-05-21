@@ -8,6 +8,7 @@ import type {
   InviteAuthorPayload,
   AddMilestonePayload,
   ApiResponse,
+  PaginatedResult,
   BlogSummary,
 } from '@/types/api'
 
@@ -46,5 +47,5 @@ export const companyService = {
     apiClient.get<ApiResponse<CompanyMilestone[]>>(`/companies/${handle}/milestones`),
 
   getBlogs: (handle: string) =>
-    apiClient.get<ApiResponse<BlogSummary[]>>(`/companies/${handle}/blogs`),
+    apiClient.get<ApiResponse<PaginatedResult<BlogSummary>>>(`/companies/${handle}/blogs`),
 }

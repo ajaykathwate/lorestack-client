@@ -1,22 +1,33 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { marked } from 'marked'
-import ReactQuill from 'react-quill'
+import ReactQuill, { Quill } from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 
 marked.setOptions({ breaks: true, gfm: true })
+
+// ── Register custom fonts & sizes with Quill ────────────────────────────────
+const Font = Quill.import('formats/font') as any
+Font.whitelist = ['sans', 'serif', 'mono']
+Quill.register(Font, true)
+
+const Size = Quill.import('attributors/style/size') as any
+Size.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px']
+Quill.register(Size, true)
+// ────────────────────────────────────────────────────────────────────────────
 
 function normalizeToHtml(body: string): string {
   if (!body) return ''
   if (/<[a-z][\s\S]*>/i.test(body)) return body
   return marked.parse(body) as string
 }
+
 import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@/api/hooks/useBlogMutations'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
-import { articleTypeLabel } from '@/lib/utils'
+import { articleTypeLabel, initials } from '@/lib/utils'
 import type { ArticleType } from '@/types/api'
 
 const ARTICLE_TYPES: ArticleType[] = [
@@ -26,24 +37,123 @@ const ARTICLE_TYPES: ArticleType[] = [
 ]
 
 const QUILL_MODULES = {
-  toolbar: [
-    [{ header: [2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    ['blockquote', 'code-block'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['link', 'image'],
-    ['clean'],
-  ],
+  toolbar: {
+    container: '#quill-toolbar',
+  },
 }
 
 const QUILL_FORMATS = [
-  'header', 'bold', 'italic', 'underline', 'strike',
-  'blockquote', 'code-block', 'list', 'bullet', 'link', 'image',
+  'font', 'size', 'header',
+  'bold', 'italic', 'underline', 'strike',
+  'color', 'background',
+  'blockquote', 'code-block',
+  'list', 'indent',
+  'align',
+  'script',
+  'link', 'image',
 ]
 
 type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'idle'
 
 const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000
+
+// Custom Quill toolbar rendered as JSX so we control every pixel
+function QuillToolbar() {
+  return (
+    <div
+      id="quill-toolbar"
+      style={{
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2,
+        padding: '6px 0', borderBottom: '1px solid var(--ls-line)',
+        background: 'var(--ls-bg)', position: 'sticky', top: 0, zIndex: 10,
+      }}
+    >
+      {/* Font family */}
+      <span className="ql-formats">
+        <select className="ql-font" title="Font family" defaultValue="">
+          <option value="">Default</option>
+          <option value="serif">Serif</option>
+          <option value="mono">Monospace</option>
+        </select>
+      </span>
+
+      {/* Font size */}
+      <span className="ql-formats">
+        <select className="ql-size" title="Font size" defaultValue="">
+          <option value="12px">12</option>
+          <option value="14px">14</option>
+          <option value="">16</option>
+          <option value="18px">18</option>
+          <option value="20px">20</option>
+          <option value="24px">24</option>
+          <option value="28px">28</option>
+          <option value="32px">32</option>
+        </select>
+      </span>
+
+      {/* Headings */}
+      <span className="ql-formats">
+        <select className="ql-header" title="Heading" defaultValue="">
+          <option value="1">H1</option>
+          <option value="2">H2</option>
+          <option value="3">H3</option>
+          <option value="4">H4</option>
+          <option value="">Normal</option>
+        </select>
+      </span>
+
+      {/* Inline formatting */}
+      <span className="ql-formats">
+        <button className="ql-bold" title="Bold" />
+        <button className="ql-italic" title="Italic" />
+        <button className="ql-underline" title="Underline" />
+        <button className="ql-strike" title="Strikethrough" />
+      </span>
+
+      {/* Color & highlight */}
+      <span className="ql-formats">
+        <select className="ql-color" title="Text color" />
+        <select className="ql-background" title="Highlight color" />
+      </span>
+
+      {/* Script */}
+      <span className="ql-formats">
+        <button className="ql-script" value="sub" title="Subscript" />
+        <button className="ql-script" value="super" title="Superscript" />
+      </span>
+
+      {/* Blocks */}
+      <span className="ql-formats">
+        <button className="ql-blockquote" title="Blockquote" />
+        <button className="ql-code-block" title="Code block" />
+      </span>
+
+      {/* Lists */}
+      <span className="ql-formats">
+        <button className="ql-list" value="ordered" title="Ordered list" />
+        <button className="ql-list" value="bullet" title="Bullet list" />
+        <button className="ql-indent" value="-1" title="Outdent" />
+        <button className="ql-indent" value="+1" title="Indent" />
+      </span>
+
+      {/* Alignment */}
+      <span className="ql-formats">
+        <select className="ql-align" title="Alignment" />
+      </span>
+
+      {/* Media */}
+      <span className="ql-formats">
+        <button className="ql-link" title="Link" />
+        <button className="ql-image" title="Image" />
+      </span>
+
+      {/* Clear */}
+      <span className="ql-formats">
+        <button className="ql-clean" title="Clear formatting" />
+      </span>
+    </div>
+  )
+}
 
 export function EditorPage() {
   const { slug: urlSlug } = useParams()
@@ -77,9 +187,52 @@ export function EditorPage() {
     () => Intl.DateTimeFormat().resolvedOptions().timeZone
   )
 
+  // Article type dropdown
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false)
+  const typeDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Company drawer
+  const [showCompanyDrawer, setShowCompanyDrawer] = useState(false)
+  const [companySearch, setCompanySearch] = useState('')
+  const companySearchRef = useRef<HTMLInputElement>(null)
+
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialized = useRef(false)
   const coverFileRef = useRef<HTMLInputElement>(null)
+  const tagInputRef = useRef<HTMLInputElement>(null)
+
+  // Close type dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target as Node)) {
+        setShowTypeDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Focus search when company drawer opens
+  useEffect(() => {
+    if (showCompanyDrawer) {
+      setTimeout(() => companySearchRef.current?.focus(), 50)
+    } else {
+      setCompanySearch('')
+    }
+  }, [showCompanyDrawer])
+
+  const filteredCompanies = useMemo(() => {
+    if (!companySearch.trim()) return []
+    const q = companySearch.toLowerCase()
+    return (companies ?? []).filter(
+      (c) => c.name.toLowerCase().includes(q) || c.handle.toLowerCase().includes(q)
+    )
+  }, [companies, companySearch])
+
+  const selectedCompany = useMemo(
+    () => (companies ?? []).find((c) => c.id === companyId) ?? null,
+    [companies, companyId]
+  )
 
   useEffect(() => {
     if (existingBlog && !initialized.current) {
@@ -96,9 +249,7 @@ export function EditorPage() {
   }, [existingBlog])
 
   useEffect(() => {
-    if (!initialized.current && isNew) {
-      initialized.current = true
-    }
+    if (!initialized.current && isNew) initialized.current = true
   }, [isNew])
 
   const doSave = useCallback(
@@ -106,8 +257,7 @@ export function EditorPage() {
       const slug = overrideSlug ?? currentSlug
       const payload = {
         title: title.trim() || 'Untitled',
-        body,
-        articleType,
+        body, articleType,
         ...(companyId ? { companyId } : {}),
         tags,
         ...(coverImageUrl ? { coverImageUrl } : {}),
@@ -122,26 +272,19 @@ export function EditorPage() {
             setSaveStatus('saved')
             navigate(buildRoute.editor(blog.slug), { replace: true })
           },
-          onError: () => {
-            setSaveStatus('unsaved')
-            toast.error('Failed to save draft.')
-          },
+          onError: () => { setSaveStatus('unsaved'); toast.error('Failed to save draft.') },
         })
       } else {
         setSaveStatus('saving')
         updateBlog({ slug, payload }, {
           onSuccess: (blog) => {
             setSaveStatus('saved')
-            // If backend changed the slug (e.g. title changed), keep currentSlug in sync
             if (blog.slug && blog.slug !== slug) {
               setCurrentSlug(blog.slug)
               navigate(buildRoute.editor(blog.slug), { replace: true })
             }
           },
-          onError: () => {
-            setSaveStatus('unsaved')
-            toast.error('Auto-save failed.')
-          },
+          onError: () => { setSaveStatus('unsaved'); toast.error('Auto-save failed.') },
         })
       }
     },
@@ -167,49 +310,27 @@ export function EditorPage() {
 
   function handlePublish() {
     if (!currentSlug) { toast.error('Save the draft first.'); return }
-
-    // Flush any pending autosave before publishing so slug is up to date
-    if (autosaveTimer.current) {
-      clearTimeout(autosaveTimer.current)
-      autosaveTimer.current = null
-    }
+    if (autosaveTimer.current) { clearTimeout(autosaveTimer.current); autosaveTimer.current = null }
 
     const doPublish = (slug: string) => {
       publishBlog(slug, {
         onSuccess: () => { toast.success('Blog published!'); navigate(ROUTES.MY_BLOGS) },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message ?? 'Failed to publish.'
-          toast.error(msg)
-        },
+        onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Failed to publish.'),
       })
     }
 
     if (saveStatus === 'unsaved') {
       const slug = currentSlug
-      const payload = {
-        title: title.trim() || 'Untitled',
-        body,
-        articleType,
-        ...(companyId ? { companyId } : {}),
-        tags,
-        ...(coverImageUrl ? { coverImageUrl } : {}),
-        ...(summary ? { summary } : {}),
-      }
+      const payload = { title: title.trim() || 'Untitled', body, articleType, ...(companyId ? { companyId } : {}), tags, ...(coverImageUrl ? { coverImageUrl } : {}), ...(summary ? { summary } : {}) }
       setSaveStatus('saving')
       updateBlog({ slug, payload }, {
         onSuccess: (blog) => {
           setSaveStatus('saved')
           const latestSlug = blog.slug ?? slug
-          if (blog.slug && blog.slug !== slug) {
-            setCurrentSlug(latestSlug)
-            navigate(buildRoute.editor(latestSlug), { replace: true })
-          }
+          if (blog.slug && blog.slug !== slug) { setCurrentSlug(latestSlug); navigate(buildRoute.editor(latestSlug), { replace: true }) }
           doPublish(latestSlug)
         },
-        onError: () => {
-          setSaveStatus('unsaved')
-          toast.error('Could not save before publishing. Try saving manually first.')
-        },
+        onError: () => { setSaveStatus('unsaved'); toast.error('Could not save before publishing. Try saving manually first.') },
       })
     } else {
       doPublish(currentSlug)
@@ -220,27 +341,14 @@ export function EditorPage() {
     if (!currentSlug) { toast.error('Save the draft first.'); return }
     if (!scheduleDate || !scheduleTime) { toast.error('Please pick a date and time.'); return }
     const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString()
-    if (new Date(scheduledAt).getTime() <= Date.now()) {
-      toast.error('Selected time is in the past. Please choose a future time.')
-      return
-    }
+    if (new Date(scheduledAt).getTime() <= Date.now()) { toast.error('Selected time is in the past.'); return }
     if (new Date(scheduledAt).getTime() > Date.now() + SIX_MONTHS_MS) {
       if (!confirm('Scheduling more than 6 months ahead — confirm?')) return
     }
-    scheduleBlog(
-      { slug: currentSlug, payload: { scheduledAt, scheduledTimezone: scheduleTimezone } },
-      {
-        onSuccess: () => {
-          toast.success('Blog scheduled!')
-          setShowScheduleModal(false)
-          navigate(ROUTES.SCHEDULED)
-        },
-        onError: (err: any) => {
-          const msg = err?.response?.data?.message ?? 'Failed to schedule.'
-          toast.error(msg)
-        },
-      },
-    )
+    scheduleBlog({ slug: currentSlug, payload: { scheduledAt, scheduledTimezone: scheduleTimezone } }, {
+      onSuccess: () => { toast.success('Blog scheduled!'); setShowScheduleModal(false); navigate(ROUTES.SCHEDULED) },
+      onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Failed to schedule.'),
+    })
   }
 
   function addTag() {
@@ -249,6 +357,7 @@ export function EditorPage() {
     setTags([...tags, t])
     setTagInput('')
     setSaveStatus('unsaved')
+    tagInputRef.current?.focus()
   }
 
   function removeTag(tag: string) {
@@ -259,8 +368,7 @@ export function EditorPage() {
   function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const objectUrl = URL.createObjectURL(file)
-    setCoverImageUrl(objectUrl)
+    setCoverImageUrl(URL.createObjectURL(file))
     setSaveStatus('unsaved')
   }
 
@@ -269,390 +377,425 @@ export function EditorPage() {
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
   const todayISO = new Date().toISOString().slice(0, 10)
 
-  const statusDot: Record<SaveStatus, string> = {
-    idle: 'transparent',
-    saved: 'var(--ls-accent)',
-    saving: '#eab308',
-    unsaved: '#ef4444',
-  }
-  const statusText: Record<SaveStatus, string> = {
-    idle: '',
-    saved: 'Auto-saved · just now',
-    saving: 'Saving…',
-    unsaved: 'Unsaved changes',
-  }
+  const statusDot = { idle: 'transparent', saved: '#22c55e', saving: '#eab308', unsaved: 'var(--ls-accent)' }[saveStatus]
+  const statusLabel = { idle: '', saved: 'Saved', saving: 'Saving…', unsaved: 'Unsaved changes' }[saveStatus]
 
-  const inputStyle = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    width: '100%', border: '1px solid var(--ls-line)', borderRadius: 4,
-    padding: '8px 10px', fontSize: 13, background: 'var(--ls-bg)',
-    color: 'var(--ls-ink)', outline: 'none', boxSizing: 'border-box',
-    fontFamily: 'var(--font-sans, Inter, sans-serif)',
-    ...extra,
-  })
+  // Shared input style for sidebar
+  const sideInput: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box',
+    border: '1px solid var(--ls-line)', borderRadius: 6,
+    padding: '7px 10px', fontSize: 12,
+    background: 'var(--ls-bg)', color: 'var(--ls-ink)',
+    outline: 'none', fontFamily: 'inherit',
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--ls-bg)' }}>
 
-      {/* ── Editor topbar ─────────────────────────────────────────────────── */}
+      {/* ══ Topbar ═══════════════════════════════════════════════════════════ */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        padding: '10px 18px', borderBottom: '1px solid var(--ls-line)',
-        background: 'var(--ls-bg)', flexShrink: 0,
+        display: 'flex', alignItems: 'center', gap: 0,
+        height: 52, flexShrink: 0,
+        borderBottom: '1px solid var(--ls-line)',
+        background: 'var(--ls-bg)', paddingRight: 16,
       }}>
+
+        {/* Back */}
         <Link
           to={ROUTES.MY_BLOGS}
-          style={{ fontSize: 13, color: 'var(--ls-ink-2)', textDecoration: 'none' }}
+          className="text-ink-3 hover:text-ink transition-colors"
+          style={{ fontSize: 13, textDecoration: 'none', padding: '0 16px', height: '100%', display: 'flex', alignItems: 'center', borderRight: '1px solid var(--ls-line)' }}
         >
           ← My Blogs
         </Link>
 
-        <div style={{ flex: 1, textAlign: 'center', color: 'var(--ls-ink-3)', fontSize: 12 }}>
-          {saveStatus !== 'idle' && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: 99, background: statusDot[saveStatus], display: 'inline-block', flexShrink: 0 }} />
-              {statusText[saveStatus]}
-            </span>
+        {/* Article type — custom dropdown */}
+        <div ref={typeDropdownRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowTypeDropdown((v) => !v)}
+            className="flex items-center gap-1.5 text-ink-2 hover:text-ink hover:bg-bg-tint transition-colors"
+            style={{
+              height: 52, padding: '0 14px', fontSize: 12, border: 'none',
+              borderRight: '1px solid var(--ls-line)', background: 'transparent',
+              cursor: 'pointer', gap: 6,
+            }}
+          >
+            <span className="font-mono" style={{ fontSize: 10, color: 'var(--ls-ink-3)', letterSpacing: '0.5px' }}>TYPE</span>
+            <span style={{ fontWeight: 500 }}>{articleTypeLabel(articleType)}</span>
+            <span style={{ fontSize: 9, color: 'var(--ls-ink-3)', marginLeft: 2 }}>▾</span>
+          </button>
+
+          {showTypeDropdown && (
+            <div style={{
+              position: 'absolute', top: 52, left: 0, zIndex: 100,
+              background: 'var(--ls-bg)', border: '1px solid var(--ls-line)',
+              borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              minWidth: 220, padding: 6, maxHeight: 360, overflowY: 'auto',
+            }}>
+              {ARTICLE_TYPES.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => { setArticleType(type); setSaveStatus('unsaved'); setShowTypeDropdown(false) }}
+                  className="w-full text-left transition-colors rounded-[5px]"
+                  style={{
+                    padding: '8px 12px', fontSize: 13, border: 'none', cursor: 'pointer',
+                    background: type === articleType ? 'var(--ls-bg-tint)' : 'transparent',
+                    color: type === articleType ? 'var(--ls-ink)' : 'var(--ls-ink-2)',
+                    fontWeight: type === articleType ? 600 : 400,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}
+                >
+                  {articleTypeLabel(type)}
+                  {type === articleType && <span style={{ fontSize: 12, color: 'var(--ls-accent)' }}>✓</span>}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
+        {/* Company — drawer trigger */}
+        <button
+          onClick={() => setShowCompanyDrawer(true)}
+          className="flex items-center transition-colors hover:bg-bg-tint"
+          style={{
+            height: 52, padding: '0 14px', fontSize: 12, border: 'none',
+            borderRight: '1px solid var(--ls-line)', background: 'transparent',
+            cursor: 'pointer', gap: 6,
+          }}
+        >
+          <span className="font-mono" style={{ fontSize: 10, color: 'var(--ls-ink-3)', letterSpacing: '0.5px' }}>FOR</span>
+          {selectedCompany ? (
+            <span className="font-semibold text-ink">{selectedCompany.name}</span>
+          ) : (
+            <span className="text-ink-2">Personal</span>
+          )}
+          <span style={{ fontSize: 9, color: 'var(--ls-ink-3)', marginLeft: 2 }}>▾</span>
+        </button>
+
+        {/* Save status — center */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }}>
+          {saveStatus !== 'idle' && (
+            <>
+              <span style={{ width: 6, height: 6, borderRadius: 99, background: statusDot, flexShrink: 0 }} />
+              <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>{statusLabel}</span>
+            </>
+          )}
+        </div>
+
+        {/* Word count */}
         {wordCount > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--ls-ink-3)', whiteSpace: 'nowrap' }}>
-            {wordCount.toLocaleString()} words · {readMin} min read
+          <span className="font-mono text-ink-3" style={{ fontSize: 11, marginRight: 14, whiteSpace: 'nowrap' }}>
+            {wordCount.toLocaleString()} words · {readMin} min
           </span>
         )}
 
-        <button
-          onClick={() => setPreviewMode((p) => !p)}
-          style={{
-            padding: '5px 10px', fontSize: 12, border: '1px solid var(--ls-line)', borderRadius: 4,
-            background: previewMode ? 'var(--ls-ink)' : 'var(--ls-bg)',
-            color: previewMode ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
-            cursor: 'pointer',
-          }}
-        >
-          {previewMode ? 'Edit' : 'Preview'}
-        </button>
-        <button
-          onClick={handleSaveDraft}
-          disabled={creating}
-          style={{ padding: '5px 10px', fontSize: 12, border: '1px solid var(--ls-line)', borderRadius: 4, background: 'var(--ls-bg)', color: 'var(--ls-ink-2)', cursor: 'pointer', fontWeight: 500, opacity: creating ? 0.5 : 1 }}
-        >
-          Save draft
-        </button>
+        {/* Actions */}
+        <div className="flex items-center" style={{ gap: 8 }}>
+          <button
+            onClick={() => setPreviewMode((p) => !p)}
+            className="border border-line rounded-[6px] text-ink-2 hover:bg-bg-tint transition-colors"
+            style={{ padding: '5px 12px', fontSize: 12, background: previewMode ? 'var(--ls-bg-tint)' : 'transparent' }}
+          >
+            {previewMode ? 'Edit' : 'Preview'}
+          </button>
 
-        <div style={{ display: 'flex' }}>
           <button
-            onClick={handlePublish}
-            disabled={publishing || !currentSlug}
-            style={{
-              padding: '5px 12px', fontSize: 12, fontWeight: 500,
-              background: 'var(--ls-ink)', color: 'var(--ls-bg)',
-              border: '1px solid var(--ls-ink)', borderRight: 'none',
-              borderRadius: '4px 0 0 4px', cursor: 'pointer',
-              opacity: publishing || !currentSlug ? 0.5 : 1,
-            }}
+            onClick={handleSaveDraft}
+            disabled={creating}
+            className="border border-line rounded-[6px] text-ink-2 hover:bg-bg-tint transition-colors disabled:opacity-40"
+            style={{ padding: '5px 12px', fontSize: 12 }}
           >
-            Publish
+            Save draft
           </button>
-          <button
-            onClick={() => setShowScheduleModal(true)}
-            disabled={!currentSlug}
-            style={{
-              padding: '5px 8px', fontSize: 11,
-              background: 'var(--ls-ink)', color: 'var(--ls-bg)',
-              border: '1px solid var(--ls-ink)',
-              borderLeft: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '0 4px 4px 0', cursor: 'pointer',
-              opacity: !currentSlug ? 0.5 : 1,
-            }}
-          >
-            ▾
-          </button>
+
+          <div style={{ display: 'flex', border: '1px solid var(--ls-ink)', borderRadius: 6, overflow: 'hidden' }}>
+            <button
+              onClick={handlePublish}
+              disabled={publishing || !currentSlug}
+              className="font-medium disabled:opacity-40"
+              style={{ padding: '5px 14px', fontSize: 12, background: 'var(--ls-ink)', color: 'var(--ls-bg)', border: 'none', borderRight: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer' }}
+            >
+              {publishing ? 'Publishing…' : 'Publish'}
+            </button>
+            <button
+              onClick={() => setShowScheduleModal(true)}
+              disabled={!currentSlug}
+              className="disabled:opacity-40"
+              style={{ padding: '5px 8px', fontSize: 11, background: 'var(--ls-ink)', color: 'var(--ls-bg)', border: 'none', cursor: 'pointer' }}
+            >
+              ▾
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Main area ─────────────────────────────────────────────────────── */}
+      {/* ══ Main layout ═══════════════════════════════════════════════════════ */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 
-        {/* Writing / Preview pane */}
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-          overflow: 'auto', background: 'var(--ls-bg)', padding: '40px 60px',
-        }}>
-          <div style={{ width: '100%', maxWidth: 680, display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-            {/* Article type + company inline */}
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-              <select
-                value={articleType}
-                onChange={(e) => { setArticleType(e.target.value as ArticleType); setSaveStatus('unsaved') }}
-                style={{ padding: '4px 8px', fontSize: 12, border: '1px solid var(--ls-line)', borderRadius: 4, background: 'var(--ls-bg)', color: 'var(--ls-ink-2)', outline: 'none', cursor: 'pointer' }}
-              >
-                {ARTICLE_TYPES.map((t) => (
-                  <option key={t} value={t}>{articleTypeLabel(t)}</option>
-                ))}
-              </select>
-
-              {(companies ?? []).length > 0 && (
-                <select
-                  value={companyId}
-                  onChange={(e) => { setCompanyId(e.target.value); setSaveStatus('unsaved') }}
-                  style={{ padding: '4px 8px', fontSize: 12, border: '1px solid var(--ls-line)', borderRadius: 4, background: 'var(--ls-bg)', color: 'var(--ls-ink-2)', outline: 'none', cursor: 'pointer' }}
-                >
-                  <option value="">No company — publish as myself</option>
-                  {(companies ?? []).map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
+        {/* ── Writing pane ────────────────────────────────────────────────── */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', background: 'var(--ls-bg)', padding: '48px 40px 80px' }}>
+          <div style={{ width: '100%', maxWidth: 720 }}>
 
             {/* Title */}
             <textarea
               value={title}
               onChange={(e) => { setTitle(e.target.value); if (initialized.current) setSaveStatus('unsaved') }}
-              placeholder="Your blog title…"
+              placeholder="Article title…"
               rows={2}
               style={{
                 width: '100%', background: 'transparent', color: 'var(--ls-ink)',
                 fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700,
-                fontSize: 36, lineHeight: 1.1, border: 'none', outline: 'none',
-                resize: 'none', overflow: 'hidden', boxSizing: 'border-box',
+                fontSize: 40, lineHeight: 1.15, border: 'none', outline: 'none',
+                resize: 'none', overflow: 'hidden', boxSizing: 'border-box', marginBottom: 6,
               }}
             />
 
-            {/* Summary / excerpt */}
+            {/* Summary */}
             <input
               type="text"
               value={summary}
               onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
-              placeholder="A brief summary of this article…"
+              placeholder="A one-line summary shown on article cards…"
               style={{
                 width: '100%', background: 'transparent', color: 'var(--ls-ink-2)',
                 fontFamily: '"Source Serif 4", Georgia, serif', fontStyle: 'italic',
-                fontSize: 16, border: 'none', borderBottom: '1px dashed var(--ls-line-soft)',
-                paddingBottom: 6, outline: 'none', boxSizing: 'border-box',
+                fontSize: 17, border: 'none', outline: 'none', boxSizing: 'border-box',
+                borderBottom: '1px dashed var(--ls-line-soft)', paddingBottom: 14, marginBottom: 0,
               }}
             />
 
-            {/* Body — ReactQuill or Preview */}
+            {/* Toolbar + body */}
             {previewMode ? (
-              <div
-                className="ql-snow"
-                style={{ minHeight: 480 }}
-              >
+              <div className="ql-snow" style={{ marginTop: 28, minHeight: 480 }}>
                 <div
                   className="ql-editor"
-                  style={{
-                    fontFamily: '"Source Serif 4", Georgia, serif',
-                    fontSize: 17, lineHeight: 1.75, color: 'var(--ls-ink)',
-                    padding: 0,
-                  }}
-                  dangerouslySetInnerHTML={{ __html: body || '<p style="color:var(--ls-ink-3)"><em>Nothing to preview yet.</em></p>' }}
+                  style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 18, lineHeight: 1.8, color: 'var(--ls-ink)', padding: 0 }}
+                  dangerouslySetInnerHTML={{ __html: body || '<p style="color:var(--ls-ink-4)"><em>Nothing to preview yet.</em></p>' }}
                 />
               </div>
             ) : (
-              <div style={{ minHeight: 480 }}>
+              <div className="editor-quill-wrap" style={{ marginTop: 0 }}>
+                <QuillToolbar />
                 <ReactQuill
                   theme="snow"
                   value={body}
-                  onChange={(val) => {
-                    setBody(val)
-                    if (initialized.current) setSaveStatus('unsaved')
-                  }}
+                  onChange={(val) => { setBody(val); if (initialized.current) setSaveStatus('unsaved') }}
                   modules={QUILL_MODULES}
                   formats={QUILL_FORMATS}
                   placeholder="Start writing your story…"
-                  style={{ height: 440 }}
+                  style={{ minHeight: 480 }}
                 />
               </div>
             )}
           </div>
         </div>
 
-        {/* ── Settings rail ─────────────────────────────────────────────────── */}
-        <div style={{
-          width: 280, flexShrink: 0, borderLeft: '1px solid var(--ls-line)',
-          padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: 14,
-          overflow: 'auto', background: 'var(--ls-bg)', fontSize: 12,
-        }}>
-          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
+        {/* ── Settings rail ─────────────────────────────────────────────── */}
+        <div style={{ width: 272, flexShrink: 0, borderLeft: '1px solid var(--ls-line)', display: 'flex', flexDirection: 'column', overflowY: 'auto', background: 'var(--ls-bg)' }}>
+          <div style={{ padding: '13px 18px 11px', borderBottom: '1px solid var(--ls-line)', fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.4px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
             Article settings
           </div>
 
           {/* Tags */}
-          <div>
-            <div style={{ fontWeight: 600, color: 'var(--ls-ink-2)', marginBottom: 6 }}>
-              Tags <span style={{ fontWeight: 400, color: 'var(--ls-ink-3)' }}>(max 5)</span>
+          <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--ls-line-soft)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)' }}>Tags</span>
+              <span style={{ fontSize: 10, color: 'var(--ls-ink-3)', fontFamily: 'monospace' }}>{tags.length} / 5</span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {tags.map((tag) => (
-                <span key={tag} style={{
-                  background: 'var(--ls-ink)', color: 'var(--ls-bg)', borderRadius: 99,
-                  fontSize: 11, padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 4,
-                }}>
-                  {tag}
-                  <button onClick={() => removeTag(tag)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', lineHeight: 1, padding: 0 }}>×</button>
-                </span>
-              ))}
-              {tags.length < 5 && (
-                <input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() } }}
-                  placeholder="+ Add tag"
-                  style={{ border: '1px solid var(--ls-line)', borderRadius: 99, padding: '3px 10px', fontSize: 11, minWidth: 70, background: 'var(--ls-bg)', color: 'var(--ls-ink-2)', outline: 'none' }}
-                />
-              )}
-            </div>
-            {tags.length === 5 && (
-              <p style={{ fontSize: 10, color: 'var(--ls-ink-3)', marginTop: 4 }}>Maximum 5 tags.</p>
+            <input
+              ref={tagInputRef}
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() }
+                if (e.key === 'Backspace' && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1])
+              }}
+              placeholder={tags.length < 5 ? '+ Add tag, press Enter' : 'Max 5 tags reached'}
+              disabled={tags.length >= 5}
+              style={{ ...sideInput, marginBottom: tags.length > 0 ? 10 : 0 }}
+            />
+            {tags.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {tags.map((tag) => (
+                  <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ls-ink)', color: 'var(--ls-bg)', borderRadius: 99, fontSize: 11, padding: '3px 9px' }}>
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', lineHeight: 1, padding: 0, fontSize: 13 }}>×</button>
+                  </span>
+                ))}
+              </div>
             )}
           </div>
 
           {/* Cover image */}
-          <div>
-            <div style={{ fontWeight: 600, color: 'var(--ls-ink-2)', marginBottom: 6 }}>Cover image</div>
+          <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--ls-line-soft)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)', marginBottom: 10 }}>Cover image</div>
             {coverImageUrl ? (
-              <div style={{ position: 'relative' }}>
-                <img
-                  src={coverImageUrl}
-                  alt="Cover preview"
-                  style={{ width: '100%', height: 86, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--ls-line)', display: 'block' }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                />
-                <button
-                  onClick={() => { setCoverImageUrl(''); setSaveStatus('unsaved') }}
-                  style={{
-                    position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.5)',
-                    color: '#fff', border: 'none', borderRadius: 99, width: 18, height: 18,
-                    fontSize: 11, cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  ×
-                </button>
+              <div style={{ position: 'relative', marginBottom: 8 }}>
+                <img src={coverImageUrl} alt="Cover" style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--ls-line)', display: 'block' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                <button onClick={() => { setCoverImageUrl(''); setSaveStatus('unsaved') }} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: 99, width: 20, height: 20, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
               </div>
             ) : (
-              <button
-                onClick={() => coverFileRef.current?.click()}
-                style={{
-                  width: '100%', height: 86, border: '1px dashed var(--ls-line)', borderRadius: 4,
-                  background: 'var(--ls-bg-tint)', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', fontSize: 11, color: 'var(--ls-ink-3)', cursor: 'pointer',
-                  flexDirection: 'column', gap: 4,
-                }}
-              >
-                <span>↑ Upload image</span>
-                <span style={{ fontSize: 10 }}>or paste a URL below</span>
+              <button onClick={() => coverFileRef.current?.click()} style={{ width: '100%', height: 90, border: '1.5px dashed var(--ls-line)', borderRadius: 6, background: 'var(--ls-bg-soft)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 11, color: 'var(--ls-ink-3)', cursor: 'pointer', marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>↑</span>
+                <span>Upload image</span>
               </button>
             )}
-            <input
-              ref={coverFileRef}
-              type="file"
-              accept="image/*"
-              onChange={handleCoverFile}
-              style={{ display: 'none' }}
-            />
-            <input
-              type="url"
-              value={coverImageUrl}
-              onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }}
-              placeholder="https://example.com/cover.png"
-              style={{ ...inputStyle({ fontSize: 11, padding: '6px 8px', marginTop: 8 }) }}
-            />
+            <input ref={coverFileRef} type="file" accept="image/*" onChange={handleCoverFile} style={{ display: 'none' }} />
+            <input type="url" value={coverImageUrl} onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }} placeholder="…or paste a URL" style={{ ...sideInput, fontSize: 11 }} />
           </div>
 
           {/* Summary */}
-          <div>
-            <div style={{ fontWeight: 600, color: 'var(--ls-ink-2)', marginBottom: 6 }}>Summary</div>
+          <div style={{ padding: '16px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)' }}>Summary</span>
+              <span style={{ fontSize: 10, color: summary.length > 280 ? '#ef4444' : 'var(--ls-ink-3)', fontFamily: 'monospace' }}>{summary.length} / 300</span>
+            </div>
             <textarea
               value={summary}
               onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
               rows={3}
               placeholder="A brief summary shown on cards and search results…"
-              style={{ ...inputStyle({ fontSize: 11, padding: '8px 10px', resize: 'none' }) }}
+              style={{ ...sideInput, resize: 'none', fontFamily: '"Source Serif 4", Georgia, serif', lineHeight: 1.5, fontSize: 11 }}
             />
-            <div style={{ textAlign: 'right', fontSize: 10, color: summary.length > 280 ? '#ef4444' : 'var(--ls-ink-3)', marginTop: 2 }}>
-              {summary.length} / 300
-            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Schedule modal ────────────────────────────────────────────────── */}
-      {showScheduleModal && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}
-          onClick={() => setShowScheduleModal(false)}
-        >
+      {/* ══ Company drawer ════════════════════════════════════════════════════ */}
+      {showCompanyDrawer && (
+        <>
+          {/* Backdrop */}
           <div
-            style={{ background: 'var(--ls-bg)', borderRadius: 8, border: '1px solid var(--ls-line)', boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: 460, padding: 24 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-              <h3 style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700, fontSize: 20, color: 'var(--ls-ink)', margin: 0 }}>
-                Schedule blog
-              </h3>
+            style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.25)' }}
+            onClick={() => setShowCompanyDrawer(false)}
+          />
+
+          {/* Panel */}
+          <div style={{
+            position: 'fixed', top: 52, left: 0, bottom: 0, zIndex: 50,
+            width: 340, background: 'var(--ls-bg)',
+            borderRight: '1px solid var(--ls-line)',
+            boxShadow: '4px 0 32px rgba(0,0,0,0.12)',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            {/* Drawer header */}
+            <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid var(--ls-line)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.3px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
+                  Publish under
+                </span>
+                <button onClick={() => setShowCompanyDrawer(false)} style={{ background: 'none', border: 'none', color: 'var(--ls-ink-3)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+              </div>
+              <input
+                ref={companySearchRef}
+                type="text"
+                value={companySearch}
+                onChange={(e) => setCompanySearch(e.target.value)}
+                placeholder="Search companies…"
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  border: '1px solid var(--ls-line)', borderRadius: 7,
+                  padding: '9px 12px', fontSize: 13,
+                  background: 'var(--ls-bg-soft)', color: 'var(--ls-ink)',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            {/* Personal option */}
+            <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--ls-line-soft)' }}>
+              <button
+                onClick={() => { setCompanyId(''); setSaveStatus('unsaved'); setShowCompanyDrawer(false) }}
+                className="w-full flex items-center gap-3 rounded-[6px] transition-colors hover:bg-bg-tint"
+                style={{ padding: '10px 10px', border: 'none', background: companyId === '' ? 'var(--ls-bg-tint)' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
+              >
+                <div style={{ width: 36, height: 36, borderRadius: 99, background: 'var(--ls-bg-deep)', border: '1px solid var(--ls-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
+                  ✎
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)' }}>Personal</div>
+                  <div style={{ fontSize: 11, color: 'var(--ls-ink-3)' }}>Publish as yourself</div>
+                </div>
+                {companyId === '' && <span style={{ marginLeft: 'auto', color: 'var(--ls-accent)', fontSize: 14 }}>✓</span>}
+              </button>
+            </div>
+
+            {/* Results area */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
+              {companySearch.trim() === '' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 8, padding: '40px 20px', textAlign: 'center' }}>
+                  <span style={{ fontSize: 28 }}>🏢</span>
+                  <p style={{ fontSize: 13, color: 'var(--ls-ink-3)', margin: 0 }}>
+                    Search to find a company
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--ls-ink-4)', margin: 0 }}>
+                    Type the company name or handle above
+                  </p>
+                </div>
+              ) : filteredCompanies.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', gap: 6 }}>
+                  <p style={{ fontSize: 13, color: 'var(--ls-ink-3)', margin: 0 }}>No companies match "{companySearch}"</p>
+                  <p style={{ fontSize: 11, color: 'var(--ls-ink-4)', margin: 0 }}>Only companies you belong to will appear here</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {filteredCompanies.map((company) => (
+                    <button
+                      key={company.id}
+                      onClick={() => { setCompanyId(company.id); setSaveStatus('unsaved'); setShowCompanyDrawer(false) }}
+                      className="w-full flex items-center gap-3 rounded-[6px] transition-colors hover:bg-bg-tint"
+                      style={{ padding: '10px 10px', border: 'none', background: companyId === company.id ? 'var(--ls-bg-tint)' : 'transparent', cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      {company.logoUrl ? (
+                        <img src={company.logoUrl} alt={company.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--ls-line)' }} />
+                      ) : (
+                        <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--ls-bg-deep)', border: '1px solid var(--ls-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--ls-ink-2)', flexShrink: 0 }}>
+                          {initials(company.name)}
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{company.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', fontFamily: '"JetBrains Mono", monospace' }}>@{company.handle}</div>
+                      </div>
+                      {companyId === company.id && <span style={{ color: 'var(--ls-accent)', fontSize: 14, flexShrink: 0 }}>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ══ Schedule modal ════════════════════════════════════════════════════ */}
+      {showScheduleModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)' }} onClick={() => setShowScheduleModal(false)}>
+          <div style={{ background: 'var(--ls-bg)', borderRadius: 10, border: '1px solid var(--ls-line)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)', width: 440, padding: 28 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <h3 style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700, fontSize: 20, color: 'var(--ls-ink)', margin: 0 }}>Schedule blog</h3>
               <button onClick={() => setShowScheduleModal(false)} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ls-ink-3)', lineHeight: 1 }}>×</button>
             </div>
-            <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--ls-ink-2)' }}>
-              Set when this blog should auto-publish. You can edit or cancel before then.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)', display: 'block', marginBottom: 4 }}>Date</label>
-                <input
-                  type="date"
-                  value={scheduleDate}
-                  min={todayISO}
-                  onChange={(e) => setScheduleDate(e.target.value)}
-                  style={{ ...inputStyle() }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)', display: 'block', marginBottom: 4 }}>Time</label>
-                <input
-                  type="time"
-                  value={scheduleTime}
-                  onChange={(e) => setScheduleTime(e.target.value)}
-                  style={{ ...inputStyle() }}
-                />
-              </div>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ls-ink-2)', lineHeight: 1.5 }}>Set when this blog should auto-publish. You can edit or cancel anytime before.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+              {[
+                { label: 'Date', type: 'date', value: scheduleDate, min: todayISO, onChange: (v: string) => setScheduleDate(v) },
+                { label: 'Time', type: 'time', value: scheduleTime, onChange: (v: string) => setScheduleTime(v) },
+              ].map(({ label, type, value, min, onChange }) => (
+                <div key={label}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--ls-ink-3)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</label>
+                  <input type={type} value={value} min={min} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', border: '1px solid var(--ls-line)', borderRadius: 6, padding: '8px 10px', fontSize: 13, background: 'var(--ls-bg)', color: 'var(--ls-ink)', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              ))}
             </div>
-
-            <div style={{ marginTop: 10 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--ls-ink-2)', display: 'block', marginBottom: 4 }}>Timezone</label>
-              <input
-                type="text"
-                value={scheduleTimezone}
-                onChange={(e) => setScheduleTimezone(e.target.value)}
-                placeholder="Asia/Kolkata"
-                style={{ ...inputStyle() }}
-              />
-              <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--ls-ink-3)' }}>
-                Auto-detected from your browser locale.
-              </p>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--ls-ink-3)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.6px' }}>Timezone</label>
+              <input type="text" value={scheduleTimezone} onChange={(e) => setScheduleTimezone(e.target.value)} style={{ width: '100%', border: '1px solid var(--ls-line)', borderRadius: 6, padding: '8px 10px', fontSize: 13, background: 'var(--ls-bg)', color: 'var(--ls-ink)', outline: 'none', boxSizing: 'border-box' }} />
+              <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--ls-ink-3)' }}>Auto-detected from your browser locale.</p>
             </div>
-
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 18 }}>
-              <button
-                onClick={() => setShowScheduleModal(false)}
-                style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--ls-line)', borderRadius: 6, background: 'transparent', color: 'var(--ls-ink-2)', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSchedule}
-                disabled={scheduling || !scheduleDate}
-                style={{
-                  padding: '8px 16px', fontSize: 13, fontWeight: 500,
-                  background: 'var(--ls-ink)', color: 'var(--ls-bg)',
-                  border: 'none', borderRadius: 6, cursor: 'pointer',
-                  opacity: scheduling || !scheduleDate ? 0.5 : 1,
-                }}
-              >
-                {scheduling ? 'Scheduling…' : 'Schedule blog'}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowScheduleModal(false)} style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--ls-line)', borderRadius: 6, background: 'transparent', color: 'var(--ls-ink-2)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleSchedule} disabled={scheduling || !scheduleDate} style={{ padding: '8px 20px', fontSize: 13, fontWeight: 500, background: 'var(--ls-ink)', color: 'var(--ls-bg)', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: scheduling || !scheduleDate ? 0.5 : 1 }}>
+                {scheduling ? 'Scheduling…' : 'Schedule →'}
               </button>
             </div>
           </div>

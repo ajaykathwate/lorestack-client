@@ -157,11 +157,19 @@ export function AuthorProfilePage() {
                 to={buildRoute.blog(blog.slug)}
                 className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
               >
-                <div className="bg-bg-tint" style={{ height: 100 }} />
+                {blog.coverImageUrl ? (
+                  <img
+                    src={blog.coverImageUrl}
+                    alt=""
+                    style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div className="bg-bg-tint" style={{ height: 100 }} />
+                )}
                 <div style={{ padding: '10px 12px' }}>
                   <span
-                    className="border border-line text-ink-2 rounded-[3px]"
-                    style={{ fontSize: 10, padding: '2px 6px' }}
+                    className="font-mono rounded-[3px]"
+                    style={{ fontSize: 10, padding: '2px 5px', background: 'var(--ls-accent-soft)', color: 'var(--ls-accent-ink)' }}
                   >
                     {articleTypeLabel(blog.articleType)}
                   </span>

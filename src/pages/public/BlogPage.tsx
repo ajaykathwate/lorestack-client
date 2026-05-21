@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
-import { useBlogBySlug, useCompanyBlogs } from '@/api/hooks/useBlogQueries'
+import 'react-quill/dist/quill.snow.css'
+import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate, initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
@@ -7,7 +8,6 @@ import { Spinner } from '@/shared/components/feedback/Spinner'
 export function BlogPage() {
   const { slug = '' } = useParams()
   const { data: blog, isLoading, error } = useBlogBySlug(slug)
-  const { data: relatedBlogs } = useCompanyBlogs(blog?.companyId ? '' : '')
 
   if (isLoading) {
     return (
@@ -29,17 +29,21 @@ export function BlogPage() {
     )
   }
 
-  const blogInitials = initials('A')
+  const authorInitials = initials('A')
+  const plainBody = (blog.body ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  const wordCount = plainBody ? plainBody.split(' ').filter(Boolean).length : 0
+  const readMin = Math.max(1, Math.ceil(wordCount / 200))
 
   return (
     <div className="flex flex-col">
-      <div style={{ padding: '0', display: 'grid', gridTemplateColumns: '1fr min(680px, 100%) 1fr' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr min(680px, 100%) 1fr' }}>
         <div />
-        <article style={{ padding: '40px 0 24px' }}>
-          {/* Type badge */}
+        <article style={{ padding: '40px 0 60px' }}>
+
+          {/* Article type badge */}
           <span
-            className="inline-block bg-ls-accent text-white font-mono rounded-[3px]"
-            style={{ fontSize: 11, padding: '3px 8px' }}
+            className="inline-block font-mono rounded-[3px]"
+            style={{ fontSize: 11, padding: '3px 8px', background: 'var(--ls-accent-soft)', color: 'var(--ls-accent-ink)', border: '1px solid var(--ls-accent-soft)' }}
           >
             {articleTypeLabel(blog.articleType)}
           </span>
@@ -52,7 +56,7 @@ export function BlogPage() {
             {blog.title}
           </h1>
 
-          {/* Summary */}
+          {/* Summary / lede */}
           {blog.summary && (
             <p className="font-serif text-ink-2" style={{ fontSize: 18, lineHeight: 1.5, margin: '0 0 22px' }}>
               {blog.summary}
@@ -68,17 +72,25 @@ export function BlogPage() {
               className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
               style={{ width: 36, height: 36, fontSize: 13 }}
             >
-              {blogInitials}
+              {authorInitials}
             </div>
             <div className="flex-1">
               <div className="font-semibold text-ink" style={{ fontSize: 13 }}>Author</div>
               <div className="text-ink-3" style={{ fontSize: 11 }}>
-                {blog.publishedAt ? formatDate(blog.publishedAt) : 'Draft'} · 8 min read
+                {blog.publishedAt ? formatDate(blog.publishedAt) : 'Draft'}
+                {wordCount > 0 && ` · ${readMin} min read`}
               </div>
             </div>
             <button
               className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
               style={{ padding: '5px 10px', fontSize: 12 }}
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: blog.title, url: window.location.href })
+                } else {
+                  navigator.clipboard.writeText(window.location.href)
+                }
+              }}
             >
               ↗ Share
             </button>
@@ -90,7 +102,7 @@ export function BlogPage() {
               src={blog.coverImageUrl}
               alt={blog.title}
               className="w-full rounded-[6px] object-cover"
-              style={{ marginTop: 24, height: 300 }}
+              style={{ marginTop: 24, height: 300, display: 'block' }}
             />
           ) : (
             <div
@@ -99,18 +111,26 @@ export function BlogPage() {
             />
           )}
 
-          {/* Body */}
+          {/* Body — rendered from Quill HTML */}
           {blog.body && (
-            <div
-              className="font-serif text-ink"
-              style={{ marginTop: 24, fontSize: 17, lineHeight: 1.65 }}
-              dangerouslySetInnerHTML={{ __html: blog.body }}
-            />
+            <div className="ql-snow" style={{ marginTop: 28 }}>
+              <div
+                className="ql-editor"
+                style={{
+                  fontFamily: '"Source Serif 4", Georgia, serif',
+                  fontSize: 17,
+                  lineHeight: 1.65,
+                  color: 'var(--ls-ink)',
+                  padding: 0,
+                }}
+                dangerouslySetInnerHTML={{ __html: blog.body }}
+              />
+            </div>
           )}
 
           {/* Tags */}
           {blog.tags.length > 0 && (
-            <div className="flex flex-wrap" style={{ marginTop: 28, gap: 6 }}>
+            <div className="flex flex-wrap" style={{ marginTop: 32, gap: 6 }}>
               {blog.tags.map((tag) => (
                 <Link
                   key={tag.id}
@@ -125,18 +145,26 @@ export function BlogPage() {
           )}
 
           {/* Author + company cards */}
-          <div style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div
+            style={{
+              marginTop: 32,
+              display: 'grid',
+              gridTemplateColumns: blog.companyId ? '1fr 1fr' : '1fr',
+              gap: 14,
+            }}
+          >
+            {/* Author card */}
             <div className="rounded-[6px] border border-line flex" style={{ padding: 16, gap: 12 }}>
               <div
                 className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
                 style={{ width: 48, height: 48, fontSize: 16 }}
               >
-                {blogInitials}
+                {authorInitials}
               </div>
               <div className="flex-1">
                 <div className="font-semibold text-ink" style={{ fontSize: 14 }}>Author</div>
                 <div className="text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>
-                  {blog.companyId ? 'Writing for this company' : 'Independent writer'}
+                  Engineering writer
                 </div>
                 <button
                   className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
@@ -147,6 +175,7 @@ export function BlogPage() {
               </div>
             </div>
 
+            {/* Company card */}
             {blog.companyId && (
               <div className="rounded-[6px] border border-line flex" style={{ padding: 16, gap: 12 }}>
                 <div
@@ -168,40 +197,6 @@ export function BlogPage() {
               </div>
             )}
           </div>
-
-          {/* Related articles */}
-          {(relatedBlogs ?? []).length > 0 && (
-            <div style={{ marginTop: 28 }}>
-              <div
-                className="font-mono uppercase text-ink-3"
-                style={{ fontSize: 10, letterSpacing: '1.2px', marginBottom: 10 }}
-              >
-                Related articles
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                {(relatedBlogs ?? []).slice(0, 3).filter((b) => b.slug !== slug).map((b) => (
-                  <Link
-                    key={b.id}
-                    to={buildRoute.blog(b.slug)}
-                    className="rounded-[6px] border border-line overflow-hidden hover:border-line-strong transition-colors"
-                  >
-                    <div className="bg-bg-tint" style={{ height: 80 }} />
-                    <div style={{ padding: 10 }}>
-                      <span
-                        className="border border-line text-ink-2 rounded-[3px]"
-                        style={{ fontSize: 9, padding: '1px 5px' }}
-                      >
-                        {articleTypeLabel(b.articleType)}
-                      </span>
-                      <div className="font-serif font-semibold text-ink" style={{ fontSize: 12, marginTop: 6, lineHeight: 1.3 }}>
-                        {b.title}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </article>
         <div />
       </div>

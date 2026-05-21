@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authService } from '@/api/services/authService'
+import { apiClient } from '@/api/client/axiosInstance'
 import { useAuthStore } from '@/store/authStore'
 import { QUERY_KEYS } from '@/constants/queryKeys'
 import { ROUTES } from '@/constants/routes'
@@ -12,6 +13,8 @@ import type {
   ResetPasswordPayload,
   OnboardingPayload,
   ChangePasswordPayload,
+  ApiResponse,
+  User,
 } from '@/types/api'
 
 export function useRegister() {
@@ -42,8 +45,13 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (payload: LoginPayload) => {
       const tokenRes = await authService.login(payload).then((r) => r.data.data)
-      // Hydrate user + profile after login
-      const userRes = await authService.me().then((r) => r.data.data)
+      // Pass the token directly — the store hasn't been updated yet so the
+      // request interceptor would send no Authorization header otherwise.
+      const userRes = await apiClient
+        .get<ApiResponse<User>>('/users/me', {
+          headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
+        })
+        .then((r) => r.data.data)
       return { tokens: tokenRes, user: userRes }
     },
     onSuccess: ({ tokens, user }) => {

@@ -71,7 +71,7 @@ export function EmailVerifyPage() {
                   value={resendEmail}
                   onChange={(e) => setResendEmail(e.target.value)}
                   placeholder="you@studio.dev"
-                  className="w-full rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent transition-colors"
+                  className="w-full rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong transition-colors"
                   style={{ height: 44, padding: '0 12px', fontSize: 14 }}
                 />
                 <button

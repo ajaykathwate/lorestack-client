@@ -41,9 +41,9 @@ export function FormTextarea<T extends FieldValues>({
         disabled={disabled}
         className={cn(
           'w-full rounded-[6px] border border-line bg-bg px-3 py-[9px] text-[13px] text-ink placeholder:text-ink-3',
-          'focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent',
+          'focus:outline-none focus:border-line-strong',
           'disabled:opacity-50 disabled:cursor-not-allowed resize-none transition-colors',
-          error && 'border-red-400 focus:ring-red-400 focus:border-red-400',
+          error && 'border-red-400',
         )}
       />
       {error && (

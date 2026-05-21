@@ -16,14 +16,6 @@ const NAV_LINKS = [
 
 // ── Notification drawer ──────────────────────────────────────────────────────
 
-const MOCK_NOTIFS = [
-  { dot: true,  title: 'You were invited to Aurora Labs',       body: 'Accept to join as Author',                               time: '2m ago' },
-  { dot: true,  title: '"How we cut p99 latency…" is live',     body: 'Scheduled blog auto-published 2 minutes ago',            time: 'just now' },
-  { dot: true,  title: '@meilin started following you',         body: 'Architecture writer at Hexa.io',                         time: '1h ago' },
-  { dot: false, title: 'Your tag #postgres now has 186 posts',  body: "You're featured among top tags this week.",              time: 'yesterday' },
-  { dot: false, title: '+12 followers this week',               body: 'Aurora Labs gained 12 new followers',                   time: '2d ago' },
-]
-
 const NOTIF_TABS = ['All', 'Mentions', 'Companies', 'System'] as const
 type NotifTab = typeof NOTIF_TABS[number]
 
@@ -44,16 +36,7 @@ function NotificationDrawer({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div className="flex items-center px-4 border-b border-line-soft" style={{ padding: '12px 16px' }}>
         <span className="font-semibold text-ink" style={{ fontSize: 14 }}>Notifications</span>
-        <span className="font-mono text-ink-3 ml-2" style={{ fontSize: 11 }}>
-          · {MOCK_NOTIFS.filter((n) => n.dot).length} new
-        </span>
         <div className="flex-1" />
-        <button
-          className="text-ls-accent underline-offset-2 hover:text-accent-ink transition-colors mr-3"
-          style={{ fontSize: 11 }}
-        >
-          Mark all read
-        </button>
         <button
           onClick={onClose}
           className="text-ink-3 hover:text-ink transition-colors"
@@ -82,45 +65,15 @@ function NotificationDrawer({ onClose }: { onClose: () => void }) {
         ))}
       </div>
 
-      {/* Notification list */}
-      <div className="flex-1 overflow-y-auto">
-        {MOCK_NOTIFS.map((n, i) => (
-          <div
-            key={i}
-            className={cn(
-              'flex gap-2.5 cursor-pointer hover:bg-bg-tint transition-colors',
-              n.dot ? 'bg-bg-soft' : 'bg-bg',
-            )}
-            style={{ padding: '10px 16px', borderTop: i > 0 ? '1px solid var(--ls-line-soft)' : undefined }}
-          >
-            <div className="flex items-start justify-center flex-shrink-0" style={{ width: 10, marginTop: 5 }}>
-              {n.dot && (
-                <span
-                  className="rounded-full bg-ls-accent"
-                  style={{ width: 7, height: 7, display: 'block' }}
-                />
-              )}
-            </div>
-            <div>
-              <div className="font-serif font-semibold text-ink" style={{ fontSize: 13, lineHeight: 1.3 }}>
-                {n.title}
-              </div>
-              <div className="text-ink-3" style={{ fontSize: 11, marginTop: 3 }}>{n.body}</div>
-              <div className="font-mono text-ink-3" style={{ fontSize: 10, marginTop: 3 }}>{n.time}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div className="border-t border-line-soft text-center" style={{ padding: '10px 16px' }}>
-        <Link
-          to={ROUTES.NOTIFICATIONS}
-          className="text-ls-accent hover:text-accent-ink transition-colors"
-          style={{ fontSize: 11 }}
-        >
-          View all notifications →
-        </Link>
+      {/* Empty state */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center" style={{ padding: 32, gap: 8 }}>
+        <Bell size={24} className="text-ink-3" />
+        <p className="font-semibold text-ink-2" style={{ fontSize: 13 }}>No notifications yet</p>
+        <p className="text-ink-3" style={{ fontSize: 12 }}>
+          {tab === 'All'
+            ? "You're all caught up. We'll let you know when something happens."
+            : `No ${tab.toLowerCase()} notifications yet.`}
+        </p>
       </div>
     </div>
   )

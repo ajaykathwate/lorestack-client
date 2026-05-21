@@ -41,7 +41,7 @@ export function FormInput<T extends FieldValues>({
         type={type}
         placeholder={placeholder}
         disabled={disabled}
-        className={cn(error && 'border-red-400 focus-visible:ring-red-400 focus-visible:border-red-400')}
+        className={cn(error && 'border-red-400')}
       />
       {hint && !error && (
         <p className="text-[12px] text-ink-3">{hint}</p>

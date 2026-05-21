@@ -300,7 +300,7 @@ export function EditorPage() {
               <select
                 value={articleType}
                 onChange={(e) => { setArticleType(e.target.value as ArticleType); setSaveStatus('unsaved') }}
-                className="border border-line rounded-[4px] text-ink-2 bg-bg focus:outline-none focus:ring-1 focus:ring-ls-accent"
+                className="border border-line rounded-[4px] text-ink-2 bg-bg focus:outline-none focus:border-line-strong"
                 style={{ padding: '4px 8px', fontSize: 12 }}
               >
                 {ARTICLE_TYPES.map((t) => (
@@ -311,7 +311,7 @@ export function EditorPage() {
                 <select
                   value={companyId}
                   onChange={(e) => { setCompanyId(e.target.value); setSaveStatus('unsaved') }}
-                  className="border border-line rounded-[4px] text-ink-2 bg-bg focus:outline-none focus:ring-1 focus:ring-ls-accent"
+                  className="border border-line rounded-[4px] text-ink-2 bg-bg focus:outline-none focus:border-line-strong"
                   style={{ padding: '4px 8px', fontSize: 12 }}
                 >
                   <option value="">No company — publish as myself</option>
@@ -384,7 +384,7 @@ export function EditorPage() {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() } }}
                   placeholder="+ Add tag"
-                  className="border border-line rounded-full text-ink-2 bg-bg focus:outline-none focus:ring-1 focus:ring-ls-accent"
+                  className="border border-line rounded-full text-ink-2 bg-bg focus:outline-none focus:border-line-strong"
                   style={{ padding: '3px 10px', fontSize: 11, minWidth: 70 }}
                 />
               )}
@@ -415,7 +415,7 @@ export function EditorPage() {
               value={coverImageUrl}
               onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }}
               placeholder="https://example.com/cover.png"
-              className="w-full border border-line rounded-[4px] text-ink bg-bg placeholder:text-ink-3 focus:outline-none focus:ring-1 focus:ring-ls-accent mt-2"
+              className="w-full border border-line rounded-[4px] text-ink bg-bg placeholder:text-ink-3 focus:outline-none focus:border-line-strong mt-2"
               style={{ padding: '6px 8px', fontSize: 11 }}
             />
           </div>
@@ -428,7 +428,7 @@ export function EditorPage() {
               onChange={(e) => { setSummary(e.target.value); setSaveStatus('unsaved') }}
               rows={3}
               placeholder="A brief summary shown on cards and search results…"
-              className="w-full border border-line rounded-[4px] text-ink bg-bg placeholder:text-ink-3 resize-none focus:outline-none focus:ring-1 focus:ring-ls-accent"
+              className="w-full border border-line rounded-[4px] text-ink bg-bg placeholder:text-ink-3 resize-none focus:outline-none focus:border-line-strong"
               style={{ padding: '8px 10px', fontSize: 11 }}
             />
             <div className="text-right text-ink-3" style={{ fontSize: 10 }}>{summary.length} / 300</div>
@@ -469,7 +469,7 @@ export function EditorPage() {
                   type="date"
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
-                  className="w-full border border-line rounded-[4px] text-ink bg-bg focus:outline-none focus:ring-1 focus:ring-ls-accent"
+                  className="w-full border border-line rounded-[4px] text-ink bg-bg focus:outline-none focus:border-line-strong"
                   style={{ padding: '8px 10px', fontSize: 13 }}
                 />
               </div>
@@ -479,7 +479,7 @@ export function EditorPage() {
                   type="time"
                   value={scheduleTime}
                   onChange={(e) => setScheduleTime(e.target.value)}
-                  className="w-full border border-line rounded-[4px] text-ink bg-bg focus:outline-none focus:ring-1 focus:ring-ls-accent"
+                  className="w-full border border-line rounded-[4px] text-ink bg-bg focus:outline-none focus:border-line-strong"
                   style={{ padding: '8px 10px', fontSize: 13 }}
                 />
               </div>

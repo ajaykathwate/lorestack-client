@@ -44,10 +44,10 @@ export function FormSelect<T extends FieldValues>({
         disabled={disabled}
         className={cn(
           'w-full h-[38px] rounded-[6px] border border-line bg-bg px-3 text-[13px] text-ink',
-          'focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent',
+          'focus:outline-none focus:border-line-strong',
           'disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
           !field.value && 'text-ink-3',
-          error && 'border-red-400 focus:ring-red-400 focus:border-red-400',
+          error && 'border-red-400',
         )}
       >
         {placeholder && (

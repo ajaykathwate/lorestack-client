@@ -1,16 +1,5 @@
 import { Link } from 'react-router-dom'
-import { buildRoute } from '@/constants/routes'
-
-const FEATURED_COMPANIES = [
-  { handle: 'aurora-labs', name: 'Aurora Labs', tagline: 'Infra for the AI-native era', industry: 'SaaS', blogCount: 24, initials: 'AL' },
-  { handle: 'hexa-io', name: 'Hexa.io', tagline: 'Observability at every layer', industry: 'DevTools', blogCount: 18, initials: 'HX' },
-  { handle: 'northstar', name: 'Northstar', tagline: 'Real-time data, zero compromise', industry: 'Data infra', blogCount: 12, initials: 'NS' },
-  { handle: 'quiver', name: 'Quiver', tagline: 'Event-driven microservices', industry: 'Platform', blogCount: 9, initials: 'QV' },
-  { handle: 'lambda-studio', name: 'Lambda Studio', tagline: 'ML infrastructure done right', industry: 'AI / ML', blogCount: 15, initials: 'LS' },
-  { handle: 'verge-systems', name: 'Verge Systems', tagline: 'Distributed storage at scale', industry: 'Infra', blogCount: 7, initials: 'VS' },
-  { handle: 'sift-tech', name: 'Sift Tech', tagline: 'Fraud detection that ships fast', industry: 'FinTech', blogCount: 11, initials: 'ST' },
-  { handle: 'plume', name: 'Plume', tagline: 'API-first developer tooling', industry: 'DevTools', blogCount: 6, initials: 'PL' },
-]
+import { ROUTES } from '@/constants/routes'
 
 const INDUSTRIES = ['All', 'SaaS', 'DevTools', 'Data infra', 'AI / ML', 'Infra', 'FinTech', 'Platform']
 
@@ -54,83 +43,23 @@ export function CompaniesPage() {
         </div>
       </div>
 
-      {/* Companies grid */}
+      {/* Empty state */}
       <div style={{ padding: '28px 48px' }}>
-        <div
-          className="font-mono uppercase text-ink-3"
-          style={{ fontSize: 10, letterSpacing: '1.2px', marginBottom: 16 }}
-        >
-          {FEATURED_COMPANIES.length} companies
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: 16,
-          }}
-        >
-          {FEATURED_COMPANIES.map((co) => (
-            <Link
-              key={co.handle}
-              to={buildRoute.company(co.handle)}
-              className="border border-line rounded-[8px] hover:border-line-strong hover:shadow-sm transition-all bg-bg flex flex-col"
-              style={{ padding: 20 }}
-            >
-              <div className="flex items-center" style={{ gap: 12, marginBottom: 12 }}>
-                <div
-                  className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
-                  style={{ width: 44, height: 44, fontSize: 13 }}
-                >
-                  {co.initials}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-semibold text-ink truncate" style={{ fontSize: 14 }}>
-                    {co.name}
-                  </div>
-                  <div
-                    className="rounded-full border border-line text-ink-3 inline-block"
-                    style={{ fontSize: 10, padding: '1px 7px', marginTop: 3 }}
-                  >
-                    {co.industry}
-                  </div>
-                </div>
-              </div>
-
-              <p className="font-serif text-ink-2 flex-1" style={{ fontSize: 13, lineHeight: 1.5 }}>
-                {co.tagline}
-              </p>
-
-              <div
-                className="flex items-center border-t border-line text-ink-3"
-                style={{ marginTop: 14, paddingTop: 12, fontSize: 11, gap: 4 }}
-              >
-                <span className="font-mono">◆</span>
-                <span>{co.blogCount} articles</span>
-                <span className="flex-1" />
-                <span className="text-ls-accent" style={{ fontSize: 11 }}>Visit →</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* CTA: create a company page */}
-        <div
-          className="border border-line rounded-[8px] bg-bg-soft flex items-center justify-between"
-          style={{ padding: '20px 24px', marginTop: 32 }}
-        >
-          <div>
-            <div className="font-semibold text-ink" style={{ fontSize: 14 }}>
-              Is your company on Lorestack?
-            </div>
-            <p className="text-ink-3" style={{ fontSize: 12, marginTop: 4 }}>
-              Create a company page and start publishing engineering stories under your brand.
-            </p>
+        <div className="flex flex-col items-center justify-center text-center" style={{ padding: '64px 32px', gap: 12 }}>
+          <div
+            className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-3"
+            style={{ width: 56, height: 56, fontSize: 22 }}
+          >
+            ◆
           </div>
+          <h2 className="font-serif font-bold text-ink" style={{ fontSize: 20 }}>No companies yet</h2>
+          <p className="text-ink-3" style={{ maxWidth: 380, fontSize: 13, lineHeight: 1.6 }}>
+            Companies will appear here once they publish on Lorestack. Be the first to create a company page and share your engineering story.
+          </p>
           <Link
-            to="/dashboard"
-            className="bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors flex-shrink-0"
-            style={{ padding: '8px 16px', fontSize: 13 }}
+            to={ROUTES.DASHBOARD}
+            className="bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
+            style={{ padding: '8px 18px', fontSize: 13, marginTop: 8 }}
           >
             Create company page →
           </Link>

@@ -311,7 +311,7 @@ export function CompanyDashboardPage() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="someone@aurora.dev"
-                className="w-full rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:ring-1 focus:ring-ls-accent"
+                className="w-full rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong"
                 style={{ height: 40, padding: '0 12px', fontSize: 13 }}
               />
             </div>

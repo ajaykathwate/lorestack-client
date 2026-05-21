@@ -85,7 +85,7 @@ export function ProfileSettingsPage() {
             {...(control.register as (name: string) => object)('bio')}
             rows={3}
             placeholder="Distributed systems engineer. Writing about postgres, latency, and the boring stuff that ships products."
-            className="w-full rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 resize-none transition-colors focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent"
+            className="w-full rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 resize-none transition-colors focus:outline-none focus:border-line-strong"
             style={{ padding: '10px 12px', fontSize: 14 }}
           />
           <p className="text-ink-3" style={{ fontSize: 12 }}>Max 300 characters</p>

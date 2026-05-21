@@ -70,7 +70,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search Lorestack — blogs, tags, authors, companies…"
-            className="flex-1 px-2 py-1 rounded-md bg-transparent text-ink placeholder:text-ink-3 focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent transition-colors"
+            className="flex-1 px-2 py-1 rounded-md bg-transparent text-ink placeholder:text-ink-3 focus:outline-none transition-colors"
             style={{ fontSize: 15 }}
           />
           <kbd

@@ -94,26 +94,28 @@ export function HomePage() {
 
           <div className="relative">
             <div className="rounded-[8px] bg-bg-tint border border-line" style={{ height: 300 }} />
-            <div
-              className="absolute bg-bg border border-line rounded-[6px] shadow-sm"
-              style={{ bottom: -20, left: -20, right: 32, padding: 14 }}
-            >
-              <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                This week's lead
-              </span>
-              <div className="font-serif font-semibold text-ink" style={{ fontSize: 18, marginTop: 8, lineHeight: 1.25 }}>
-                {trendingBlogs[0]?.title ?? 'How we cut p99 latency from 800ms → 120ms'}
-              </div>
-              <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
-                <div
-                  className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
-                  style={{ width: 16, height: 16, fontSize: 8 }}
-                >
-                  {trendingBlogs[0] ? initials('A') : 'ZK'}
+            {trendingBlogs[0] && (
+              <div
+                className="absolute bg-bg border border-line rounded-[6px] shadow-sm"
+                style={{ bottom: -20, left: -20, right: 32, padding: 14 }}
+              >
+                <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
+                  This week's lead
+                </span>
+                <div className="font-serif font-semibold text-ink" style={{ fontSize: 18, marginTop: 8, lineHeight: 1.25 }}>
+                  {trendingBlogs[0].title}
                 </div>
-                {trendingBlogs[0]?.authorId ? 'Author' : 'Ajay Kathwate'} · 8 min
+                <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
+                  <div
+                    className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
+                    style={{ width: 16, height: 16, fontSize: 8 }}
+                  >
+                    {initials(trendingBlogs[0].title)}
+                  </div>
+                  8 min read
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       ) : (
@@ -254,57 +256,6 @@ export function HomePage() {
         )}
       </section>
 
-      {/* ── FEATURED COMPANIES ── */}
-      <section className="border-t border-b border-line bg-bg-soft" style={{ padding: '24px 56px' }}>
-        <div className="flex items-baseline" style={{ gap: 14, marginBottom: 14 }}>
-          <h2 className="font-serif font-bold text-ink" style={{ fontSize: 22 }}>Featured companies</h2>
-          <span className="text-ink-3" style={{ fontSize: 12 }}>· hand-picked by the Lorestack team</span>
-          <div className="flex-1 border-t border-line" />
-          <button className="text-ls-accent underline underline-offset-2" style={{ fontSize: 11 }}>
-            Browse all companies →
-          </button>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-          {[
-            ['Aurora Labs', 'Infra for the AI-native era', '24'],
-            ['Hexa.io', 'Build-in-public dev tools', '18'],
-            ['Northstar', 'Observability, done quietly', '14'],
-            ['Quiver', 'Real-time databases for everyone', '12'],
-            ['Lambdacat', 'Compilers, runtimes, snark', '9'],
-            ['Verge', 'Edge platform for the JS-curious', '11'],
-            ['Sift', 'Search infra for the unindexable', '7'],
-            ['Plume', 'Distributed cron, finally', '5'],
-          ].map(([name, tagline, count]) => (
-            <div
-              key={name}
-              className="rounded-[6px] border border-line bg-bg flex flex-col"
-              style={{ padding: 14, gap: 8 }}
-            >
-              <div className="flex items-center" style={{ gap: 10 }}>
-                <div
-                  className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2"
-                  style={{ width: 36, height: 36, fontSize: 14 }}
-                >
-                  {name[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-serif font-semibold text-ink truncate" style={{ fontSize: 13 }}>{name}</div>
-                  <div className="text-ink-3 truncate" style={{ fontSize: 10 }}>{tagline}</div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center mt-auto">
-                <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>{count} posts</span>
-                <button
-                  className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
-                  style={{ padding: '3px 8px', fontSize: 11 }}
-                >
-                  + Follow
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ── DEEP DIVES + RIGHT RAIL ── */}
       <section style={{ padding: '32px 56px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 36 }}>
@@ -349,122 +300,34 @@ export function HomePage() {
         {/* Right rail */}
         <div className="flex flex-col" style={{ gap: 24 }}>
           {/* Trending tags */}
-          <div>
-            <div
-              className="font-mono uppercase text-ink-3"
-              style={{ fontSize: 10, letterSpacing: '1.2px', borderTop: '1px solid var(--ls-line-soft)', paddingTop: 10, marginBottom: 10 }}
-            >
-              Trending tags · this week
-            </div>
-            <div className="flex flex-wrap" style={{ gap: 6 }}>
-              {(trendingTags.length > 0 ? trendingTags : [
-                { slug: 'postgres', name: 'postgres' },
-                { slug: 'llm', name: 'llm' },
-                { slug: 'feature-flags', name: 'feature-flags' },
-                { slug: 'observability', name: 'observability' },
-                { slug: 'postmortem', name: 'postmortem' },
-                { slug: 'kafka', name: 'kafka' },
-              ] as { slug: string; name: string; blogCount?: number }[]).slice(0, 12).map((tag) => (
-                <Link
-                  key={tag.slug}
-                  to={buildRoute.tag(tag.slug)}
-                  className="border border-line text-ink-2 rounded-full hover:border-line-strong hover:text-ink transition-colors"
-                  style={{ padding: '3px 10px', fontSize: 12 }}
-                >
-                  #{tag.name}
-                  {'blogCount' in tag && tag.blogCount != null && (
-                    <span className="font-mono text-ink-3 ml-1" style={{ fontSize: 10 }}>· {tag.blogCount}</span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Top writers */}
-          <div>
-            <div
-              className="font-mono uppercase text-ink-3"
-              style={{ fontSize: 10, letterSpacing: '1.2px', borderTop: '1px solid var(--ls-line-soft)', paddingTop: 10, marginBottom: 10 }}
-            >
-              Top writers · this week
-            </div>
-            <div className="rounded-[6px] border border-line overflow-hidden">
-              {[
-                ['ZK', 'Ajay Kathwate', 'Aurora Labs', '4.2k'],
-                ['ML', 'Mei Lin', 'Hexa.io', '8.4k'],
-                ['NR', 'Nikhil Rao', 'Aurora Labs', '5.6k'],
-                ['SJ', 'Sam Jacobs', '—', '3.4k'],
-              ].map(([ini, name, company, reads], i) => (
-                <div
-                  key={i}
-                  className="flex items-center"
-                  style={{ gap: 10, padding: '9px 12px', borderTop: i ? '1px solid var(--ls-line-soft)' : 'none' }}
-                >
-                  <span className="font-serif font-semibold text-ink-3" style={{ fontSize: 12, width: 14 }}>{i + 1}</span>
-                  <div
-                    className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-                    style={{ width: 26, height: 26, fontSize: 10 }}
-                  >
-                    {ini}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-ink font-semibold truncate" style={{ fontSize: 12 }}>{name}</div>
-                    <div className="text-ink-3 truncate" style={{ fontSize: 10 }}>{company}</div>
-                  </div>
-                  <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>↻ {reads}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── BUILD-IN-PUBLIC ── */}
-      <section className="border-t border-line bg-bg-soft" style={{ padding: '32px 56px' }}>
-        <div className="flex items-baseline" style={{ gap: 14, marginBottom: 14 }}>
-          <h2 className="font-serif font-bold text-ink" style={{ fontSize: 22 }}>Build-in-public this week</h2>
-          <span className="text-ink-3" style={{ fontSize: 12 }}>· milestones from companies you can follow</span>
-          <div className="flex-1 border-t border-line" />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-          {[
-            { co: 'Aurora Labs', logo: 'A', type: 'LAUNCH', title: 'Aurora v2 is live', d: 'May 12', metric: '10× write throughput' },
-            { co: 'Hexa.io', logo: 'H', type: 'MILESTONE', title: 'Crossed 5,000 paying teams', d: 'May 09', metric: null },
-            { co: 'Northstar', logo: 'N', type: 'FUNDING', title: 'Closed Series A', d: 'May 06', metric: '$14M' },
-            { co: 'Quiver', logo: 'Q', type: 'INFRA', title: 'p99 dropped to 12ms globally', d: 'May 04', metric: null },
-            { co: 'Verge', logo: 'V', type: 'PARTNERSHIP', title: 'Designated partner for re:Cloud', d: 'May 02', metric: null },
-            { co: 'Plume', logo: 'P', type: 'HIRING', title: 'Two senior infra engineers joined', d: 'Apr 30', metric: null },
-          ].map((m, i) => (
-            <div key={i} className="rounded-[6px] border border-line bg-bg" style={{ padding: 14 }}>
-              <div className="flex items-center" style={{ gap: 8, marginBottom: 8 }}>
-                <div
-                  className="rounded-[4px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2"
-                  style={{ width: 24, height: 24, fontSize: 10 }}
-                >
-                  {m.logo}
-                </div>
-                <span className="font-semibold text-ink" style={{ fontSize: 12 }}>{m.co}</span>
-                <span
-                  className="ml-auto border border-line text-ink-3 rounded-[3px]"
-                  style={{ fontSize: 9, padding: '1px 5px' }}
-                >
-                  {m.type}
-                </span>
+          {trendingTags.length > 0 && (
+            <div>
+              <div
+                className="font-mono uppercase text-ink-3"
+                style={{ fontSize: 10, letterSpacing: '1.2px', borderTop: '1px solid var(--ls-line-soft)', paddingTop: 10, marginBottom: 10 }}
+              >
+                Trending tags · this week
               </div>
-              <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.3 }}>{m.title}</div>
-              <div className="text-ink-3" style={{ fontSize: 11, marginTop: 6 }}>{m.d}</div>
-              {m.metric && (
-                <span
-                  className="inline-block bg-ls-accent/10 text-ls-accent rounded-full border border-ls-accent/20"
-                  style={{ fontSize: 11, padding: '2px 8px', marginTop: 8 }}
-                >
-                  {m.metric}
-                </span>
-              )}
+              <div className="flex flex-wrap" style={{ gap: 6 }}>
+                {trendingTags.slice(0, 12).map((tag) => (
+                  <Link
+                    key={tag.slug}
+                    to={buildRoute.tag(tag.slug)}
+                    className="border border-line text-ink-2 rounded-full hover:border-line-strong hover:text-ink transition-colors"
+                    style={{ padding: '3px 10px', fontSize: 12 }}
+                  >
+                    #{tag.name}
+                    {'blogCount' in tag && (tag as { blogCount?: number }).blogCount != null && (
+                      <span className="font-mono text-ink-3 ml-1" style={{ fontSize: 10 }}>· {(tag as { blogCount?: number }).blogCount}</span>
+                    )}
+                  </Link>
+                ))}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </section>
+
 
       {/* ── WRITER CTA (logged out only) ── */}
       {!isAuthenticated && (
@@ -526,7 +389,7 @@ export function HomePage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@studio.dev"
-            className="flex-1 rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:ring-1 focus:ring-ls-accent focus:border-ls-accent transition-colors"
+            className="flex-1 rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong transition-colors"
             style={{ height: 44, padding: '0 14px', fontSize: 13 }}
           />
           <button

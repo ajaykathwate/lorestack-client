@@ -1,6 +1,7 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, Link } from 'react-router-dom'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { TopNav } from '@/shared/components/TopNav'
+import { ROUTES } from '@/constants/routes'
 
 export function PublicLayout() {
   return (
@@ -14,7 +15,7 @@ export function PublicLayout() {
       {/* Footer */}
       <footer className="border-t border-line bg-bg-deep">
         <div
-          className="max-w-6xl mx-auto px-6 py-8 grid gap-8 text-ink-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+          className="max-w-6xl mx-auto px-6 py-8 grid gap-8 text-ink-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3"
           style={{ fontSize: 13 }}
         >
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
@@ -29,28 +30,25 @@ export function PublicLayout() {
             </div>
           </div>
 
-          {[
-            ['Read', ['Explore', 'Companies', 'Tags', 'Authors', 'Featured']],
-            ['Write', ['Start writing', 'Writer guide', 'Schedule blogs']],
-            ['Platform', ['Pricing', 'Roadmap', 'Changelog', 'Status']],
-            ['Company', ['About', 'Contact', 'Privacy', 'Terms']],
-          ].map(([heading, items]) => (
-            <div key={heading as string}>
-              <div
-                className="font-mono uppercase text-ink-3 mb-3"
-                style={{ fontSize: 10, letterSpacing: '1.2px' }}
-              >
-                {heading as string}
-              </div>
-              <ul className="flex flex-col gap-2 list-none m-0 p-0">
-                {(items as string[]).map((item) => (
-                  <li key={item} className="text-ink-3 hover:text-ink-2 cursor-pointer" style={{ fontSize: 12 }}>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div>
+            <div className="font-mono uppercase text-ink-3 mb-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>Write</div>
+            <ul className="flex flex-col gap-2 list-none m-0 p-0" style={{ fontSize: 12 }}>
+              <li><Link to={ROUTES.EDITOR_NEW} className="text-ink-3 hover:text-ink-2 transition-colors">Start writing</Link></li>
+              <li><Link to={ROUTES.DASHBOARD} className="text-ink-3 hover:text-ink-2 transition-colors">Dashboard</Link></li>
+              <li><Link to={ROUTES.SCHEDULED} className="text-ink-3 hover:text-ink-2 transition-colors">Schedule blogs</Link></li>
+              <li><Link to={ROUTES.COMPANIES} className="text-ink-3 hover:text-ink-2 transition-colors">Milestones</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <div className="font-mono uppercase text-ink-3 mb-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>Company</div>
+            <ul className="flex flex-col gap-2 list-none m-0 p-0" style={{ fontSize: 12 }}>
+              <li><Link to={ROUTES.EXPLORE} className="text-ink-3 hover:text-ink-2 transition-colors">Explore</Link></li>
+              <li><span className="text-ink-3">About</span></li>
+              <li><span className="text-ink-3">Privacy</span></li>
+              <li><span className="text-ink-3">Terms</span></li>
+            </ul>
+          </div>
         </div>
       </footer>
     </div>

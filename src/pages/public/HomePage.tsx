@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useExplore } from '@/api/hooks/useBlogQueries'
 import { useTrendingTags } from '@/api/hooks/useTagQueries'
+import { useStats } from '@/api/hooks/useStatsQuery'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
 import type { ArticleType } from '@/types/api'
@@ -21,25 +22,25 @@ const TYPE_PILLS: { label: string; value: ArticleType | '' }[] = [
   { label: 'Project showcase', value: 'project_showcase' },
 ]
 
-const STATS = [
-  ['2,419', 'writers shipping'],
-  ['14,206', 'articles'],
-  ['486', 'companies'],
-  ['1.3M', 'reads / month'],
-]
-
 export function HomePage() {
-  const navigate = useNavigate()
   const { isAuthenticated, authorProfile } = useAuthStore()
   const [activeType, setActiveType] = useState<ArticleType | ''>('')
-  const [email, setEmail] = useState('')
 
   const exploreParams = activeType ? { type: activeType } : undefined
   const { data: blogs } = useExplore(exploreParams)
   const { data: tags } = useTrendingTags()
+  const { data: stats } = useStats()
 
   const trendingBlogs = blogs ?? []
   const trendingTags = tags ?? []
+
+  const STATS = [
+    [stats?.monthlyActiveReaders?.toLocaleString() ?? '0', 'monthly active readers'],
+    [stats?.articlesPublishedThisWeek?.toString() ?? '0', 'articles this week'],
+    [stats?.avgReadCompletion != null ? `${Math.round(stats.avgReadCompletion * 100)}%` : '0%', 'avg read completion'],
+    [stats?.companiesActivelyPublishing?.toString() ?? '0', 'companies publishing'],
+    [stats?.newDeepDivesThisWeek?.toString() ?? '0', 'new deep dives this week'],
+  ]
 
   return (
     <div className="flex flex-col">
@@ -364,39 +365,6 @@ export function HomePage() {
         </section>
       )}
 
-      {/* ── NEWSLETTER ── */}
-      <section className="border-t border-line px-4 sm:px-8 lg:px-14 py-8">
-        <div className="grid gap-8 items-center" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
-          <div>
-            <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
-              The weekly digest
-            </span>
-            <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, marginTop: 6 }}>
-              The best engineering writing, in your inbox each Friday.
-            </h3>
-            <p className="text-ink-2" style={{ margin: '6px 0 0', fontSize: 13 }}>
-              Hand-picked. 5-minute read. Unsubscribe anytime.
-            </p>
-          </div>
-          <div className="flex" style={{ gap: 8 }}>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@studio.dev"
-              className="flex-1 min-w-0 rounded-[6px] border border-line bg-bg text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong transition-colors"
-              style={{ height: 44, padding: '0 14px', fontSize: 13 }}
-            />
-            <button
-              onClick={() => { if (email) navigate(ROUTES.REGISTER) }}
-              className="flex-shrink-0 bg-ink text-bg font-medium rounded-[6px] hover:bg-black transition-colors"
-              style={{ height: 44, padding: '0 18px', fontSize: 14 }}
-            >
-              Subscribe
-            </button>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

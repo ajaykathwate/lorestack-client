@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate } from '@/lib/utils'
@@ -15,11 +15,12 @@ function timeUntil(iso: string): string {
 }
 
 export function ScheduledPage() {
+  const navigate = useNavigate()
   const { data: blogs, isLoading } = useMyBlogs()
   const scheduled = (blogs ?? []).filter((b) => b.status === 'scheduled')
 
   return (
-    <div className="flex flex-col" style={{ gap: 0 }}>
+    <div className="flex flex-col bg-bg min-h-full -m-4 lg:-m-6 p-4 lg:p-6" style={{ gap: 0 }}>
       <div className="flex justify-between items-baseline" style={{ marginBottom: 18 }}>
         <div>
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
@@ -62,7 +63,9 @@ export function ScheduledPage() {
           {scheduled.map((blog) => (
             <div
               key={blog.id}
-              className="rounded-[6px] border border-line overflow-hidden flex flex-col"
+              className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
+              style={{ cursor: 'pointer' }}
+              onClick={() => navigate(buildRoute.editor(blog.slug))}
             >
               {blog.coverImageUrl ? (
                 <img
@@ -96,6 +99,7 @@ export function ScheduledPage() {
                     to={buildRoute.editor(blog.slug)}
                     className="text-ink-2 hover:text-ink transition-colors"
                     style={{ fontSize: 12 }}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     Edit / Reschedule
                   </Link>

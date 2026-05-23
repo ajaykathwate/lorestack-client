@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
 import { useDeleteBlog, usePublishBlog } from '@/api/hooks/useBlogMutations'
@@ -6,6 +6,7 @@ import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort } from '@/lib/utils'
 
 export function DraftsPage() {
+  const navigate = useNavigate()
   const { data: blogs, isLoading } = useMyBlogs()
   const { mutate: deleteBlog } = useDeleteBlog()
   const { mutate: publishBlog } = usePublishBlog()
@@ -28,7 +29,7 @@ export function DraftsPage() {
   }
 
   return (
-    <div className="flex flex-col" style={{ gap: 0 }}>
+    <div className="flex flex-col bg-bg min-h-full -m-4 lg:-m-6 p-4 lg:p-6" style={{ gap: 0 }}>
       <div className="flex justify-between items-baseline" style={{ marginBottom: 18 }}>
         <div>
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
@@ -69,7 +70,9 @@ export function DraftsPage() {
           {drafts.map((blog) => (
             <div
               key={blog.id}
-              className="rounded-[6px] border border-line overflow-hidden flex flex-col"
+              className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
+              style={{ cursor: 'pointer' }}
+              onClick={() => navigate(buildRoute.editor(blog.slug))}
             >
               {blog.coverImageUrl ? (
                 <img
@@ -97,7 +100,7 @@ export function DraftsPage() {
                   <span className="flex-1" />
                   <div className="flex" style={{ gap: 8 }}>
                     <button
-                      onClick={() => handlePublish(blog.slug, blog.title)}
+                      onClick={(e) => { e.stopPropagation(); handlePublish(blog.slug, blog.title) }}
                       className="text-ink-2 hover:text-ink transition-colors"
                       style={{ fontSize: 12 }}
                     >
@@ -107,11 +110,12 @@ export function DraftsPage() {
                       to={buildRoute.editor(blog.slug)}
                       className="text-ink-3 hover:text-ink transition-colors"
                       style={{ fontSize: 12 }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Edit
                     </Link>
                     <button
-                      onClick={() => handleDelete(blog.slug)}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(blog.slug) }}
                       className="text-ink-3 hover:text-red-500 transition-colors"
                       style={{ fontSize: 12 }}
                     >

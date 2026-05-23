@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useCompanyByHandle } from '@/api/hooks/useCompanyQueries'
 import { useUpdateCompany } from '@/api/hooks/useCompanyMutations'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 const INDUSTRY_OPTIONS = [
@@ -45,12 +46,17 @@ export function CompanySettingsPage() {
   const [tagline, setTagline] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [isLogoUploading, setIsLogoUploading] = useState(false)
+  const logoFileRef = useRef<HTMLInputElement>(null)
   const [industry, setIndustry] = useState('')
   const [stage, setStage] = useState('')
   const [founderSocialLink, setFounderSocialLink] = useState('')
   const [techStack, setTechStack] = useState<string[]>([])
   const [techInput, setTechInput] = useState('')
   const [isPublic, setIsPublic] = useState(true)
+  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const [isGalleryUploading, setIsGalleryUploading] = useState(false)
+  const galleryFileRef = useRef<HTMLInputElement>(null)
   const [populated, setPopulated] = useState(false)
 
   useEffect(() => {
@@ -63,6 +69,7 @@ export function CompanySettingsPage() {
       setStage(company.stage ?? '')
       setFounderSocialLink(company.founderSocialLink ?? '')
       setTechStack(company.techStack ?? [])
+      setGalleryImages(company.galleryImages ?? [])
       setIsPublic(company.isPublic ?? true)
       setPopulated(true)
     }
@@ -79,6 +86,38 @@ export function CompanySettingsPage() {
     setTechStack(techStack.filter((x) => x !== t))
   }
 
+  async function handleGalleryFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+    const remaining = 5 - galleryImages.length
+    const toUpload = files.slice(0, remaining)
+    setIsGalleryUploading(true)
+    try {
+      const urls = await Promise.all(toUpload.map((f) => uploadToCloudinary(f)))
+      setGalleryImages((prev) => [...prev, ...urls].slice(0, 5))
+    } catch {
+      toast.error('Gallery upload failed. Please try again.')
+    } finally {
+      setIsGalleryUploading(false)
+      if (galleryFileRef.current) galleryFileRef.current.value = ''
+    }
+  }
+
+  async function handleLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setIsLogoUploading(true)
+    try {
+      const url = await uploadToCloudinary(file)
+      setLogoUrl(url)
+    } catch {
+      toast.error('Logo upload failed. Please try again.')
+    } finally {
+      setIsLogoUploading(false)
+      if (logoFileRef.current) logoFileRef.current.value = ''
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) { toast.error('Company name is required.'); return }
@@ -93,6 +132,7 @@ export function CompanySettingsPage() {
       ...(stage ? { stage } : {}),
       ...(founderSocialLink ? { founderSocialLink } : {}),
       ...(techStack.length ? { techStack } : {}),
+      galleryImages,
       isPublic,
     }, {
       onSuccess: () => toast.success('Company settings saved.'),
@@ -259,17 +299,75 @@ export function CompanySettingsPage() {
           />
         </div>
 
-        {/* Logo URL */}
+        {/* Logo */}
         <div>
-          <label className="text-ink-2" style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>Logo URL</label>
+          <label className="text-ink-2" style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>Logo</label>
+          <div className="flex items-center" style={{ gap: 12 }}>
+            {logoUrl ? (
+              <img src={logoUrl} alt="logo" className="rounded-[6px] flex-shrink-0" style={{ width: 44, height: 44, objectFit: 'cover' }} />
+            ) : (
+              <div className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0" style={{ width: 44, height: 44, fontSize: 14 }}>
+                ?
+              </div>
+            )}
+            <div className="flex flex-col" style={{ gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => logoFileRef.current?.click()}
+                disabled={isLogoUploading}
+                className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors disabled:opacity-50"
+                style={{ padding: '6px 12px', fontSize: 12 }}
+              >
+                {isLogoUploading ? 'Uploading…' : logoUrl ? 'Change logo' : 'Upload logo'}
+              </button>
+              <span className="text-ink-3" style={{ fontSize: 11 }}>PNG, JPG, WebP · max 4MB</span>
+            </div>
+            <input ref={logoFileRef} type="file" accept="image/*" onChange={handleLogoFile} style={{ display: 'none' }} />
+          </div>
+        </div>
+
+        {/* Gallery images */}
+        <div>
+          <label className="text-ink-2" style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 4 }}>
+            Gallery <span className="font-normal text-ink-3">(up to 5 images)</span>
+          </label>
+          <p className="text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>
+            Show your team, product, or office. Builds trust with readers.
+          </p>
+          <div className="flex flex-wrap" style={{ gap: 8 }}>
+            {galleryImages.map((url, i) => (
+              <div key={i} className="relative" style={{ width: 72, height: 72 }}>
+                <img src={url} alt="" className="rounded-[6px] object-cover w-full h-full border border-line" />
+                <button
+                  type="button"
+                  onClick={() => setGalleryImages((prev) => prev.filter((_, idx) => idx !== i))}
+                  className="absolute -top-1.5 -right-1.5 rounded-full bg-bg border border-line text-ink-2 hover:text-ink flex items-center justify-center"
+                  style={{ width: 18, height: 18, fontSize: 11, lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {galleryImages.length < 5 && (
+              <button
+                type="button"
+                onClick={() => galleryFileRef.current?.click()}
+                disabled={isGalleryUploading}
+                className="rounded-[6px] border border-dashed border-line text-ink-3 hover:border-line-strong hover:text-ink-2 transition-colors flex flex-col items-center justify-center disabled:opacity-50"
+                style={{ width: 72, height: 72, fontSize: 10, gap: 4 }}
+              >
+                {isGalleryUploading ? '…' : <><span style={{ fontSize: 20, lineHeight: 1 }}>+</span><span>Add</span></>}
+              </button>
+            )}
+          </div>
           <input
-            type="url"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            placeholder="https://example.com/logo.png"
-            style={inputStyle}
+            ref={galleryFileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleGalleryFiles}
+            style={{ display: 'none' }}
           />
-          <p className="text-ink-3" style={{ fontSize: 11, marginTop: 4 }}>Square image recommended. PNG, JPG, or SVG.</p>
         </div>
 
         {/* Public toggle */}

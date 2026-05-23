@@ -146,6 +146,24 @@ export function CompanyProfilePage() {
         </div>
       </div>
 
+      {/* Gallery strip */}
+      {company.galleryImages && company.galleryImages.length > 0 && (
+        <div
+          className="border-b border-line px-4 sm:px-8 lg:px-12 flex"
+          style={{ paddingTop: 16, paddingBottom: 16, gap: 10, overflowX: 'auto', scrollbarWidth: 'none' }}
+        >
+          {company.galleryImages.map((url, i) => (
+            <img
+              key={i}
+              src={url}
+              alt=""
+              className="rounded-[6px] flex-shrink-0 object-cover border border-line"
+              style={{ height: 120, width: 180 }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Tab bar */}
       <div className="flex border-b border-line px-4 sm:px-8 lg:px-12" style={{ gap: 24 }}>
         {([

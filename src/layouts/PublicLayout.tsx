@@ -1,4 +1,5 @@
 import { Outlet, Link } from 'react-router-dom'
+import { Linkedin } from 'lucide-react'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { TopNav } from '@/shared/components/TopNav'
 import { ROUTES } from '@/constants/routes'
@@ -14,40 +15,57 @@ export function PublicLayout() {
 
       {/* Footer */}
       <footer className="border-t border-line bg-bg-deep">
-        <div
-          className="max-w-6xl mx-auto px-6 py-8 grid gap-8 text-ink-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3"
-          style={{ fontSize: 13 }}
-        >
-          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-            <Wordmark size={17} asLink={false} />
-            <p className="text-ink-3 leading-relaxed mt-2.5 max-w-[240px]" style={{ fontSize: 12 }}>
-              A home for engineering stories. Made with care for the people who actually ship.
-            </p>
-            <div className="flex gap-2 mt-3.5 font-mono text-ink-3" style={{ fontSize: 11 }}>
-              <span>↗ twitter</span>
-              <span>↗ github</span>
-              <span>↗ rss</span>
+        <div className="max-w-6xl mx-auto px-6 py-8" style={{ fontSize: 13 }}>
+          {/* Top row: wordmark + social handles */}
+          <div className="flex flex-wrap items-start justify-between gap-6">
+            <div>
+              <Wordmark size={17} asLink={false} />
+              <p className="text-ink-3 leading-relaxed mt-2.5 max-w-[260px]" style={{ fontSize: 12 }}>
+                A home for engineering stories. Made with care for the people who actually ship.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-ink-3" style={{ fontSize: 12 }}>
+              <a
+                href="https://linkedin.com/company/lorestack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-ink-2 transition-colors"
+              >
+                <Linkedin size={13} /> LinkedIn
+              </a>
+              <a
+                href="https://instagram.com/lorestack"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-ink-2 transition-colors"
+              >
+                <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
+                </svg>
+                Instagram
+              </a>
             </div>
           </div>
 
-          <div>
-            <div className="font-mono uppercase text-ink-3 mb-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>Write</div>
-            <ul className="flex flex-col gap-2 list-none m-0 p-0" style={{ fontSize: 12 }}>
-              <li><Link to={ROUTES.EDITOR_NEW} className="text-ink-3 hover:text-ink-2 transition-colors">Start writing</Link></li>
-              <li><Link to={ROUTES.DASHBOARD} className="text-ink-3 hover:text-ink-2 transition-colors">Dashboard</Link></li>
-              <li><Link to={ROUTES.SCHEDULED} className="text-ink-3 hover:text-ink-2 transition-colors">Schedule blogs</Link></li>
-              <li><Link to={ROUTES.COMPANIES} className="text-ink-3 hover:text-ink-2 transition-colors">Milestones</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="font-mono uppercase text-ink-3 mb-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>Company</div>
-            <ul className="flex flex-col gap-2 list-none m-0 p-0" style={{ fontSize: 12 }}>
-              <li><Link to={ROUTES.EXPLORE} className="text-ink-3 hover:text-ink-2 transition-colors">Explore</Link></li>
-              <li><span className="text-ink-3">About</span></li>
-              <li><span className="text-ink-3">Privacy</span></li>
-              <li><span className="text-ink-3">Terms</span></li>
-            </ul>
+          {/* Bottom row: write links horizontal + legal */}
+          <div
+            className="flex flex-wrap items-center justify-between gap-4 border-t border-line-soft"
+            style={{ marginTop: 24, paddingTop: 16 }}
+          >
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-ink-3" style={{ fontSize: 12 }}>
+              <span className="font-mono uppercase text-ink-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>Write</span>
+              <Link to={ROUTES.EDITOR_NEW} className="hover:text-ink-2 transition-colors">Start writing</Link>
+              <Link to={ROUTES.DASHBOARD} className="hover:text-ink-2 transition-colors">Dashboard</Link>
+              <Link to={ROUTES.SCHEDULED} className="hover:text-ink-2 transition-colors">Schedule</Link>
+              <Link to={ROUTES.EXPLORE} className="hover:text-ink-2 transition-colors">Explore</Link>
+            </div>
+            <div className="flex items-center gap-4 text-ink-3" style={{ fontSize: 11 }}>
+              <span>Privacy</span>
+              <span>Terms</span>
+              <span>© 2026 Lorestack</span>
+            </div>
           </div>
         </div>
       </footer>

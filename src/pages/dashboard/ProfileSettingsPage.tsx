@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -7,6 +8,7 @@ import { FormInput } from '@/shared/components/forms/FormInput'
 import { SubmitButton } from '@/shared/components/forms/SubmitButton'
 import { FormError } from '@/shared/components/forms/FormError'
 import { updateProfileSchema, type UpdateProfileFormValues } from '@/lib/validations/profileSchemas'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { initials } from '@/lib/utils'
 import type { ApiError } from '@/api/client/apiError'
 
@@ -14,8 +16,10 @@ export function ProfileSettingsPage() {
   const { authorProfile } = useAuthStore()
   const { mutate: updateProfile, isPending, error } = useUpdateProfile()
   const apiError = error as ApiError | null
+  const avatarFileRef = useRef<HTMLInputElement>(null)
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false)
 
-  const { control, handleSubmit, watch } = useForm<UpdateProfileFormValues>({
+  const { control, handleSubmit, watch, setValue } = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       displayName: authorProfile?.displayName ?? '',
@@ -31,6 +35,21 @@ export function ProfileSettingsPage() {
   const displayName = watch('displayName') ?? ''
   const avatarUrl = watch('avatarUrl') ?? ''
   const avatarInitials = displayName ? initials(displayName) : initials(authorProfile?.displayName ?? '?')
+
+  async function handleAvatarFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setIsAvatarUploading(true)
+    try {
+      const url = await uploadToCloudinary(file)
+      setValue('avatarUrl', url, { shouldDirty: true })
+    } catch {
+      toast.error('Avatar upload failed. Please try again.')
+    } finally {
+      setIsAvatarUploading(false)
+      if (avatarFileRef.current) avatarFileRef.current.value = ''
+    }
+  }
 
   function onSubmit(values: UpdateProfileFormValues) {
     updateProfile(values, {
@@ -67,9 +86,19 @@ export function ProfileSettingsPage() {
             {avatarInitials}
           </div>
         )}
-        <div>
+        <div className="flex flex-col" style={{ gap: 6 }}>
           <div className="font-semibold text-ink" style={{ fontSize: 15 }}>{displayName || authorProfile?.displayName || 'Your name'}</div>
           <div className="text-ink-3 font-mono" style={{ fontSize: 12 }}>@{authorProfile?.username ?? 'username'}</div>
+          <button
+            type="button"
+            onClick={() => avatarFileRef.current?.click()}
+            disabled={isAvatarUploading}
+            className="self-start border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors disabled:opacity-50"
+            style={{ padding: '4px 10px', fontSize: 12 }}
+          >
+            {isAvatarUploading ? 'Uploading…' : 'Change photo'}
+          </button>
+          <input ref={avatarFileRef} type="file" accept="image/*" onChange={handleAvatarFile} style={{ display: 'none' }} />
         </div>
       </div>
 
@@ -77,7 +106,6 @@ export function ProfileSettingsPage() {
         {apiError && <FormError message={apiError.message} />}
 
         <FormInput control={control} name="displayName" label="Display name" placeholder="Ajay Kathwate" />
-        <FormInput control={control} name="avatarUrl" label="Avatar URL" placeholder="https://example.com/avatar.png" />
 
         <div className="flex flex-col" style={{ gap: 6 }}>
           <label className="text-ink-2" style={{ fontSize: 13, fontWeight: 500 }}>Bio</label>

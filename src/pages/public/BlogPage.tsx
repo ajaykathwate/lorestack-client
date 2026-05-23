@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { marked } from 'marked'
 import { toast } from 'sonner'
-import { Heart, Bookmark, Share2, Check, ArrowLeft } from 'lucide-react'
+import { Heart, Bookmark, Share2, Check, ArrowLeft, Eye, Clock, FileText } from 'lucide-react'
 import 'react-quill/dist/quill.snow.css'
 import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { useEngagement, useMyEngagement } from '@/api/hooks/useEngagementQueries'
@@ -88,6 +88,7 @@ export function BlogPage() {
   const likesCount = engagement?.likesCount ?? 0
   const savesCount = engagement?.savesCount ?? 0
   const sharesCount = engagement?.sharesCount ?? 0
+  const viewsCount = engagement?.totalViews ?? blog.viewsCount ?? 0
 
   function handleLike() {
     if (!isAuthenticated) { toast.error('Sign in to like articles.'); return }
@@ -234,6 +235,38 @@ export function BlogPage() {
                 {copied ? <><Check size={12} /> Copied</> : <><Share2 size={12} /> Share{sharesCount > 0 ? ` · ${sharesCount}` : ''}</>}
               </button>
             </div>
+          </div>
+
+          {/* Metrics strip */}
+          <div
+            className="flex flex-wrap items-center border-b border-line-soft"
+            style={{ gap: 16, paddingTop: 14, paddingBottom: 14, fontSize: 12, color: 'var(--ls-ink-3)' }}
+          >
+            <span className="flex items-center" style={{ gap: 5 }}>
+              <Clock size={12} />
+              {readMin} min read
+            </span>
+            <span className="flex items-center" style={{ gap: 5 }}>
+              <FileText size={12} />
+              {wordCount.toLocaleString()} words
+            </span>
+            {viewsCount > 0 && (
+              <span className="flex items-center" style={{ gap: 5 }}>
+                <Eye size={12} />
+                {viewsCount.toLocaleString()} views
+              </span>
+            )}
+            {engagement?.avgCompletionRate != null && engagement.avgCompletionRate > 0 && (
+              <span className="flex items-center" style={{ gap: 5 }}>
+                {Math.round(engagement.avgCompletionRate * 100)}% avg read
+              </span>
+            )}
+            {savesCount > 0 && (
+              <span className="flex items-center" style={{ gap: 5 }}>
+                <Bookmark size={12} />
+                {savesCount} saves
+              </span>
+            )}
           </div>
 
           {/* Cover image */}

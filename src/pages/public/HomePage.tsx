@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Clock, Eye, Bookmark } from 'lucide-react'
+import { Heart, Clock, Bookmark } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useExplore } from '@/api/hooks/useBlogQueries'
 import { useHome } from '@/api/hooks/useHomeQuery'
@@ -234,11 +234,6 @@ export function HomePage() {
                     {trendingArticles[0].likesCount > 0 && (
                       <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
                         <Heart size={11} />{trendingArticles[0].likesCount}
-                      </span>
-                    )}
-                    {trendingArticles[0].viewsCount > 0 && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
-                        <Eye size={11} />{trendingArticles[0].viewsCount}
                       </span>
                     )}
                   </div>

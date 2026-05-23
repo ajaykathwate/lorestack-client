@@ -28,6 +28,7 @@ import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { initials } from '@/lib/utils'
 import { computePublishingScore } from '@/lib/publishingScore'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react'
 import type { ArticleType } from '@/types/api'
 import type { ScoreSignal } from '@/lib/publishingScore'
@@ -231,6 +232,7 @@ export function EditorPage() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState('')
+  const [isCoverUploading, setIsCoverUploading] = useState(false)
   const [summary, setSummary] = useState('')
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDesc, setSeoDesc] = useState('')
@@ -442,11 +444,20 @@ export function EditorPage() {
     setSaveStatus('unsaved')
   }
 
-  function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setCoverImageUrl(URL.createObjectURL(file))
-    setSaveStatus('unsaved')
+    setIsCoverUploading(true)
+    try {
+      const url = await uploadToCloudinary(file)
+      setCoverImageUrl(url)
+      setSaveStatus('unsaved')
+    } catch (err) {
+      toast.error('Cover upload failed. Please try again.')
+    } finally {
+      setIsCoverUploading(false)
+      if (coverFileRef.current) coverFileRef.current.value = ''
+    }
   }
 
   const plainText = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
@@ -855,12 +866,12 @@ export function EditorPage() {
               </div>
             ) : (
               <div
-                onClick={() => coverFileRef.current?.click()}
-                style={{ padding: '28px 16px', background: 'var(--ls-bg)', border: '1px dashed var(--ls-line-strong)', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', marginBottom: 10 }}
+                onClick={() => !isCoverUploading && coverFileRef.current?.click()}
+                style={{ padding: '28px 16px', background: 'var(--ls-bg)', border: '1px dashed var(--ls-line-strong)', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: isCoverUploading ? 'wait' : 'pointer', marginBottom: 10, opacity: isCoverUploading ? 0.6 : 1 }}
               >
                 <span style={{ width: 36, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--ls-bg-soft)', border: '1px solid var(--ls-line)', borderRadius: 99, color: 'var(--ls-ink-2)', fontSize: 16 }}>↑</span>
-                <span style={{ fontSize: 13, color: 'var(--ls-ink)', fontWeight: 500 }}>Upload image</span>
-                <span style={{ fontSize: 11, color: 'var(--ls-ink-3)' }}>or drop a file · PNG, JPG, WebP · max 4MB</span>
+                <span style={{ fontSize: 13, color: 'var(--ls-ink)', fontWeight: 500 }}>{isCoverUploading ? 'Uploading…' : 'Upload image'}</span>
+                <span style={{ fontSize: 11, color: 'var(--ls-ink-3)' }}>PNG, JPG, WebP · max 4MB</span>
               </div>
             )}
 

@@ -27,6 +27,7 @@ export interface Company {
   stage?: string | null
   techStack: string[]
   founderSocialLink?: string | null
+  galleryImages?: string[]
   isPublic: boolean
   createdAt: string
   updatedAt: string
@@ -66,6 +67,7 @@ export interface CreateCompanyPayload {
   stage?: string
   techStack?: string[]
   founderSocialLink?: string
+  galleryImages?: string[]
   isPublic?: boolean
 }
 
@@ -79,6 +81,7 @@ export interface UpdateCompanyPayload {
   stage?: string
   techStack?: string[]
   founderSocialLink?: string
+  galleryImages?: string[]
   isPublic?: boolean
 }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Heart, Bookmark, Eye, Clock } from 'lucide-react'
+import { Heart, Bookmark, Clock } from 'lucide-react'
 import { useExplore } from '@/api/hooks/useBlogQueries'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort, cn } from '@/lib/utils'
@@ -114,12 +114,6 @@ function ArticleCard({ blog }: { blog: BlogSummary }) {
               {blog.savesCount}
             </span>
           )}
-          {blog.viewsCount > 0 && (
-            <span className="flex items-center text-ink-3 ml-auto" style={{ gap: 3, fontSize: 10 }}>
-              <Eye size={9} />
-              {blog.viewsCount}
-            </span>
-          )}
         </div>
       </div>
     </Link>
@@ -192,12 +186,6 @@ function FeaturedCard({ blog }: { blog: BlogSummary }) {
             <span className="flex items-center text-ink-3" style={{ gap: 4, fontSize: 11 }}>
               <Heart size={11} />
               {blog.likesCount}
-            </span>
-          )}
-          {blog.viewsCount > 0 && (
-            <span className="flex items-center text-ink-3 ml-auto" style={{ gap: 4, fontSize: 11 }}>
-              <Eye size={11} />
-              {blog.viewsCount}
             </span>
           )}
         </div>

@@ -6,8 +6,6 @@ import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { FormInput } from '@/shared/components/forms/FormInput'
 import { SubmitButton } from '@/shared/components/forms/SubmitButton'
 import { useLogin } from '@/api/hooks/useAuthMutations'
-import { useAuthStore } from '@/store/authStore'
-import { profileService } from '@/api/services/profileService'
 import { loginSchema, type LoginFormValues } from '@/lib/validations/authSchemas'
 import { ROUTES } from '@/constants/routes'
 import { env } from '@/config/env'
@@ -16,7 +14,6 @@ import type { ApiError } from '@/api/client/apiError'
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { setAuthorProfile } = useAuthStore()
   const { mutate, isPending } = useLogin()
 
   const from = (location.state as { from?: string })?.from ?? ROUTES.DASHBOARD
@@ -28,16 +25,10 @@ export function LoginPage() {
 
   function onSubmit(values: LoginFormValues) {
     mutate(values, {
-      onSuccess: async () => {
-        try {
-          const profileRes = await profileService.getMe()
-          setAuthorProfile(profileRes.data.data)
-          toast.success('Welcome back!')
-          navigate(from, { replace: true })
-        } catch {
-          setAuthorProfile(null)
-          navigate(ROUTES.ONBOARDING, { replace: true })
-        }
+      onSuccess: ({ authorProfile }) => {
+        toast.success('Welcome back!')
+        // authorProfile is fetched atomically inside the mutation — no race condition
+        navigate(authorProfile ? from : ROUTES.ONBOARDING, { replace: true })
       },
       onError: (err) => {
         toast.error((err as unknown as ApiError).message ?? 'Login failed. Please try again.')

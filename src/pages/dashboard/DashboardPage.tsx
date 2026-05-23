@@ -1,13 +1,68 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { MoreHorizontal, Pencil, ExternalLink, Archive, Trash2 } from 'lucide-react'
+import {
+  MoreHorizontal, Pencil, ExternalLink, Archive, Trash2,
+  BookOpen, FileText, Clock, Send, PenLine,
+} from 'lucide-react'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { useArchiveBlog, useDeleteBlog } from '@/api/hooks/useBlogMutations'
 import { useAuthStore } from '@/store/authStore'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort } from '@/lib/utils'
+
+interface StatCardProps {
+  label: string
+  value: string
+  sub: string
+  Icon: React.ElementType
+  accent?: boolean
+  to?: string
+}
+
+function StatCard({ label, value, sub, Icon, accent, to }: StatCardProps) {
+  const inner = (
+    <div
+      className={`rounded-[8px] border flex flex-col group transition-all ${accent ? 'bg-ink border-ink' : 'bg-bg border-line hover:border-line-strong'}`}
+      style={{ padding: '16px 18px', gap: 10 }}
+    >
+      <div className="flex items-start justify-between">
+        <span
+          className={`font-mono uppercase ${accent ? 'text-bg/50' : 'text-ink-3'}`}
+          style={{ fontSize: 10, letterSpacing: '1.2px' }}
+        >
+          {label}
+        </span>
+        <div
+          className={`rounded-[6px] flex items-center justify-center ${accent ? 'bg-white/10' : 'bg-bg-soft border border-line'}`}
+          style={{ width: 28, height: 28 }}
+        >
+          <Icon size={13} className={accent ? 'text-bg/70' : 'text-ink-3'} />
+        </div>
+      </div>
+      <div>
+        <div
+          className={`font-serif font-bold ${accent ? 'text-bg' : 'text-ink'}`}
+          style={{ fontSize: 28, lineHeight: 1 }}
+        >
+          {value}
+        </div>
+        <div
+          className={`${accent ? 'text-bg/50' : 'text-ink-3'}`}
+          style={{ fontSize: 11, marginTop: 5 }}
+        >
+          {sub}
+        </div>
+      </div>
+    </div>
+  )
+
+  if (to) {
+    return <Link to={to} className="block">{inner}</Link>
+  }
+  return inner
+}
 
 export function DashboardPage() {
   const { authorProfile } = useAuthStore()
@@ -21,14 +76,12 @@ export function DashboardPage() {
 
   const allBlogs = blogs ?? []
 
-  // Map company id → name
   const companyMap = useMemo(() => {
     const map: Record<string, string> = {}
     for (const c of companies ?? []) map[c.id] = c.name
     return map
   }, [companies])
 
-  // Build company filter chips from actual blog data
   const companyChips = useMemo(() => {
     const counts: Record<string, { name: string; count: number }> = {}
     for (const b of allBlogs) {
@@ -74,268 +127,329 @@ export function DashboardPage() {
     })
   }
 
-  const STATS = [
-    { label: 'Published',   value: String(published.length),  sub: published.length > 0 ? `+${Math.min(published.length, 2)} this month` : 'none yet' },
-    { label: 'Total reads', value: '—',                        sub: 'analytics coming soon' },
-    { label: 'Drafts',      value: String(drafts.length),     sub: drafts.length > 0 ? 'in progress' : 'none' },
-    { label: 'Scheduled',   value: String(scheduled.length),  sub: scheduled.length > 0 ? 'queued' : 'none' },
-  ]
-
-  const statusStyle = (status: string) => {
-    if (status === 'published') return { background: 'var(--ls-accent-soft, #f6e5dc)', color: 'var(--ls-accent-ink, #8c3f25)', borderColor: 'transparent' }
-    if (status === 'scheduled') return { background: '#fefce8', color: '#854d0e', borderColor: 'transparent' }
-    if (status === 'archived')  return { background: 'var(--ls-bg-soft)', color: 'var(--ls-ink-3)', borderColor: 'var(--ls-line)' }
-    return { background: 'var(--ls-bg-soft)', color: 'var(--ls-ink-3)', borderColor: 'var(--ls-line)' }
+  const statusStyle = (status: string): React.CSSProperties => {
+    if (status === 'published') return { background: 'var(--ls-accent-soft)', color: 'var(--ls-accent-ink)' }
+    if (status === 'scheduled') return { background: '#fefce8', color: '#854d0e' }
+    if (status === 'archived') return { background: 'var(--ls-bg-soft)', color: 'var(--ls-ink-3)' }
+    return { background: 'var(--ls-bg-soft)', color: 'var(--ls-ink-3)' }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+    <div className="flex flex-col" style={{ gap: 20 }}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
+          <div className="font-mono uppercase text-ink-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>
             Dashboard
           </div>
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
             {greeting}, {displayName}.
           </h1>
+          <p className="text-ink-3" style={{ fontSize: 13, marginTop: 2 }}>
+            {allBlogs.length > 0
+              ? `${published.length} published · ${drafts.length} drafts · ${scheduled.length} scheduled`
+              : 'Your writing studio. Start your first article.'}
+          </p>
         </div>
+
         <Link
           to={ROUTES.EDITOR_NEW}
-          className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-          style={{ padding: '8px 16px', fontSize: 13 }}
+          className="flex items-center gap-2 bg-ink text-bg font-semibold rounded-[6px] hover:bg-ink/90 transition-colors"
+          style={{ padding: '10px 18px', fontSize: 13 }}
         >
-          + Write blog
+          <PenLine size={14} />
+          Write new article
         </Link>
       </div>
 
-      {/* Stat strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 18 }}>
-        {STATS.map(({ label, value, sub }) => (
-          <div key={label} className="rounded-[6px] border border-line bg-bg" style={{ padding: 12 }}>
-            <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
-              {label}
-            </div>
-            <div className="font-serif font-semibold text-ink" style={{ fontSize: 22, marginTop: 4 }}>{value}</div>
-            <div className="text-ink-3" style={{ fontSize: 11, marginTop: 2 }}>{sub}</div>
-          </div>
-        ))}
+      {/* ── Stat cards ── */}
+      <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+        <StatCard
+          label="Published"
+          value={String(published.length)}
+          sub={published.length > 0 ? `${Math.min(published.length, 2)} new this month` : 'None yet — publish your first'}
+          Icon={BookOpen}
+          accent
+          to={ROUTES.MY_BLOGS}
+        />
+        <StatCard
+          label="Drafts"
+          value={String(drafts.length)}
+          sub={drafts.length > 0 ? 'In progress' : 'Nothing in progress'}
+          Icon={FileText}
+          to={ROUTES.DRAFTS}
+        />
+        <StatCard
+          label="Scheduled"
+          value={String(scheduled.length)}
+          sub={scheduled.length > 0 ? 'Queued to publish' : 'No scheduled posts'}
+          Icon={Clock}
+          to={ROUTES.SCHEDULED}
+        />
+        <StatCard
+          label="Total reads"
+          value="—"
+          sub="Analytics launching soon"
+          Icon={Send}
+        />
       </div>
 
-      {/* Company filter chips */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        {/* All chip */}
-        <button
-          onClick={() => setSelectedCompany('all')}
-          style={{
-            fontSize: 11, padding: '4px 12px', borderRadius: 99, border: '1px solid',
-            cursor: 'pointer', transition: 'all 0.12s',
-            background: selectedCompany === 'all' ? 'var(--ls-ink)' : 'var(--ls-bg)',
-            color: selectedCompany === 'all' ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
-            borderColor: selectedCompany === 'all' ? 'var(--ls-ink)' : 'var(--ls-line)',
-          }}
+      {/* ── Quick actions (only when no content) ── */}
+      {allBlogs.length === 0 && !isLoading && (
+        <div
+          className="rounded-[8px] border border-line border-dashed flex flex-col items-center justify-center text-center"
+          style={{ padding: '48px 24px' }}
         >
-          All · {allBlogs.length}
-        </button>
-
-        {/* Company chips */}
-        {companyChips.map(({ id, name, count }) => (
-          <button
-            key={id}
-            onClick={() => setSelectedCompany(id)}
-            style={{
-              fontSize: 11, padding: '4px 12px', borderRadius: 99, border: '1px solid',
-              cursor: 'pointer', transition: 'all 0.12s',
-              background: selectedCompany === id ? 'var(--ls-ink)' : 'var(--ls-bg)',
-              color: selectedCompany === id ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
-              borderColor: selectedCompany === id ? 'var(--ls-ink)' : 'var(--ls-line)',
-            }}
+          <div
+            className="rounded-full bg-bg-soft border border-line flex items-center justify-center"
+            style={{ width: 48, height: 48, marginBottom: 14 }}
           >
-            {name} · {count}
-          </button>
-        ))}
-
-        {/* Personal chip (only when there are personal blogs and user has companies) */}
-        {personalCount > 0 && companyChips.length > 0 && (
-          <button
-            onClick={() => setSelectedCompany('personal')}
-            style={{
-              fontSize: 11, padding: '4px 12px', borderRadius: 99, border: '1px solid',
-              cursor: 'pointer', transition: 'all 0.12s',
-              background: selectedCompany === 'personal' ? 'var(--ls-ink)' : 'var(--ls-bg)',
-              color: selectedCompany === 'personal' ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
-              borderColor: selectedCompany === 'personal' ? 'var(--ls-ink)' : 'var(--ls-line)',
-            }}
-          >
-            Personal · {personalCount}
-          </button>
-        )}
-
-        <div style={{ flex: 1 }} />
-        <span className="border border-line text-ink-3 rounded-[4px]" style={{ padding: '4px 8px', fontSize: 11 }}>
-          Sort: Newest ▾
-        </span>
-      </div>
-
-      {/* Blog list */}
-      {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 56 }} />
-          ))}
-        </div>
-      ) : allBlogs.length === 0 ? (
-        <div className="rounded-[6px] border border-line flex flex-col items-center justify-center text-center" style={{ padding: 40 }}>
-          <h3 className="font-serif font-bold text-ink" style={{ fontSize: 20, marginTop: 14 }}>Your library is empty</h3>
-          <p className="text-ink-2" style={{ margin: '6px 0 16px', fontSize: 13 }}>
-            Write your first blog and share your engineering story.
+            <PenLine size={18} className="text-ink-3" />
+          </div>
+          <h3 className="font-serif font-bold text-ink" style={{ fontSize: 18 }}>
+            Your library is empty
+          </h3>
+          <p className="text-ink-2" style={{ margin: '6px 0 20px', fontSize: 13, maxWidth: 340 }}>
+            Share your engineering story — an architecture deep-dive, a postmortem, a tutorial. Your audience is waiting.
           </p>
-          <Link
-            to={ROUTES.EDITOR_NEW}
-            className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-            style={{ padding: '8px 16px', fontSize: 13 }}
-          >
-            + Write your first blog
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              to={ROUTES.EDITOR_NEW}
+              className="flex items-center gap-2 bg-ink text-bg font-semibold rounded-[6px] hover:bg-ink/90 transition-colors"
+              style={{ padding: '10px 18px', fontSize: 13 }}
+            >
+              <PenLine size={14} />
+              Start writing
+            </Link>
+            <Link
+              to={ROUTES.EXPLORE}
+              className="flex items-center gap-2 border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint transition-colors"
+              style={{ padding: '10px 18px', fontSize: 13 }}
+            >
+              Browse articles
+            </Link>
+          </div>
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-[6px] border border-line flex items-center justify-center" style={{ padding: 40 }}>
-          <p className="text-ink-3" style={{ fontSize: 13 }}>No blogs in this view.</p>
-        </div>
-      ) : (
-        <div className="rounded-[6px] border border-line overflow-hidden">
-          {filtered.map((blog, i) => {
-            const companyName = blog.companyId ? (companyMap[blog.companyId] ?? '—') : 'Personal'
-            const isMenuOpen = openMenu === blog.id
+      )}
 
-            return (
-              <div
-                key={blog.id}
+      {/* ── Articles table ── */}
+      {allBlogs.length > 0 && (
+        <div className="flex flex-col" style={{ gap: 10 }}>
+
+          {/* Filter row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setSelectedCompany('all')}
+              className="rounded-full border font-mono transition-colors"
+              style={{
+                fontSize: 11, padding: '4px 12px',
+                background: selectedCompany === 'all' ? 'var(--ls-ink)' : 'var(--ls-bg)',
+                color: selectedCompany === 'all' ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
+                borderColor: selectedCompany === 'all' ? 'var(--ls-ink)' : 'var(--ls-line)',
+              }}
+            >
+              All · {allBlogs.length}
+            </button>
+
+            {companyChips.map(({ id, name, count }) => (
+              <button
+                key={id}
+                onClick={() => setSelectedCompany(id)}
+                className="rounded-full border font-mono transition-colors"
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '130px 1fr 120px 110px 110px 30px',
-                  padding: '14px 14px',
-                  borderTop: i ? '1px solid var(--ls-line-soft)' : 'none',
-                  gap: 14, alignItems: 'center',
+                  fontSize: 11, padding: '4px 12px',
+                  background: selectedCompany === id ? 'var(--ls-ink)' : 'var(--ls-bg)',
+                  color: selectedCompany === id ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
+                  borderColor: selectedCompany === id ? 'var(--ls-ink)' : 'var(--ls-line)',
                 }}
               >
-                {/* Article type badge */}
-                <span
-                  style={{
-                    fontSize: 10, padding: '2px 6px', borderRadius: 3,
-                    border: '1px solid', whiteSpace: 'nowrap',
-                    overflow: 'hidden', textOverflow: 'ellipsis',
-                    fontFamily: '"JetBrains Mono", monospace', textAlign: 'center',
-                    ...statusStyle(blog.status),
-                    // Override with type label style for the badge
-                    background: 'var(--ls-bg-soft)', color: 'var(--ls-ink-2)', borderColor: 'var(--ls-line)',
-                  }}
-                >
-                  {articleTypeLabel(blog.articleType)}
-                </span>
+                {name} · {count}
+              </button>
+            ))}
 
-                {/* Title + slug */}
-                <div>
-                  <div className="font-serif font-semibold text-ink truncate" style={{ fontSize: 14 }}>
-                    {blog.title || <em style={{ color: 'var(--ls-ink-3)' }}>Untitled</em>}
-                  </div>
-                  <div className="text-ink-3 truncate" style={{ fontSize: 11, marginTop: 2, fontFamily: '"JetBrains Mono", monospace' }}>
-                    {companyName} · /blog/{blog.slug}
-                  </div>
-                </div>
+            {personalCount > 0 && companyChips.length > 0 && (
+              <button
+                onClick={() => setSelectedCompany('personal')}
+                className="rounded-full border font-mono transition-colors"
+                style={{
+                  fontSize: 11, padding: '4px 12px',
+                  background: selectedCompany === 'personal' ? 'var(--ls-ink)' : 'var(--ls-bg)',
+                  color: selectedCompany === 'personal' ? 'var(--ls-bg)' : 'var(--ls-ink-2)',
+                  borderColor: selectedCompany === 'personal' ? 'var(--ls-ink)' : 'var(--ls-line)',
+                }}
+              >
+                Personal · {personalCount}
+              </button>
+            )}
+          </div>
 
-                {/* Status */}
-                <span
-                  style={{
-                    fontSize: 10, padding: '2px 6px', borderRadius: 3, border: '1px solid',
-                    fontFamily: '"JetBrains Mono", monospace', textAlign: 'center',
-                    width: 'fit-content', textTransform: 'capitalize',
-                    ...statusStyle(blog.status),
-                  }}
-                >
-                  {blog.status}
-                </span>
-
-                {/* Date */}
-                <span className="text-ink-2" style={{ fontSize: 12 }}>
-                  {formatDateShort(blog.publishedAt ?? blog.scheduledAt ?? blog.updatedAt)}
-                </span>
-
-                {/* Reads placeholder */}
-                <span className="text-ink-3" style={{ fontSize: 12 }}>—</span>
-
-                {/* ··· menu */}
-                <div style={{ position: 'relative' }}>
-                  <button
-                    onClick={() => setOpenMenu(isMenuOpen ? null : blog.id)}
-                    className="text-ink-3 hover:text-ink transition-colors"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}
+          {/* Table */}
+          {isLoading ? (
+            <div className="flex flex-col" style={{ gap: 6 }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 58 }} />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="rounded-[6px] border border-line flex items-center justify-center" style={{ padding: 32 }}>
+              <p className="text-ink-3" style={{ fontSize: 13 }}>No articles in this view.</p>
+            </div>
+          ) : (
+            <div className="rounded-[8px] border border-line overflow-hidden bg-bg">
+              {/* Column headers */}
+              <div
+                className="border-b border-line bg-bg-soft"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '120px 1fr 100px 90px 30px',
+                  padding: '8px 14px', gap: 14, alignItems: 'center',
+                }}
+              >
+                {['Type', 'Title', 'Status', 'Date', ''].map((h) => (
+                  <span
+                    key={h}
+                    className="font-mono uppercase text-ink-3"
+                    style={{ fontSize: 9, letterSpacing: '1px' }}
                   >
-                    <MoreHorizontal size={16} />
-                  </button>
-                  {isMenuOpen && (
-                    <>
-                      {/* Click-away overlay */}
-                      <div
-                        style={{ position: 'fixed', inset: 0, zIndex: 10 }}
-                        onClick={() => setOpenMenu(null)}
-                      />
-                      <div style={{
-                        position: 'absolute', right: 0, top: '100%', zIndex: 20,
-                        background: 'var(--ls-bg)', border: '1px solid var(--ls-line)',
-                        borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-                        minWidth: 140, padding: '4px 0',
-                      }}>
-                        <Link
-                          to={buildRoute.editor(blog.slug)}
-                          onClick={() => setOpenMenu(null)}
-                          style={{ display: 'block', padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', textDecoration: 'none' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                        >
-                          <Pencil size={11} style={{ display: 'inline', marginRight: 6 }} />Edit
-                        </Link>
-                        {blog.status === 'published' && (
-                          <a
-                            href={buildRoute.blog(blog.slug)}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={() => setOpenMenu(null)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', textDecoration: 'none' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <ExternalLink size={11} />View live
-                          </a>
-                        )}
-                        {(blog.status === 'published' || blog.status === 'scheduled') && (
-                          <button
-                            onClick={() => { setOpenMenu(null); handleArchive(blog.slug, blog.title) }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', background: 'none', border: 'none', cursor: 'pointer' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <Archive size={11} />Archive
-                          </button>
-                        )}
-                        {blog.status === 'draft' && (
-                          <button
-                            onClick={() => { setOpenMenu(null); handleDelete(blog.slug) }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 12, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                          >
-                            <Trash2 size={11} />Delete draft
-                          </button>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
+                    {h}
+                  </span>
+                ))}
               </div>
-            )
-          })}
+
+              {filtered.map((blog, i) => {
+                const companyName = blog.companyId ? (companyMap[blog.companyId] ?? '—') : 'Personal'
+                const isMenuOpen = openMenu === blog.id
+
+                return (
+                  <div
+                    key={blog.id}
+                    className="hover:bg-bg-soft transition-colors"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '120px 1fr 100px 90px 30px',
+                      padding: '13px 14px',
+                      borderTop: i ? '1px solid var(--ls-line-soft)' : 'none',
+                      gap: 14, alignItems: 'center',
+                    }}
+                  >
+                    {/* Type badge */}
+                    <span
+                      className="font-mono rounded-[3px] border text-center truncate"
+                      style={{
+                        fontSize: 10, padding: '2px 6px',
+                        background: 'var(--ls-bg-soft)',
+                        color: 'var(--ls-ink-2)',
+                        borderColor: 'var(--ls-line)',
+                      }}
+                    >
+                      {articleTypeLabel(blog.articleType)}
+                    </span>
+
+                    {/* Title + slug */}
+                    <div className="min-w-0">
+                      <Link
+                        to={buildRoute.editor(blog.slug)}
+                        className="font-serif font-semibold text-ink truncate block hover:text-ls-accent transition-colors"
+                        style={{ fontSize: 14 }}
+                      >
+                        {blog.title || <em style={{ color: 'var(--ls-ink-3)', fontStyle: 'italic' }}>Untitled</em>}
+                      </Link>
+                      <div
+                        className="text-ink-3 truncate font-mono"
+                        style={{ fontSize: 10, marginTop: 2 }}
+                      >
+                        {companyName} · /blog/{blog.slug}
+                      </div>
+                    </div>
+
+                    {/* Status pill */}
+                    <span
+                      className="rounded-full font-mono capitalize text-center"
+                      style={{
+                        fontSize: 10, padding: '3px 8px', width: 'fit-content',
+                        ...statusStyle(blog.status),
+                      }}
+                    >
+                      {blog.status}
+                    </span>
+
+                    {/* Date */}
+                    <span className="text-ink-3 font-mono" style={{ fontSize: 11 }}>
+                      {formatDateShort(blog.publishedAt ?? blog.scheduledAt ?? blog.updatedAt)}
+                    </span>
+
+                    {/* ··· menu */}
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setOpenMenu(isMenuOpen ? null : blog.id)}
+                        className="text-ink-3 hover:text-ink transition-colors rounded-[4px] hover:bg-bg-tint"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 4px' }}
+                      >
+                        <MoreHorizontal size={15} />
+                      </button>
+
+                      {isMenuOpen && (
+                        <>
+                          <div
+                            style={{ position: 'fixed', inset: 0, zIndex: 10 }}
+                            onClick={() => setOpenMenu(null)}
+                          />
+                          <div
+                            className="rounded-[6px] border border-line bg-bg"
+                            style={{
+                              position: 'absolute', right: 0, top: '100%', zIndex: 20,
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                              minWidth: 148, padding: '4px 0', marginTop: 4,
+                            }}
+                          >
+                            <Link
+                              to={buildRoute.editor(blog.slug)}
+                              onClick={() => setOpenMenu(null)}
+                              className="flex items-center gap-2 text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+                              style={{ padding: '8px 14px', fontSize: 12, textDecoration: 'none' }}
+                            >
+                              <Pencil size={11} />Edit
+                            </Link>
+                            {blog.status === 'published' && (
+                              <a
+                                href={buildRoute.blog(blog.slug)}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setOpenMenu(null)}
+                                className="flex items-center gap-2 text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+                                style={{ padding: '8px 14px', fontSize: 12, textDecoration: 'none' }}
+                              >
+                                <ExternalLink size={11} />View live
+                              </a>
+                            )}
+                            {(blog.status === 'published' || blog.status === 'scheduled') && (
+                              <button
+                                onClick={() => { setOpenMenu(null); handleArchive(blog.slug, blog.title) }}
+                                className="flex items-center gap-2 w-full text-left text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+                                style={{ padding: '8px 14px', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer' }}
+                              >
+                                <Archive size={11} />Archive
+                              </button>
+                            )}
+                            {blog.status === 'draft' && (
+                              <button
+                                onClick={() => { setOpenMenu(null); handleDelete(blog.slug) }}
+                                className="flex items-center gap-2 w-full text-left hover:bg-bg-tint transition-colors"
+                                style={{ padding: '8px 14px', fontSize: 12, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                              >
+                                <Trash2 size={11} />Delete draft
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -460,6 +460,8 @@ export function EditorPage() {
     }
   }
 
+  const isPublished = existingBlog?.status === 'published'
+
   const plainText = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const wordCount = plainText ? plainText.split(' ').filter(Boolean).length : 0
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
@@ -660,47 +662,66 @@ export function EditorPage() {
             {previewMode ? 'Edit' : 'Preview'}
           </button>
 
-          <button
-            onClick={handleSaveDraft}
-            disabled={creating}
-            style={{
-              padding: '0 12px', height: 32,
-              background: 'transparent', border: '1px solid var(--ls-line)', borderRadius: 6,
-              fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
-              opacity: creating ? 0.4 : 1,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span className="hidden sm:inline">Save draft</span>
-            <span className="sm:hidden">Save</span>
-          </button>
+          {isPublished ? (
+            /* Published articles: only save changes, no publish button */
+            <button
+              onClick={handleSaveDraft}
+              disabled={creating}
+              style={{
+                padding: '0 18px', height: 32,
+                background: 'var(--ls-ink)', border: 'none', borderRadius: 6,
+                fontSize: 13, fontWeight: 600, color: 'var(--ls-bg)', cursor: 'pointer',
+                opacity: creating ? 0.5 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {creating ? 'Saving…' : 'Save changes'}
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleSaveDraft}
+                disabled={creating}
+                style={{
+                  padding: '0 12px', height: 32,
+                  background: 'transparent', border: '1px solid var(--ls-line)', borderRadius: 6,
+                  fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
+                  opacity: creating ? 0.4 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span className="hidden sm:inline">Save draft</span>
+                <span className="sm:hidden">Save</span>
+              </button>
 
-          <div style={{ display: 'flex', height: 32, borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }}>
-            <button
-              onClick={handlePublish}
-              disabled={publishing || !currentSlug}
-              style={{
-                padding: '0 18px', background: 'var(--ls-ink)', border: 'none',
-                color: 'var(--ls-bg)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                opacity: (publishing || !currentSlug) ? 0.5 : 1,
-              }}
-            >
-              {publishing ? 'Publishing…' : 'Publish'}
-            </button>
-            <button
-              onClick={() => setShowScheduleModal(true)}
-              disabled={!currentSlug}
-              style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                padding: '0 8px', background: 'var(--ls-ink)', border: 'none',
-                borderLeft: '1px solid rgba(255,255,255,.15)',
-                color: 'var(--ls-bg)', cursor: 'pointer',
-                opacity: !currentSlug ? 0.5 : 1,
-              }}
-            >
-              <ChevronDown size={12} />
-            </button>
-          </div>
+              <div style={{ display: 'flex', height: 32, borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,.06)' }}>
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing || !currentSlug}
+                  style={{
+                    padding: '0 18px', background: 'var(--ls-ink)', border: 'none',
+                    color: 'var(--ls-bg)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    opacity: (publishing || !currentSlug) ? 0.5 : 1,
+                  }}
+                >
+                  {publishing ? 'Publishing…' : 'Publish'}
+                </button>
+                <button
+                  onClick={() => setShowScheduleModal(true)}
+                  disabled={!currentSlug}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 8px', background: 'var(--ls-ink)', border: 'none',
+                    borderLeft: '1px solid rgba(255,255,255,.15)',
+                    color: 'var(--ls-bg)', cursor: 'pointer',
+                    opacity: !currentSlug ? 0.5 : 1,
+                  }}
+                >
+                  <ChevronDown size={12} />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

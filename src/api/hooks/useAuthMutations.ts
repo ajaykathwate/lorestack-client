@@ -45,17 +45,26 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (payload: LoginPayload) => {
       const tokenRes = await authService.login(payload).then((r) => r.data.data)
-      // Pass the token directly — the store hasn't been updated yet so the
-      // request interceptor would send no Authorization header otherwise.
+      const authHeader = { Authorization: `Bearer ${tokenRes.accessToken}` }
+
+      // Fetch user and profile atomically with the token, before updating the
+      // store, so there is no window where isAuthenticated=true but authorProfile=null.
       const userRes = await apiClient
-        .get<ApiResponse<User>>('/users/me', {
-          headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
-        })
+        .get<ApiResponse<User>>('/users/me', { headers: authHeader })
         .then((r) => r.data.data)
-      return { tokens: tokenRes, user: userRes }
+
+      let authorProfile = null
+      try {
+        const profileRes = await apiClient.get('/author-profiles/me', { headers: authHeader })
+        authorProfile = profileRes.data.data
+      } catch {
+        // 404 = not yet onboarded — valid state
+      }
+
+      return { tokens: tokenRes, user: userRes, authorProfile }
     },
-    onSuccess: ({ tokens, user }) => {
-      setAuth(tokens.accessToken, tokens.refreshToken, user, null)
+    onSuccess: ({ tokens, user, authorProfile }) => {
+      setAuth(tokens.accessToken, tokens.refreshToken, user, authorProfile)
       qc.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.ME })
     },
   })

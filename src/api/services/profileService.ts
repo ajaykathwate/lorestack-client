@@ -13,4 +13,10 @@ export const profileService = {
 
   getBlogsByUsername: (username: string) =>
     apiClient.get<ApiResponse<PaginatedResult<BlogSummary>>>(`/author-profiles/${username}/blogs`),
+
+  follow: (authorProfileId: string) =>
+    apiClient.post<ApiResponse<{ followersCount: number }>>(`/author-profiles/${authorProfileId}/follow`),
+
+  unfollow: (authorProfileId: string) =>
+    apiClient.delete<ApiResponse<{ followersCount: number }>>(`/author-profiles/${authorProfileId}/follow`),
 }

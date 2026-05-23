@@ -1,16 +1,36 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useProfileByUsername, useAuthorBlogs } from '@/api/hooks/useProfileQueries'
+import { useFollowProfile, useUnfollowProfile } from '@/api/hooks/useProfileMutations'
+import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 export function AuthorProfilePage() {
   const { username = '' } = useParams()
+  const { isAuthenticated } = useAuthStore()
   const { data: profile, isLoading: profileLoading } = useProfileByUsername(username)
   const { data: blogs, isLoading: blogsLoading } = useAuthorBlogs(username)
 
+  const { mutate: followProfile, isPending: following } = useFollowProfile(username)
+  const { mutate: unfollowProfile, isPending: unfollowing } = useUnfollowProfile(username)
+
+  const [isFollowing, setIsFollowing] = useState(false)
+
   const articles = blogs ?? []
   const isLoading = profileLoading
+
+  function handleFollow() {
+    if (!isAuthenticated) { toast.error('Sign in to follow authors.'); return }
+    if (!profile) return
+    if (isFollowing) {
+      unfollowProfile(profile.id, { onSuccess: () => setIsFollowing(false) })
+    } else {
+      followProfile(profile.id, { onSuccess: () => setIsFollowing(true) })
+    }
+  }
 
   if (isLoading) {
     return (
@@ -102,10 +122,17 @@ export function AuthorProfilePage() {
 
         <div className="flex flex-col items-end" style={{ gap: 8 }}>
           <button
-            className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-            style={{ padding: '8px 16px', fontSize: 13 }}
+            onClick={handleFollow}
+            disabled={following || unfollowing}
+            className="font-medium rounded-[6px] transition-colors"
+            style={{
+              padding: '8px 16px', fontSize: 13,
+              background: isFollowing ? 'transparent' : 'var(--ls-accent)',
+              color: isFollowing ? 'var(--ls-ink-2)' : 'white',
+              border: isFollowing ? '1px solid var(--ls-line)' : '1px solid transparent',
+            }}
           >
-            + Follow
+            {isFollowing ? '✓ Following' : '+ Follow'}
           </button>
         </div>
       </div>

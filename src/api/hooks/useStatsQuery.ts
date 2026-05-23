@@ -7,5 +7,6 @@ export function useStats() {
     queryKey: QUERY_KEYS.STATS,
     queryFn: () => statsService.get().then((r) => r.data.data),
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   })
 }

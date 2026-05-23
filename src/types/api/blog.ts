@@ -37,7 +37,7 @@ export interface Blog {
   id: string
   authorId: string
   companyId: string | null
-  // Embedded by the backend on GET /blogs/:slug
+  // Embedded by the backend on GET /blogs/:slug and list endpoints
   authorProfile?: BlogAuthorProfile | null
   company?: BlogCompany | null
   title: string
@@ -52,6 +52,7 @@ export interface Blog {
   scheduledAt: string | null
   seoTitleOverride: string | null
   seoDescOverride: string | null
+  readingTimeMinutes: number | null
   tags: BlogTag[]
   createdAt: string
   updatedAt: string

@@ -32,6 +32,13 @@ export const QUERY_KEYS = {
 
   STATS: ['stats'] as const,
 
+  HOME: ['home'] as const,
+
+  ENGAGEMENT: {
+    BY_SLUG: (slug: string) => ['engagement', slug] as const,
+    MY_BY_SLUG: (slug: string) => ['engagement', slug, 'mine'] as const,
+  },
+
   ADMIN: {
     STATS:        ['admin', 'stats'] as const,
     MODERATION:   ['admin', 'moderation'] as const,

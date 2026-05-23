@@ -13,4 +13,10 @@ export const tagService = {
 
   approve: (id: string) =>
     apiClient.post<ApiResponse<Tag>>(`/tags/${id}/approve`),
+
+  follow: (id: string) =>
+    apiClient.post<ApiResponse<{ followersCount: number }>>(`/tags/${id}/follow`),
+
+  unfollow: (id: string) =>
+    apiClient.delete<ApiResponse<{ followersCount: number }>>(`/tags/${id}/follow`),
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useExplore } from '@/api/hooks/useBlogQueries'
-import { useTrendingTags } from '@/api/hooks/useTagQueries'
+import { useHome } from '@/api/hooks/useHomeQuery'
 import { useStats } from '@/api/hooks/useStatsQuery'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
@@ -26,20 +26,24 @@ export function HomePage() {
   const { isAuthenticated, authorProfile } = useAuthStore()
   const [activeType, setActiveType] = useState<ArticleType | ''>('')
 
-  const exploreParams = activeType ? { type: activeType } : undefined
-  const { data: blogs } = useExplore(exploreParams)
-  const { data: tags } = useTrendingTags()
+  // /home gives us featured article, trending, deep dives, and tags in one call
+  const { data: homeData } = useHome()
+  // /explore is only used when a type filter is active
+  const { data: filteredBlogs } = useExplore(activeType ? { type: activeType } : undefined)
   const { data: stats } = useStats()
 
-  const trendingBlogs = blogs ?? []
-  const trendingTags = tags ?? []
+  const featuredArticle = homeData?.featuredArticle ?? null
+  // When a type is active use the filtered results; otherwise use the home trending list
+  const trendingArticles = activeType ? (filteredBlogs ?? []) : (homeData?.trendingArticles ?? [])
+  const recentDeepDives = activeType ? (filteredBlogs ?? []).slice(0, 4) : (homeData?.recentDeepDives ?? [])
+  const trendingTags = homeData?.trendingTags ?? []
 
   const STATS = [
-    [stats?.monthlyActiveReaders?.toLocaleString() ?? '0', 'monthly active readers'],
     [stats?.articlesPublishedThisWeek?.toString() ?? '0', 'articles this week'],
     [stats?.avgReadCompletion != null ? `${Math.round(stats.avgReadCompletion * 100)}%` : '0%', 'avg read completion'],
     [stats?.companiesActivelyPublishing?.toString() ?? '0', 'companies publishing'],
     [stats?.newDeepDivesThisWeek?.toString() ?? '0', 'new deep dives this week'],
+    [stats?.totalAuthors?.toLocaleString() ?? '0', 'writers on platform'],
   ]
 
   return (
@@ -93,27 +97,28 @@ export function HomePage() {
 
             <div className="relative hidden sm:block">
               <div className="rounded-[8px] bg-bg-tint border border-line" style={{ height: 280 }} />
-              {trendingBlogs[0] && (
-                <div
-                  className="absolute bg-bg border border-line rounded-[6px] shadow-sm"
+              {featuredArticle && (
+                <Link
+                  to={buildRoute.blog(featuredArticle.slug)}
+                  className="absolute bg-bg border border-line rounded-[6px] shadow-sm hover:border-line-strong transition-colors"
                   style={{ bottom: -20, left: -16, right: 28, padding: 14 }}
                 >
                   <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
                     This week's lead
                   </span>
                   <div className="font-serif font-semibold text-ink" style={{ fontSize: 17, marginTop: 8, lineHeight: 1.25 }}>
-                    {trendingBlogs[0].title}
+                    {featuredArticle.title}
                   </div>
                   <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
                     <div
                       className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
                       style={{ width: 16, height: 16, fontSize: 8 }}
                     >
-                      {initials(trendingBlogs[0].title)}
+                      {initials(featuredArticle.authorProfile?.displayName ?? featuredArticle.title)}
                     </div>
-                    8 min read
+                    {featuredArticle.readingTimeMinutes ? `${featuredArticle.readingTimeMinutes} min read` : articleTypeLabel(featuredArticle.articleType)}
                   </div>
-                </div>
+                </Link>
               )}
             </div>
           </div>
@@ -187,7 +192,7 @@ export function HomePage() {
           </Link>
         </div>
 
-        {trendingBlogs.length === 0 ? (
+        {trendingArticles.length === 0 ? (
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             {[...Array(3)].map((_, i) => (
               <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: i === 0 ? 320 : 180 }} />
@@ -196,9 +201,9 @@ export function HomePage() {
         ) : (
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
             {/* Big feature card */}
-            {trendingBlogs[0] && (
+            {trendingArticles[0] && (
               <Link
-                to={buildRoute.blog(trendingBlogs[0].slug)}
+                to={buildRoute.blog(trendingArticles[0].slug)}
                 className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors sm:row-span-2"
                 style={{ gridRow: 'span 1' }}
               >
@@ -206,27 +211,27 @@ export function HomePage() {
                 <div className="flex flex-col" style={{ padding: '18px 20px', gap: 8 }}>
                   <div className="flex items-center" style={{ gap: 8 }}>
                     <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                      {articleTypeLabel(trendingBlogs[0].articleType)}
+                      {articleTypeLabel(trendingArticles[0].articleType)}
                     </span>
                     <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>#1 trending</span>
                   </div>
                   <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, lineHeight: 1.15 }}>
-                    {trendingBlogs[0].title}
+                    {trendingArticles[0].title}
                   </h3>
-                  {trendingBlogs[0].summary && (
+                  {trendingArticles[0].summary && (
                     <p className="font-serif text-ink-2" style={{ fontSize: 14, lineHeight: 1.5 }}>
-                      {trendingBlogs[0].summary}
+                      {trendingArticles[0].summary}
                     </p>
                   )}
                   <div className="flex items-center text-ink-2" style={{ gap: 10, marginTop: 6, fontSize: 12 }}>
-                    <span>{formatDateShort(trendingBlogs[0].publishedAt ?? trendingBlogs[0].createdAt)}</span>
+                    <span>{formatDateShort(trendingArticles[0].publishedAt ?? trendingArticles[0].createdAt)}</span>
                   </div>
                 </div>
               </Link>
             )}
 
             {/* Remaining cards */}
-            {trendingBlogs.slice(1, 5).map((blog, i) => (
+            {trendingArticles.slice(1, 5).map((blog, i) => (
               <Link
                 key={blog.id}
                 to={buildRoute.blog(blog.slug)}
@@ -263,7 +268,7 @@ export function HomePage() {
             <div className="flex-1 border-t border-line" />
           </div>
           <div className="flex flex-col">
-            {trendingBlogs.slice(0, 4).map((blog, i) => (
+            {recentDeepDives.map((blog, i) => (
               <Link
                 key={blog.id}
                 to={buildRoute.blog(blog.slug)}
@@ -288,7 +293,7 @@ export function HomePage() {
               </Link>
             ))}
 
-            {trendingBlogs.length === 0 && (
+            {recentDeepDives.length === 0 && (
               <div className="text-ink-3 text-center py-8" style={{ fontSize: 13 }}>No articles yet.</div>
             )}
           </div>
@@ -313,8 +318,8 @@ export function HomePage() {
                     style={{ padding: '3px 10px', fontSize: 12 }}
                   >
                     #{tag.name}
-                    {'blogCount' in tag && (tag as { blogCount?: number }).blogCount != null && (
-                      <span className="font-mono text-ink-3 ml-1" style={{ fontSize: 10 }}>· {(tag as { blogCount?: number }).blogCount}</span>
+                    {tag.blogCount != null && (
+                      <span className="font-mono text-ink-3 ml-1" style={{ fontSize: 10 }}>· {tag.blogCount}</span>
                     )}
                   </Link>
                 ))}

@@ -1,6 +1,10 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useTagBySlug } from '@/api/hooks/useTagQueries'
+import { useFollowTag, useUnfollowTag } from '@/api/hooks/useTagMutations'
 import { useExplore } from '@/api/hooks/useBlogQueries'
+import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
 import { formatDateShort } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
@@ -9,11 +13,27 @@ const RELATED_TAGS = ['kafka', 'migrations', 'observability', 'sqlite', 'vacuum'
 
 export function TagPage() {
   const { slug = '' } = useParams()
+  const { isAuthenticated } = useAuthStore()
   const { data: tag, isLoading: tagLoading } = useTagBySlug(slug)
   const { data: blogs, isLoading: blogsLoading } = useExplore(slug ? { tag: slug } : undefined)
 
+  const { mutate: followTag, isPending: following } = useFollowTag()
+  const { mutate: unfollowTag, isPending: unfollowing } = useUnfollowTag()
+
+  const [isFollowing, setIsFollowing] = useState(false)
+
   const articles = blogs ?? []
   const isLoading = tagLoading || blogsLoading
+
+  function handleFollow() {
+    if (!isAuthenticated) { toast.error('Sign in to follow tags.'); return }
+    if (!tag?.id) return
+    if (isFollowing) {
+      unfollowTag(tag.id, { onSuccess: () => setIsFollowing(false) })
+    } else {
+      followTag(tag.id, { onSuccess: () => setIsFollowing(true) })
+    }
+  }
 
   if (tagLoading) {
     return (
@@ -48,10 +68,17 @@ export function TagPage() {
         </div>
         <div className="flex justify-end" style={{ gap: 8 }}>
           <button
-            className="border border-line text-ink-2 font-medium rounded-[6px] hover:bg-bg-tint transition-colors"
-            style={{ padding: '8px 14px', fontSize: 13 }}
+            onClick={handleFollow}
+            disabled={following || unfollowing}
+            className="font-medium rounded-[6px] transition-colors"
+            style={{
+              padding: '8px 14px', fontSize: 13,
+              background: isFollowing ? 'var(--ls-accent-soft)' : 'transparent',
+              color: isFollowing ? 'var(--ls-accent-ink)' : 'var(--ls-ink-2)',
+              border: isFollowing ? '1px solid var(--ls-accent)' : '1px solid var(--ls-line)',
+            }}
           >
-            + Follow tag
+            {isFollowing ? '✓ Following' : '+ Follow tag'}
           </button>
           <button
             className="border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint transition-colors"

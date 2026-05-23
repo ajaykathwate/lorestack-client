@@ -1,7 +1,14 @@
 export interface PlatformStats {
-  monthlyActiveReaders: number
+  totalPublishedArticles: number
   articlesPublishedThisWeek: number
+  newDeepDivesThisWeek: number
   avgReadCompletion: number
   companiesActivelyPublishing: number
-  newDeepDivesThisWeek: number
+  totalAuthors: number
+}
+
+export interface HomeStats {
+  totalPublishedArticles: number
+  articlesPublishedThisWeek: number
+  companiesActivelyPublishing: number
 }

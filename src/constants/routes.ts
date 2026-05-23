@@ -30,6 +30,8 @@ export const ROUTES = {
   EDITOR: '/write/:slug',
   PROFILE_SETTINGS: '/me/profile',
   NOTIFICATIONS: '/me/notifications',
+  FOLLOWING: '/me/following',
+  SAVED: '/me/saved',
 
   // ── Settings ──────────────────────────────────────────────────────────
   SETTINGS_ACCOUNT:       '/me/settings/account',

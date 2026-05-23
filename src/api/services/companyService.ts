@@ -16,6 +16,9 @@ export const companyService = {
   create: (payload: CreateCompanyPayload) =>
     apiClient.post<ApiResponse<Company>>('/companies', payload),
 
+  getAll: (params?: { page?: number; limit?: number }) =>
+    apiClient.get<ApiResponse<PaginatedResult<Company>>>('/companies', { params }),
+
   getMine: () =>
     apiClient.get<ApiResponse<Company[]>>('/companies/mine'),
 

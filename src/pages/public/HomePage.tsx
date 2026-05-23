@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Heart, Clock, Eye, Bookmark } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useExplore } from '@/api/hooks/useBlogQueries'
 import { useHome } from '@/api/hooks/useHomeQuery'
@@ -223,8 +224,23 @@ export function HomePage() {
                       {trendingArticles[0].summary}
                     </p>
                   )}
-                  <div className="flex items-center text-ink-2" style={{ gap: 10, marginTop: 6, fontSize: 12 }}>
+                  <div className="flex items-center text-ink-2 flex-wrap" style={{ gap: 10, marginTop: 6, fontSize: 12 }}>
                     <span>{formatDateShort(trendingArticles[0].publishedAt ?? trendingArticles[0].createdAt)}</span>
+                    {trendingArticles[0].readingTimeMinutes && (
+                      <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
+                        <Clock size={11} />{trendingArticles[0].readingTimeMinutes} min
+                      </span>
+                    )}
+                    {trendingArticles[0].likesCount > 0 && (
+                      <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
+                        <Heart size={11} />{trendingArticles[0].likesCount}
+                      </span>
+                    )}
+                    {trendingArticles[0].viewsCount > 0 && (
+                      <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
+                        <Eye size={11} />{trendingArticles[0].viewsCount}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -248,8 +264,18 @@ export function HomePage() {
                   <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.25 }}>
                     {blog.title}
                   </div>
-                  <div className="text-ink-3" style={{ fontSize: 11 }}>
-                    {formatDateShort(blog.publishedAt ?? blog.createdAt)}
+                  <div className="flex items-center flex-wrap text-ink-3" style={{ gap: 8, fontSize: 11 }}>
+                    <span>{formatDateShort(blog.publishedAt ?? blog.createdAt)}</span>
+                    {blog.readingTimeMinutes && (
+                      <span className="flex items-center" style={{ gap: 3 }}>
+                        <Clock size={9} />{blog.readingTimeMinutes} min
+                      </span>
+                    )}
+                    {blog.likesCount > 0 && (
+                      <span className="flex items-center" style={{ gap: 3 }}>
+                        <Heart size={9} />{blog.likesCount}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -277,13 +303,28 @@ export function HomePage() {
               >
                 <span className="font-serif font-semibold text-ink-3" style={{ fontSize: 18 }}>0{i + 1}</span>
                 <div>
-                  <div className="flex items-center" style={{ gap: 8 }}>
+                  <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
                     <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
                       {articleTypeLabel(blog.articleType)}
                     </span>
                     <span className="text-ink-3" style={{ fontSize: 11 }}>
                       {formatDateShort(blog.publishedAt ?? blog.createdAt)}
                     </span>
+                    {blog.readingTimeMinutes && (
+                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
+                        <Clock size={10} />{blog.readingTimeMinutes} min
+                      </span>
+                    )}
+                    {blog.likesCount > 0 && (
+                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
+                        <Heart size={10} />{blog.likesCount}
+                      </span>
+                    )}
+                    {blog.savesCount > 0 && (
+                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
+                        <Bookmark size={10} />{blog.savesCount}
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-serif font-semibold text-ink" style={{ fontSize: 15, marginTop: 6, lineHeight: 1.3 }}>
                     {blog.title}

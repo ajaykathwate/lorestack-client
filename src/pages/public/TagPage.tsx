@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Check, Rss } from 'lucide-react'
 import { useTagBySlug } from '@/api/hooks/useTagQueries'
 import { useFollowTag, useUnfollowTag } from '@/api/hooks/useTagMutations'
 import { useExplore } from '@/api/hooks/useBlogQueries'
@@ -78,13 +79,13 @@ export function TagPage() {
               border: isFollowing ? '1px solid var(--ls-accent)' : '1px solid var(--ls-line)',
             }}
           >
-            {isFollowing ? '✓ Following' : '+ Follow tag'}
+            {isFollowing ? <><Check size={12} /> Following</> : '+ Follow tag'}
           </button>
           <button
-            className="border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint transition-colors"
-            style={{ padding: '8px 14px', fontSize: 13 }}
+            className="flex items-center border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint transition-colors"
+            style={{ gap: 5, padding: '8px 14px', fontSize: 13 }}
           >
-            ↗ RSS
+            <Rss size={13} /> RSS
           </button>
         </div>
       </div>

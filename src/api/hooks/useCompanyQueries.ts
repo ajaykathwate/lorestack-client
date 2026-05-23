@@ -3,6 +3,14 @@ import { companyService } from '@/api/services/companyService'
 import { QUERY_KEYS } from '@/constants/queryKeys'
 import { useAuthStore } from '@/store/authStore'
 
+export function useAllCompanies(params?: { page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: ['companies', 'all', params] as const,
+    queryFn: () => companyService.getAll(params).then((r) => r.data.data),
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
 export function useMyCompanies() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 

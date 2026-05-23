@@ -34,6 +34,20 @@ export const QUERY_KEYS = {
 
   HOME: ['home'] as const,
 
+  FOLLOWING: {
+    AUTHORS: ['following', 'authors'] as const,
+    TAGS: ['following', 'tags'] as const,
+    COMPANIES: ['following', 'companies'] as const,
+  },
+
+  SAVED: {
+    LIST: (page: number) => ['saved', page] as const,
+  },
+
+  SEARCH: {
+    RESULTS: (q: string, type: string) => ['search', q, type] as const,
+  },
+
   ENGAGEMENT: {
     BY_SLUG: (slug: string) => ['engagement', slug] as const,
     MY_BY_SLUG: (slug: string) => ['engagement', slug, 'mine'] as const,

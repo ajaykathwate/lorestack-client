@@ -27,7 +27,10 @@ import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { initials } from '@/lib/utils'
+import { computePublishingScore } from '@/lib/publishingScore'
+import { Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react'
 import type { ArticleType } from '@/types/api'
+import type { ScoreSignal } from '@/lib/publishingScore'
 
 const ARTICLE_TYPE_META: Record<ArticleType, { label: string; desc: string }> = {
   engineering_blog:     { label: 'Engineering blog',     desc: 'How we solve technical problems' },
@@ -253,6 +256,11 @@ export function EditorPage() {
   const [showPubPopover, setShowPubPopover] = useState(false)
   const [pubPopoverPos, setPubPopoverPos] = useState<{ top: number; left: number } | null>(null)
 
+  // SCORE popover
+  const scoreBtnRef = useRef<HTMLButtonElement>(null)
+  const [showScorePopover, setShowScorePopover] = useState(false)
+  const [scorePopoverPos, setScorePopoverPos] = useState<{ top: number; right: number } | null>(null)
+
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialized = useRef(false)
   const coverFileRef = useRef<HTMLInputElement>(null)
@@ -444,6 +452,11 @@ export function EditorPage() {
   const plainText = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const wordCount = plainText ? plainText.split(' ').filter(Boolean).length : 0
   const readMin = Math.max(1, Math.ceil(wordCount / 200))
+
+  const publishingScore = useMemo(() => computePublishingScore({
+    title, summary, coverImageUrl, body, tags,
+    seoTitleOverride: seoTitle, seoDescOverride: seoDesc,
+  }), [title, summary, coverImageUrl, body, tags, seoTitle, seoDesc])
   const todayISO = new Date().toISOString().slice(0, 10)
 
   const statusDot = {
@@ -481,7 +494,7 @@ export function EditorPage() {
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
         {children}
       </span>
-      <span style={{ color: 'var(--ls-ink-3)', fontSize: 10, flexShrink: 0 }}>▾</span>
+      <ChevronDown size={10} style={{ color: 'var(--ls-ink-3)', flexShrink: 0 }} />
     </span>
   )
 
@@ -588,14 +601,39 @@ export function EditorPage() {
             onClick={() => setShowRail((v) => !v)}
             className="xl:hidden"
             style={{
-              padding: '0 10px', height: 32,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32,
               background: showRail ? 'var(--ls-bg-soft)' : 'transparent',
               border: '1px solid var(--ls-line)', borderRadius: 6,
-              fontSize: 12, fontWeight: 500, color: 'var(--ls-ink-2)', cursor: 'pointer',
-              whiteSpace: 'nowrap',
+              color: 'var(--ls-ink-2)', cursor: 'pointer',
             }}
           >
-            ⚙
+            <Settings size={14} />
+          </button>
+
+          {/* Publishing score button */}
+          <button
+            ref={scoreBtnRef}
+            onClick={() => {
+              if (scoreBtnRef.current) {
+                const r = scoreBtnRef.current.getBoundingClientRect()
+                setScorePopoverPos({ top: r.bottom + 8, right: window.innerWidth - r.right })
+              }
+              setShowScorePopover((v) => !v)
+            }}
+            className="hidden sm:inline-flex"
+            style={{
+              alignItems: 'center', gap: 6,
+              padding: '0 10px', height: 32,
+              background: 'transparent',
+              border: `1px solid ${publishingScore.level === 'high' ? '#4caf50' : publishingScore.level === 'medium' ? '#ff9800' : '#f44336'}`,
+              borderRadius: 6,
+              fontSize: 12, fontWeight: 600,
+              color: publishingScore.level === 'high' ? '#4caf50' : publishingScore.level === 'medium' ? '#ff9800' : '#f44336',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+            }}
+          >
+            Score: {publishingScore.total}/100
           </button>
 
           <button
@@ -642,13 +680,14 @@ export function EditorPage() {
               onClick={() => setShowScheduleModal(true)}
               disabled={!currentSlug}
               style={{
-                padding: '0 9px', background: 'var(--ls-ink)', border: 'none',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0 8px', background: 'var(--ls-ink)', border: 'none',
                 borderLeft: '1px solid rgba(255,255,255,.15)',
-                color: 'var(--ls-bg)', fontSize: 10, cursor: 'pointer',
+                color: 'var(--ls-bg)', cursor: 'pointer',
                 opacity: !currentSlug ? 0.5 : 1,
               }}
             >
-              ▾
+              <ChevronDown size={12} />
             </button>
           </div>
         </div>
@@ -1043,6 +1082,62 @@ export function EditorPage() {
         </Popover>
       )}
 
+      {/* ══ Publishing Score popover ═══════════════════════════════════════════ */}
+      {showScorePopover && scorePopoverPos && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowScorePopover(false)} />
+          <div style={{
+            position: 'fixed', top: scorePopoverPos.top, right: scorePopoverPos.right, zIndex: 50,
+            background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 10,
+            boxShadow: '0 18px 48px rgba(20,18,14,.18)',
+            width: 320, padding: '18px 0 14px',
+          }}>
+            {/* Score header */}
+            <div style={{ padding: '0 18px 14px', borderBottom: '1px solid var(--ls-line)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{
+                  fontFamily: '"Source Serif 4", Georgia, serif',
+                  fontWeight: 700, fontSize: 32, lineHeight: 1,
+                  color: publishingScore.level === 'high' ? '#4caf50' : publishingScore.level === 'medium' ? '#ff9800' : '#f44336',
+                }}>
+                  {publishingScore.total}
+                </span>
+                <span style={{ fontSize: 16, color: 'var(--ls-ink-3)', fontWeight: 400 }}>/100</span>
+                <span style={{
+                  marginLeft: 'auto',
+                  padding: '2px 9px', borderRadius: 99, fontSize: 11, fontWeight: 600,
+                  background: publishingScore.level === 'high' ? '#e8f5e9' : publishingScore.level === 'medium' ? '#fff3e0' : '#ffebee',
+                  color: publishingScore.level === 'high' ? '#4caf50' : publishingScore.level === 'medium' ? '#ff9800' : '#f44336',
+                }}>
+                  {publishingScore.level === 'high' ? 'Publish-ready' : publishingScore.level === 'medium' ? 'Getting there' : 'Needs work'}
+                </span>
+              </div>
+              {publishingScore.firstFailingHint && (
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.4 }}>
+                  → {publishingScore.firstFailingHint}
+                </p>
+              )}
+            </div>
+            {/* Signal rows */}
+            <div style={{ padding: '10px 0 0' }}>
+              {publishingScore.signals.map((signal: ScoreSignal) => {
+                const Icon = signal.status === 'pass' ? CheckCircle2 : signal.status === 'warn' ? AlertCircle : XCircle
+                const iconColor = signal.status === 'pass' ? '#4caf50' : signal.status === 'warn' ? '#ff9800' : '#f44336'
+                return (
+                  <div key={signal.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 18px' }}>
+                    <Icon size={14} style={{ color: iconColor, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontSize: 13, color: 'var(--ls-ink-2)' }}>{signal.label}</span>
+                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: iconColor, fontWeight: 600 }}>
+                      {signal.earned}/{signal.points}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ══ Schedule modal ═════════════════════════════════════════════════════ */}
       {showScheduleModal && (
         <div
@@ -1055,7 +1150,7 @@ export function EditorPage() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
               <h3 style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700, fontSize: 20, color: 'var(--ls-ink)', margin: 0 }}>Schedule blog</h3>
-              <button onClick={() => setShowScheduleModal(false)} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ls-ink-3)', lineHeight: 1 }}>×</button>
+              <button onClick={() => setShowScheduleModal(false)} style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ls-ink-3)' }}><X size={16} /></button>
             </div>
             <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ls-ink-2)', lineHeight: 1.5 }}>
               Set when this blog should auto-publish. You can edit or cancel anytime before.

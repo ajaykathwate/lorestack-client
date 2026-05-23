@@ -1,5 +1,10 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { X } from 'lucide-react'
+import {
+  X, LayoutDashboard, BookOpen, FileText, Clock, Archive,
+  Building2, Plus, User, UserCog, Settings, ShieldCheck,
+  Link2, Mail, Trash2, ShieldAlert, Users, Bookmark,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { useUiStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
@@ -10,52 +15,56 @@ interface SidebarItem {
   type: 'heading' | 'link'
   label: string
   to?: string
-  icon?: string
+  Icon?: LucideIcon
   count?: number
   external?: boolean
 }
 
 function buildSidebarItems(companyHandles: string[], username?: string, isAdmin?: boolean): SidebarItem[] {
   return [
-    { type: 'link', label: 'Dashboard', to: ROUTES.DASHBOARD, icon: '⌂' },
+    { type: 'link', label: 'Dashboard', to: ROUTES.DASHBOARD, Icon: LayoutDashboard },
 
     { type: 'heading', label: 'Writing' },
-    { type: 'link', label: 'Published', to: ROUTES.MY_BLOGS,  icon: '◆' },
-    { type: 'link', label: 'Drafts',    to: ROUTES.DRAFTS,    icon: '◇' },
-    { type: 'link', label: 'Scheduled', to: ROUTES.SCHEDULED, icon: '⏱' },
-    { type: 'link', label: 'Archived',  to: ROUTES.ARCHIVED,  icon: '⌫' },
+    { type: 'link', label: 'Published',  to: ROUTES.MY_BLOGS,  Icon: BookOpen },
+    { type: 'link', label: 'Drafts',     to: ROUTES.DRAFTS,    Icon: FileText },
+    { type: 'link', label: 'Scheduled',  to: ROUTES.SCHEDULED, Icon: Clock },
+    { type: 'link', label: 'Archived',   to: ROUTES.ARCHIVED,  Icon: Archive },
+
+    { type: 'heading', label: 'Library' },
+    { type: 'link', label: 'Following',  to: ROUTES.FOLLOWING, Icon: Users },
+    { type: 'link', label: 'Saved',      to: ROUTES.SAVED,     Icon: Bookmark },
 
     { type: 'heading', label: 'Companies' },
     ...companyHandles.map<SidebarItem>((handle) => ({
       type: 'link',
       label: handle,
       to: buildRoute.companyDashboard(handle),
-      icon: '◧',
+      Icon: Building2,
     })),
-    { type: 'link', label: 'Create company', to: ROUTES.CREATE_COMPANY, icon: '+' },
+    { type: 'link', label: 'Create company', to: ROUTES.CREATE_COMPANY, Icon: Plus },
 
     { type: 'heading', label: 'You' },
     {
       type: 'link',
       label: 'Profile',
       to: username ? buildRoute.author(username) : ROUTES.PROFILE_SETTINGS,
-      icon: '☺',
+      Icon: User,
       external: true,
     },
 
     { type: 'heading', label: 'Settings' },
-    { type: 'link', label: 'My profile',         to: ROUTES.PROFILE_SETTINGS,       icon: '◐' },
-    { type: 'link', label: 'Account',            to: ROUTES.SETTINGS_ACCOUNT,       icon: '⊙' },
-    { type: 'link', label: 'Security',           to: ROUTES.SETTINGS_SECURITY,      icon: '⊕' },
-    { type: 'link', label: 'Connected accounts', to: ROUTES.SETTINGS_CONNECTED,     icon: '↔' },
-    { type: 'link', label: 'Email preferences',  to: ROUTES.SETTINGS_EMAIL,         icon: '✉' },
+    { type: 'link', label: 'My profile',         to: ROUTES.PROFILE_SETTINGS,   Icon: UserCog },
+    { type: 'link', label: 'Account',            to: ROUTES.SETTINGS_ACCOUNT,   Icon: Settings },
+    { type: 'link', label: 'Security',           to: ROUTES.SETTINGS_SECURITY,  Icon: ShieldCheck },
+    { type: 'link', label: 'Connected accounts', to: ROUTES.SETTINGS_CONNECTED, Icon: Link2 },
+    { type: 'link', label: 'Email preferences',  to: ROUTES.SETTINGS_EMAIL,     Icon: Mail },
 
     { type: 'heading', label: 'Danger' },
-    { type: 'link', label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,        icon: '×' },
+    { type: 'link', label: 'Delete account', to: ROUTES.SETTINGS_DELETE, Icon: Trash2 },
 
     ...(isAdmin ? [
       { type: 'heading' as const, label: 'Platform' },
-      { type: 'link' as const, label: 'Admin panel', to: ROUTES.ADMIN_OVERVIEW, icon: '⚑' },
+      { type: 'link' as const, label: 'Admin panel', to: ROUTES.ADMIN_OVERVIEW, Icon: ShieldAlert as LucideIcon },
     ] : []),
   ]
 }
@@ -79,6 +88,7 @@ function SidebarNav() {
             </div>
           )
         }
+        const Icon = item.Icon
         return (
           <NavLink
             key={`${item.to}-${i}`}
@@ -94,9 +104,7 @@ function SidebarNav() {
             }
             style={{ fontSize: 13 }}
           >
-            <span className="font-mono text-ink-3 w-4 flex-shrink-0" style={{ fontSize: 16 }}>
-              {item.icon}
-            </span>
+            {Icon && <Icon size={14} className="flex-shrink-0 text-ink-3" />}
             <span className="flex-1">{item.label}</span>
             {item.count != null && (
               <span className="text-ink-3" style={{ fontSize: 11 }}>{item.count}</span>

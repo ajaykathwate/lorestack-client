@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Twitter, Linkedin, Github, Globe, Check } from 'lucide-react'
 import { useProfileByUsername, useAuthorBlogs } from '@/api/hooks/useProfileQueries'
 import { useFollowProfile, useUnfollowProfile } from '@/api/hooks/useProfileMutations'
 import { useAuthStore } from '@/store/authStore'
@@ -98,23 +99,23 @@ export function AuthorProfilePage() {
           )}
           <div className="flex" style={{ gap: 14, marginTop: 14, fontSize: 12, color: 'var(--ls-ink-2)' }}>
             {profile.twitterHandle && (
-              <a href={`https://twitter.com/${profile.twitterHandle}`} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-ink transition-colors">
-                ↗ twitter
+              <a href={`https://twitter.com/${profile.twitterHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-ink transition-colors" style={{ gap: 4 }}>
+                <Twitter size={13} /> twitter
               </a>
             )}
             {profile.linkedinUrl && (
-              <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-ink transition-colors">
-                ↗ linkedin
+              <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-ink transition-colors" style={{ gap: 4 }}>
+                <Linkedin size={13} /> linkedin
               </a>
             )}
             {profile.githubHandle && (
-              <a href={`https://github.com/${profile.githubHandle}`} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-ink transition-colors">
-                ↗ github
+              <a href={`https://github.com/${profile.githubHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-ink transition-colors" style={{ gap: 4 }}>
+                <Github size={13} /> github
               </a>
             )}
             {profile.websiteUrl && (
-              <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-ink transition-colors">
-                ↗ website
+              <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-ink transition-colors" style={{ gap: 4 }}>
+                <Globe size={13} /> website
               </a>
             )}
           </div>
@@ -132,7 +133,7 @@ export function AuthorProfilePage() {
               border: isFollowing ? '1px solid var(--ls-line)' : '1px solid transparent',
             }}
           >
-            {isFollowing ? '✓ Following' : '+ Follow'}
+            {isFollowing ? <><Check size={13} /> Following</> : '+ Follow'}
           </button>
         </div>
       </div>

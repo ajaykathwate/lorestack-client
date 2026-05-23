@@ -42,6 +42,8 @@ import { CompanyDashboardPage } from '@/pages/dashboard/CompanyDashboardPage'
 import { CompanySettingsPage } from '@/pages/dashboard/CompanySettingsPage'
 import { TeamManagementPage } from '@/pages/dashboard/TeamManagementPage'
 import { CreateCompanyPage } from '@/pages/dashboard/CreateCompanyPage'
+import { FollowingPage } from '@/pages/dashboard/FollowingPage'
+import { SavedPage } from '@/pages/dashboard/SavedPage'
 
 // Settings pages (all render inside DashboardLayout)
 import { AccountSettingsPage } from '@/pages/dashboard/settings/AccountSettingsPage'
@@ -114,6 +116,8 @@ const router = createBrowserRouter([
           { path: ROUTES.SCHEDULED,          element: <ScheduledPage /> },
           { path: ROUTES.ARCHIVED,           element: <ArchivedPage /> },
           { path: ROUTES.NOTIFICATIONS,      element: <NotificationsPage /> },
+          { path: ROUTES.FOLLOWING,          element: <FollowingPage /> },
+          { path: ROUTES.SAVED,              element: <SavedPage /> },
           { path: ROUTES.CREATE_COMPANY,     element: <CreateCompanyPage /> },
           { path: ROUTES.COMPANY_DASHBOARD,  element: <CompanyDashboardPage /> },
           { path: ROUTES.COMPANY_SETTINGS,   element: <CompanySettingsPage /> },

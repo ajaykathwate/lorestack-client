@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { marked } from 'marked'
 import { toast } from 'sonner'
+import { Heart, Bookmark, Share2, Check, ArrowLeft } from 'lucide-react'
 import 'react-quill/dist/quill.snow.css'
 import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { useEngagement, useMyEngagement } from '@/api/hooks/useEngagementQueries'
@@ -63,8 +64,8 @@ export function BlogPage() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center" style={{ gap: 12 }}>
         <p className="font-mono text-ink-3 uppercase" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Not found</p>
         <h1 className="font-serif font-bold text-ink" style={{ fontSize: 28 }}>This article doesn't exist.</h1>
-        <Link to="/" className="text-ls-accent underline underline-offset-2" style={{ fontSize: 13 }}>
-          ← Back to homepage
+        <Link to="/" className="flex items-center text-ls-accent underline underline-offset-2" style={{ fontSize: 13, gap: 4 }}>
+          <ArrowLeft size={13} /> Back to homepage
         </Link>
       </div>
     )
@@ -196,7 +197,7 @@ export function BlogPage() {
               <button
                 onClick={handleLike}
                 disabled={liking || unliking}
-                className="flex items-center gap-1 border rounded-[4px] transition-colors"
+                className="flex items-center gap-1.5 border rounded-[4px] transition-colors"
                 style={{
                   padding: '5px 10px', fontSize: 12,
                   borderColor: isLiked ? 'var(--ls-accent)' : 'var(--ls-line)',
@@ -204,14 +205,15 @@ export function BlogPage() {
                   color: isLiked ? 'var(--ls-accent-ink)' : 'var(--ls-ink-2)',
                 }}
               >
-                ♥ {likesCount > 0 ? likesCount : ''}
+                <Heart size={12} fill={isLiked ? 'currentColor' : 'none'} />
+                {likesCount > 0 ? likesCount : ''}
               </button>
 
               {/* Save */}
               <button
                 onClick={handleSave}
                 disabled={saving || unsaving}
-                className="flex items-center gap-1 border rounded-[4px] transition-colors"
+                className="flex items-center gap-1.5 border rounded-[4px] transition-colors"
                 style={{
                   padding: '5px 10px', fontSize: 12,
                   borderColor: isSaved ? 'var(--ls-accent)' : 'var(--ls-line)',
@@ -219,16 +221,17 @@ export function BlogPage() {
                   color: isSaved ? 'var(--ls-accent-ink)' : 'var(--ls-ink-2)',
                 }}
               >
-                {isSaved ? '⊠' : '⊡'} {savesCount > 0 ? savesCount : ''}
+                <Bookmark size={12} fill={isSaved ? 'currentColor' : 'none'} />
+                {savesCount > 0 ? savesCount : ''}
               </button>
 
               {/* Share */}
               <button
                 onClick={handleShare}
-                className="border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
+                className="flex items-center gap-1.5 border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
                 style={{ padding: '5px 10px', fontSize: 12 }}
               >
-                {copied ? '✓ Copied' : `↗ Share${sharesCount > 0 ? ` · ${sharesCount}` : ''}`}
+                {copied ? <><Check size={12} /> Copied</> : <><Share2 size={12} /> Share{sharesCount > 0 ? ` · ${sharesCount}` : ''}</>}
               </button>
             </div>
           </div>

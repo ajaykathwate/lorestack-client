@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import { MoreHorizontal, Pencil, ExternalLink, Archive, Trash2 } from 'lucide-react'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { useArchiveBlog, useDeleteBlog } from '@/api/hooks/useBlogMutations'
@@ -269,9 +270,9 @@ export function DashboardPage() {
                   <button
                     onClick={() => setOpenMenu(isMenuOpen ? null : blog.id)}
                     className="text-ink-3 hover:text-ink transition-colors"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}
                   >
-                    ···
+                    <MoreHorizontal size={16} />
                   </button>
                   {isMenuOpen && (
                     <>
@@ -293,7 +294,7 @@ export function DashboardPage() {
                           onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
                           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                         >
-                          ✎ Edit
+                          <Pencil size={11} style={{ display: 'inline', marginRight: 6 }} />Edit
                         </Link>
                         {blog.status === 'published' && (
                           <a
@@ -301,31 +302,31 @@ export function DashboardPage() {
                             target="_blank"
                             rel="noreferrer"
                             onClick={() => setOpenMenu(null)}
-                            style={{ display: 'block', padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', textDecoration: 'none' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', textDecoration: 'none' }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
-                            ↗ View live
+                            <ExternalLink size={11} />View live
                           </a>
                         )}
                         {(blog.status === 'published' || blog.status === 'scheduled') && (
                           <button
                             onClick={() => { setOpenMenu(null); handleArchive(blog.slug, blog.title) }}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', background: 'none', border: 'none', cursor: 'pointer' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 12, color: 'var(--ls-ink-2)', background: 'none', border: 'none', cursor: 'pointer' }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
-                            ⌫ Archive
+                            <Archive size={11} />Archive
                           </button>
                         )}
                         {blog.status === 'draft' && (
                           <button
                             onClick={() => { setOpenMenu(null); handleDelete(blog.slug) }}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 12, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 12, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ls-bg-tint)')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
-                            × Delete draft
+                            <Trash2 size={11} />Delete draft
                           </button>
                         )}
                       </div>

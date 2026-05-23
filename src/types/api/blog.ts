@@ -53,6 +53,10 @@ export interface Blog {
   seoTitleOverride: string | null
   seoDescOverride: string | null
   readingTimeMinutes: number | null
+  // Engagement counters — always 0 until aggregation job runs (never null)
+  likesCount: number
+  savesCount: number
+  viewsCount: number
   tags: BlogTag[]
   createdAt: string
   updatedAt: string

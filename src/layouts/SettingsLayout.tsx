@@ -1,4 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom'
+import { User, Settings, Bell, ShieldCheck, Link2, Mail, Trash2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { TopNav } from '@/shared/components/TopNav'
 import { cn } from '@/lib/utils'
@@ -7,27 +9,24 @@ interface SettingsSidebarItem {
   type: 'heading' | 'link'
   label: string
   to?: string
-  icon?: string
+  Icon?: LucideIcon
 }
 
 const SETTINGS_NAV: SettingsSidebarItem[] = [
   { type: 'heading', label: 'Settings' },
-  { type: 'link', label: 'My profile',          to: ROUTES.PROFILE_SETTINGS,      icon: '☺' },
-  { type: 'link', label: 'Account',             to: ROUTES.SETTINGS_ACCOUNT,      icon: '◐' },
-  { type: 'link', label: 'Notifications',       to: ROUTES.SETTINGS_NOTIFICATIONS, icon: '⌗' },
-  { type: 'link', label: 'Security',            to: ROUTES.SETTINGS_SECURITY,     icon: '⊕' },
-  { type: 'link', label: 'Connected accounts',  to: ROUTES.SETTINGS_CONNECTED,    icon: '↔' },
-  { type: 'link', label: 'Email preferences',   to: ROUTES.SETTINGS_EMAIL,        icon: '✉' },
+  { type: 'link', label: 'My profile',         to: ROUTES.PROFILE_SETTINGS,       Icon: User },
+  { type: 'link', label: 'Account',            to: ROUTES.SETTINGS_ACCOUNT,       Icon: Settings },
+  { type: 'link', label: 'Notifications',      to: ROUTES.SETTINGS_NOTIFICATIONS, Icon: Bell },
+  { type: 'link', label: 'Security',           to: ROUTES.SETTINGS_SECURITY,      Icon: ShieldCheck },
+  { type: 'link', label: 'Connected accounts', to: ROUTES.SETTINGS_CONNECTED,     Icon: Link2 },
+  { type: 'link', label: 'Email preferences',  to: ROUTES.SETTINGS_EMAIL,         Icon: Mail },
   { type: 'heading', label: 'Danger zone' },
-  { type: 'link', label: 'Delete account',      to: ROUTES.SETTINGS_DELETE,       icon: '×' },
+  { type: 'link', label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,        Icon: Trash2 },
 ]
 
 function SettingsSidebar() {
   return (
-    <aside
-      className="flex-shrink-0 border-r border-line bg-bg flex flex-col"
-      style={{ width: 220 }}
-    >
+    <aside className="flex-shrink-0 border-r border-line bg-bg flex flex-col" style={{ width: 220 }}>
       <nav className="flex-1 py-3 px-2 flex flex-col gap-0">
         {SETTINGS_NAV.map((item, i) => {
           if (item.type === 'heading') {
@@ -41,6 +40,7 @@ function SettingsSidebar() {
               </div>
             )
           }
+          const Icon = item.Icon
           return (
             <NavLink
               key={item.to}
@@ -55,9 +55,7 @@ function SettingsSidebar() {
               }
               style={{ fontSize: 13 }}
             >
-              <span className="font-mono text-ink-3 w-4 flex-shrink-0" style={{ fontSize: 16 }}>
-                {item.icon}
-              </span>
+              {Icon && <Icon size={14} className="flex-shrink-0 text-ink-3" />}
               <span className="flex-1">{item.label}</span>
             </NavLink>
           )

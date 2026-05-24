@@ -5,7 +5,8 @@ import { useCompanyByHandle, useCompanyMembers, useCompanyMilestones } from '@/a
 import { useCompanyBlogs } from '@/api/hooks/useBlogQueries'
 import { useInviteAuthor, useRemoveMember, useAddMilestone } from '@/api/hooks/useCompanyMutations'
 import { buildRoute } from '@/constants/routes'
-import { initials, articleTypeLabel, formatDateShort, formatDate } from '@/lib/utils'
+import { articleTypeLabel, formatDateShort, formatDate } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 import type { MilestoneType } from '@/types/api'
 
@@ -120,28 +121,13 @@ export function CompanyDashboardPage() {
     )
   }
 
-  const companyInitials = initials(company.name)
 
   return (
     <div className="flex flex-col" style={{ gap: 0 }}>
 
       {/* Header */}
       <div className="flex items-start border-b border-line" style={{ gap: 14, paddingBottom: 18 }}>
-        {company.logoUrl ? (
-          <img
-            src={company.logoUrl}
-            alt={company.name}
-            className="rounded-[6px] object-cover flex-shrink-0"
-            style={{ width: 56, height: 56 }}
-          />
-        ) : (
-          <div
-            className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
-            style={{ width: 56, height: 56, fontSize: 20 }}
-          >
-            {companyInitials}
-          </div>
-        )}
+        <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={56} shape="square" />
         <div className="flex-1">
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 24 }}>{company.name}</h1>
           <div className="text-ink-3" style={{ fontSize: 12, marginTop: 2 }}>
@@ -291,12 +277,7 @@ export function CompanyDashboardPage() {
                     borderTop: i ? '1px solid var(--ls-line-soft)' : 'none',
                   }}
                 >
-                  <div
-                    className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
-                    style={{ width: 30, height: 30, fontSize: 11 }}
-                  >
-                    {initials(member.displayName)}
-                  </div>
+                  <UserAvatar avatarUrl={member.avatarUrl} name={member.displayName} size={30} />
                   <div>
                     <div className="font-semibold text-ink" style={{ fontSize: 13 }}>{member.displayName}</div>
                     <div className="font-mono text-ink-3" style={{ fontSize: 11 }}>@{member.username}</div>

@@ -8,7 +8,8 @@ import { useFollowCompany, useUnfollowCompany } from '@/api/hooks/useCompanyMuta
 import { useFollowingCompanies } from '@/api/hooks/useFollowingQueries'
 import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDate, formatDateShort, initials } from '@/lib/utils'
+import { articleTypeLabel, formatDate, formatDateShort } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 type Tab = 'overview' | 'blogs' | 'team' | 'timeline'
@@ -120,7 +121,6 @@ export function CompanyProfilePage() {
     )
   }
 
-  const companyInitials = initials(company.name)
 
   return (
     <div className="flex flex-col">
@@ -129,21 +129,7 @@ export function CompanyProfilePage() {
         className="border-b border-line px-4 sm:px-8 lg:px-12 flex flex-wrap gap-5"
         style={{ paddingTop: 32, paddingBottom: 24, alignItems: 'flex-start' }}
       >
-        {company.logoUrl ? (
-          <img
-            src={company.logoUrl}
-            alt={company.name}
-            className="rounded-[8px] object-cover flex-shrink-0"
-            style={{ width: 88, height: 88 }}
-          />
-        ) : (
-          <div
-            className="rounded-[8px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
-            style={{ width: 88, height: 88, fontSize: 32 }}
-          >
-            {companyInitials}
-          </div>
-        )}
+        <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={88} shape="square" />
 
         <div className="flex-1 min-w-0">
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Company</span>
@@ -411,16 +397,7 @@ export function CompanyProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
               {team.map((member) => (
                 <div key={member.id} className="rounded-[6px] border border-line flex items-center" style={{ padding: '12px 14px', gap: 12 }}>
-                  {member.avatarUrl ? (
-                    <img src={member.avatarUrl} alt="" className="rounded-full object-cover flex-shrink-0" style={{ width: 40, height: 40 }} />
-                  ) : (
-                    <div
-                      className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-                      style={{ width: 40, height: 40, fontSize: 14 }}
-                    >
-                      {initials(member.displayName)}
-                    </div>
-                  )}
+                  <UserAvatar avatarUrl={member.avatarUrl} name={member.displayName} size={40} />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-ink truncate" style={{ fontSize: 13 }}>{member.displayName}</div>
                     <div className="font-mono text-ink-3" style={{ fontSize: 11 }}>@{member.username}</div>

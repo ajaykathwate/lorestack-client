@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Heart, Bookmark, Clock } from 'lucide-react'
 import { buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
+import { articleTypeLabel, formatDateShort } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import type { BlogSummary } from '@/types/api'
 
 export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
@@ -18,21 +19,7 @@ export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
     >
       {/* Author row */}
       <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
-        {author?.avatarUrl ? (
-          <img
-            src={author.avatarUrl}
-            alt={author.displayName}
-            className="rounded-full object-cover flex-shrink-0"
-            style={{ width: 20, height: 20 }}
-          />
-        ) : (
-          <div
-            className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-3 flex-shrink-0"
-            style={{ width: 20, height: 20, fontSize: 7 }}
-          >
-            {initials(author?.displayName ?? '?')}
-          </div>
-        )}
+        <UserAvatar avatarUrl={author?.avatarUrl} name={author?.displayName} size={20} />
         <span className="text-ink-2 font-medium" style={{ fontSize: 12 }}>
           {author?.displayName ?? 'Unknown'}
         </span>

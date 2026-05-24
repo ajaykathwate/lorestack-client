@@ -6,8 +6,9 @@ import { useExplore } from '@/api/hooks/useBlogQueries'
 import { useHome } from '@/api/hooks/useHomeQuery'
 import { useStats } from '@/api/hooks/useStatsQuery'
 import { ROUTES, buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
+import { articleTypeLabel, formatDateShort } from '@/lib/utils'
 import { BlogFeedCard } from '@/shared/components/cards/BlogFeedCard'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import type { ArticleType } from '@/types/api'
 
 const TYPE_PILLS: { label: string; value: ArticleType | '' }[] = [
@@ -112,21 +113,7 @@ export function HomePage() {
                     {featuredArticle.title}
                   </div>
                   <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
-                    {featuredArticle.authorProfile?.avatarUrl ? (
-                      <img
-                        src={featuredArticle.authorProfile.avatarUrl}
-                        alt={featuredArticle.authorProfile.displayName}
-                        className="rounded-full object-cover flex-shrink-0"
-                        style={{ width: 16, height: 16 }}
-                      />
-                    ) : (
-                      <div
-                        className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-                        style={{ width: 16, height: 16, fontSize: 8 }}
-                      >
-                        {initials(featuredArticle.authorProfile?.displayName ?? featuredArticle.title)}
-                      </div>
-                    )}
+                    <UserAvatar avatarUrl={featuredArticle.authorProfile?.avatarUrl} name={featuredArticle.authorProfile?.displayName} size={16} />
                     {featuredArticle.readingTimeMinutes ? `${featuredArticle.readingTimeMinutes} min read` : articleTypeLabel(featuredArticle.articleType)}
                   </div>
                 </Link>
@@ -253,21 +240,7 @@ export function HomePage() {
                   )}
                   {/* Author row */}
                   <div className="flex items-center mt-auto" style={{ gap: 8, paddingTop: 8, borderTop: '1px solid var(--ls-line-soft)' }}>
-                    {trendingArticles[0].authorProfile?.avatarUrl ? (
-                      <img
-                        src={trendingArticles[0].authorProfile.avatarUrl}
-                        alt=""
-                        className="rounded-full object-cover flex-shrink-0"
-                        style={{ width: 22, height: 22 }}
-                      />
-                    ) : (
-                      <div
-                        className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-3 flex-shrink-0"
-                        style={{ width: 22, height: 22, fontSize: 8 }}
-                      >
-                        {initials(trendingArticles[0].authorProfile?.displayName ?? '?')}
-                      </div>
-                    )}
+                    <UserAvatar avatarUrl={trendingArticles[0].authorProfile?.avatarUrl} name={trendingArticles[0].authorProfile?.displayName} size={22} />
                     <span className="text-ink-2" style={{ fontSize: 12 }}>
                       {trendingArticles[0].authorProfile?.displayName}
                     </span>

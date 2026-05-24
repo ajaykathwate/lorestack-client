@@ -7,7 +7,8 @@ import { useFollowProfile, useUnfollowProfile } from '@/api/hooks/useProfileMuta
 import { useFollowingAuthors } from '@/api/hooks/useFollowingQueries'
 import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
+import { articleTypeLabel, formatDateShort } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 export function AuthorProfilePage() {
@@ -60,8 +61,6 @@ export function AuthorProfilePage() {
     )
   }
 
-  const authorInitials = initials(profile.displayName)
-
   return (
     <div className="flex flex-col">
       {/* Profile header */}
@@ -69,21 +68,7 @@ export function AuthorProfilePage() {
         className="border-b border-line px-4 sm:px-8 lg:px-12 flex flex-wrap gap-6"
         style={{ paddingTop: 32, paddingBottom: 24, alignItems: 'flex-start' }}
       >
-        {profile.avatarUrl ? (
-          <img
-            src={profile.avatarUrl}
-            alt={profile.displayName}
-            className="rounded-full object-cover flex-shrink-0"
-            style={{ width: 96, height: 96 }}
-          />
-        ) : (
-          <div
-            className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-            style={{ width: 96, height: 96, fontSize: 32 }}
-          >
-            {authorInitials}
-          </div>
-        )}
+        <UserAvatar avatarUrl={profile.avatarUrl} name={profile.displayName} size={96} />
 
         <div className="flex-1">
           <h1 className="font-serif font-bold text-ink" style={{ fontSize: 30 }}>{profile.displayName}</h1>
@@ -161,7 +146,7 @@ export function AuthorProfilePage() {
               className="rounded-[3px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2"
               style={{ width: 20, height: 20, fontSize: 9 }}
             >
-              {authorInitials[0]}
+              {profile.displayName?.[0]?.toUpperCase() ?? '?'}
             </div>
             <span className="font-semibold text-ink" style={{ fontSize: 12 }}>Independent</span>
           </div>

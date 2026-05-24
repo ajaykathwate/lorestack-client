@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import { Users } from 'lucide-react'
 import { useFollowerAuthors } from '@/api/hooks/useFollowersQueries'
 import { buildRoute } from '@/constants/routes'
-import { initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 
 export function FollowersPage() {
   const { data: authors, isLoading } = useFollowerAuthors()
@@ -42,13 +42,7 @@ export function FollowersPage() {
           {(authors ?? []).map((author) => (
             <div key={author.id} className="rounded-[8px] border border-line flex items-center" style={{ padding: '14px 16px', gap: 14 }}>
               <Link to={buildRoute.author(author.username)} className="flex-shrink-0">
-                {author.avatarUrl ? (
-                  <img src={author.avatarUrl} alt={author.displayName} className="rounded-full object-cover" style={{ width: 44, height: 44 }} />
-                ) : (
-                  <div className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2" style={{ width: 44, height: 44, fontSize: 15 }}>
-                    {initials(author.displayName)}
-                  </div>
-                )}
+                <UserAvatar avatarUrl={author.avatarUrl} name={author.displayName} size={44} />
               </Link>
               <div className="flex-1 min-w-0">
                 <Link to={buildRoute.author(author.username)} className="font-semibold text-ink hover:text-ls-accent transition-colors" style={{ fontSize: 14 }}>

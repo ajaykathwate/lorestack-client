@@ -26,7 +26,7 @@ import { useEditableBlog } from '@/api/hooks/useBlogQueries'
 import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@/api/hooks/useBlogMutations'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
-import { initials } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { computePublishingScore } from '@/lib/publishingScore'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 import { Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react'
@@ -599,13 +599,7 @@ export function EditorPage() {
 
   const companyBadge = (company: typeof selectedCompany) => (
     company ? (
-      company.logoUrl ? (
-        <img src={company.logoUrl} alt="" style={{ width: 16, height: 16, borderRadius: 3, objectFit: 'cover' }} />
-      ) : (
-        <span style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--ls-bg-tint)', border: '1px solid var(--ls-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 9, fontWeight: 600, color: 'var(--ls-ink-2)' }}>
-          {initials(company.name).charAt(0)}
-        </span>
-      )
+      <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={16} shape="square" />
     ) : (
       <span style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--ls-bg-tint)', border: '1px solid var(--ls-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 9, fontWeight: 600, color: 'var(--ls-ink-2)' }}>
         P
@@ -1197,13 +1191,7 @@ export function EditorPage() {
                   cursor: 'pointer', textAlign: 'left', width: '100%',
                 }}
               >
-                {company.logoUrl ? (
-                  <img src={company.logoUrl} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--ls-bg-soft)', border: '1px solid var(--ls-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"JetBrains Mono", monospace', fontSize: 13, fontWeight: 700, color: 'var(--ls-ink-2)', flexShrink: 0 }}>
-                    {initials(company.name).charAt(0)}
-                  </div>
-                )}
+                <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={32} shape="square" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ls-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{company.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--ls-ink-3)', fontFamily: '"JetBrains Mono", monospace' }}>@{company.handle}</div>

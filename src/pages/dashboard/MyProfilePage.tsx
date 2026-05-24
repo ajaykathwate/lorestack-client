@@ -3,7 +3,8 @@ import { Twitter, Linkedin, Github, Globe, Pencil } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useProfileByUsername, useAuthorBlogs } from '@/api/hooks/useProfileQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
+import { articleTypeLabel, formatDateShort } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 export function MyProfilePage() {
@@ -31,21 +32,7 @@ export function MyProfilePage() {
         className="border-b border-line flex flex-wrap gap-5"
         style={{ padding: '28px 24px 20px', alignItems: 'flex-start' }}
       >
-        {profile.avatarUrl ? (
-          <img
-            src={profile.avatarUrl}
-            alt=""
-            className="rounded-full object-cover flex-shrink-0"
-            style={{ width: 72, height: 72 }}
-          />
-        ) : (
-          <div
-            className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
-            style={{ width: 72, height: 72, fontSize: 24 }}
-          >
-            {initials(profile.displayName)}
-          </div>
-        )}
+        <UserAvatar avatarUrl={profile.avatarUrl} name={profile.displayName} size={72} />
 
         <div className="flex-1 min-w-0">
           <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/api/hooks/useAuthMutations'
 import { SearchModal } from '@/shared/components/SearchModal'
 import { cn } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 
 const NAV_LINKS = [
   { label: 'Explore',   to: ROUTES.EXPLORE },
@@ -175,21 +176,7 @@ export function TopNav() {
               <>
                 {authorProfile && (
                   <div className="flex items-center border border-line rounded-[6px] bg-bg-soft mb-1" style={{ gap: 10, padding: '10px 12px' }}>
-                    {authorProfile.avatarUrl ? (
-                      <img
-                        src={authorProfile.avatarUrl}
-                        alt={avatarInitials}
-                        className="rounded-full object-cover flex-shrink-0"
-                        style={{ width: 36, height: 36 }}
-                      />
-                    ) : (
-                      <div
-                        className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-                        style={{ width: 36, height: 36, fontSize: 12 }}
-                      >
-                        {avatarInitials}
-                      </div>
-                    )}
+                    <UserAvatar avatarUrl={authorProfile.avatarUrl} name={authorProfile.displayName} size={36} />
                     <div className="min-w-0">
                       <div className="font-semibold text-ink truncate" style={{ fontSize: 13 }}>
                         {authorProfile.displayName}
@@ -373,18 +360,13 @@ export function TopNav() {
                   <button
                     onClick={() => setShowMenu((v) => !v)}
                     className={cn(
-                      'rounded-full border flex items-center justify-center font-mono text-ink-2 transition-colors focus:outline-none overflow-hidden',
+                      'rounded-full border transition-colors focus:outline-none',
                       showMenu ? 'border-ls-accent' : 'border-line hover:border-line-strong',
-                      !authorProfile?.avatarUrl && 'bg-bg-tint',
                     )}
-                    style={{ width: 30, height: 30, fontSize: 11 }}
+                    style={{ width: 30, height: 30 }}
                     aria-label="Account menu"
                   >
-                    {authorProfile?.avatarUrl ? (
-                      <img src={authorProfile.avatarUrl} alt={avatarInitials} className="w-full h-full object-cover" />
-                    ) : (
-                      avatarInitials
-                    )}
+                    <UserAvatar avatarUrl={authorProfile?.avatarUrl} name={authorProfile?.displayName} size={30} />
                   </button>
 
                   {showMenu && (
@@ -394,21 +376,7 @@ export function TopNav() {
                     >
                       {authorProfile && (
                         <div className="flex items-center border-b border-line-soft" style={{ gap: 10, padding: '10px 12px' }}>
-                          {authorProfile.avatarUrl ? (
-                            <img
-                              src={authorProfile.avatarUrl}
-                              alt={avatarInitials}
-                              className="rounded-full object-cover flex-shrink-0"
-                              style={{ width: 32, height: 32 }}
-                            />
-                          ) : (
-                            <div
-                              className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
-                              style={{ width: 32, height: 32, fontSize: 11 }}
-                            >
-                              {avatarInitials}
-                            </div>
-                          )}
+                          <UserAvatar avatarUrl={authorProfile.avatarUrl} name={authorProfile.displayName} size={32} />
                           <div className="min-w-0">
                             <div className="font-semibold text-ink truncate" style={{ fontSize: 13 }}>
                               {authorProfile.displayName}

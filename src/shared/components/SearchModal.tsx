@@ -4,6 +4,7 @@ import { Search, FileText, Tag as TagIcon, User, Building2 } from 'lucide-react'
 import { useSearch } from '@/api/hooks/useSearchQuery'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import type { SearchType } from '@/types/api'
 
 type FilterTab = 'all' | 'articles' | 'authors' | 'tags' | 'companies'
@@ -203,13 +204,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
                       className="flex items-center hover:bg-bg-tint transition-colors"
                       style={{ gap: 12, padding: '10px 18px', borderBottom: '1px solid var(--ls-line-soft)' }}
                     >
-                      {author.avatarUrl ? (
-                        <img src={author.avatarUrl} alt={author.displayName} className="rounded-full object-cover flex-shrink-0" style={{ width: 32, height: 32 }} />
-                      ) : (
-                        <div className="rounded-full bg-bg-tint border border-line flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32 }}>
-                          <User size={14} className="text-ink-3" />
-                        </div>
-                      )}
+                      <UserAvatar avatarUrl={author.avatarUrl} name={author.displayName} size={32} />
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-ink" style={{ fontSize: 13 }}>{author.displayName}</div>
                         <div className="font-mono text-ink-3" style={{ fontSize: 11 }}>@{author.username}</div>
@@ -259,13 +254,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
                       className="flex items-center hover:bg-bg-tint transition-colors"
                       style={{ gap: 12, padding: '10px 18px', borderBottom: '1px solid var(--ls-line-soft)' }}
                     >
-                      {company.logoUrl ? (
-                        <img src={company.logoUrl} alt={company.name} className="rounded-[4px] object-cover flex-shrink-0" style={{ width: 32, height: 32 }} />
-                      ) : (
-                        <div className="rounded-[4px] bg-bg-tint border border-line flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32 }}>
-                          <Building2 size={14} className="text-ink-3" />
-                        </div>
-                      )}
+                      <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={32} shape="square" />
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-ink" style={{ fontSize: 13 }}>{company.name}</div>
                         <div className="text-ink-3 flex items-center" style={{ gap: 4, fontSize: 11 }}>

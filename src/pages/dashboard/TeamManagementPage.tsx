@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useCompanyMembers } from '@/api/hooks/useCompanyQueries'
 import { useInviteAuthor, useRemoveMember } from '@/api/hooks/useCompanyMutations'
-import { initials, formatDateShort } from '@/lib/utils'
+import { formatDateShort } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 export function TeamManagementPage() {
@@ -94,12 +95,7 @@ export function TeamManagementPage() {
                 borderTop: i ? '1px solid var(--ls-line-soft)' : 'none',
               }}
             >
-              <div
-                className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
-                style={{ width: 30, height: 30, fontSize: 11 }}
-              >
-                {initials(member.displayName)}
-              </div>
+              <UserAvatar avatarUrl={member.avatarUrl} name={member.displayName} size={30} />
               <div>
                 <div className="font-semibold text-ink" style={{ fontSize: 13 }}>{member.displayName}</div>
                 <div className="font-mono text-ink-3" style={{ fontSize: 11 }}>@{member.username}</div>

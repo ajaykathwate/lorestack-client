@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Building2, Plus, Settings, ExternalLink } from 'lucide-react'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
-import { initials } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 function GalleryStrip({ images }: { images: string[] }) {
@@ -101,21 +101,7 @@ export function MyCompaniesPage() {
               {/* Card body — grows to push actions to bottom */}
               <div className="flex-1" style={{ padding: '20px 20px 0' }}>
                 <div className="flex items-start" style={{ gap: 14 }}>
-                  {company.logoUrl ? (
-                    <img
-                      src={company.logoUrl}
-                      alt={company.name}
-                      className="rounded-[8px] object-cover flex-shrink-0"
-                      style={{ width: 48, height: 48, border: '1px solid var(--ls-line)' }}
-                    />
-                  ) : (
-                    <div
-                      className="rounded-[8px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
-                      style={{ width: 48, height: 48, fontSize: 16 }}
-                    >
-                      {initials(company.name).charAt(0)}
-                    </div>
-                  )}
+                  <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={48} shape="square" />
                   <div className="flex-1 min-w-0">
                     <div className="font-serif font-bold text-ink truncate" style={{ fontSize: 16 }}>
                       {company.name}

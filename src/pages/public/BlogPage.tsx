@@ -13,7 +13,8 @@ import {
 } from '@/api/hooks/useEngagementMutations'
 import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDate, initials } from '@/lib/utils'
+import { articleTypeLabel, formatDate } from '@/lib/utils'
+import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
 marked.setOptions({ breaks: true, gfm: true })
@@ -156,18 +157,10 @@ export function BlogPage() {
             {/* Author avatar */}
             {authorUsername ? (
               <Link to={buildRoute.author(authorUsername)} className="flex-shrink-0">
-                {author?.avatarUrl ? (
-                  <img src={author.avatarUrl} alt={authorName} className="rounded-full object-cover" style={{ width: 38, height: 38 }} />
-                ) : (
-                  <div className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2" style={{ width: 38, height: 38, fontSize: 13 }}>
-                    {initials(authorName)}
-                  </div>
-                )}
+                <UserAvatar avatarUrl={author?.avatarUrl} name={authorName} size={38} />
               </Link>
             ) : (
-              <div className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0" style={{ width: 38, height: 38, fontSize: 13 }}>
-                {initials(authorName)}
-              </div>
+              <UserAvatar avatarUrl={author?.avatarUrl} name={authorName} size={38} />
             )}
 
             <div className="flex-1">
@@ -314,18 +307,10 @@ export function BlogPage() {
             <div className="rounded-[8px] border border-line flex" style={{ padding: 18, gap: 14 }}>
               {authorUsername ? (
                 <Link to={buildRoute.author(authorUsername)} className="flex-shrink-0">
-                  {author?.avatarUrl ? (
-                    <img src={author.avatarUrl} alt={authorName} className="rounded-full object-cover" style={{ width: 48, height: 48 }} />
-                  ) : (
-                    <div className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2" style={{ width: 48, height: 48, fontSize: 16 }}>
-                      {initials(authorName)}
-                    </div>
-                  )}
+                  <UserAvatar avatarUrl={author?.avatarUrl} name={authorName} size={48} />
                 </Link>
               ) : (
-                <div className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0" style={{ width: 48, height: 48, fontSize: 16 }}>
-                  {initials(authorName)}
-                </div>
+                <UserAvatar avatarUrl={author?.avatarUrl} name={authorName} size={48} />
               )}
               <div className="flex-1 min-w-0">
                 <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Written by</div>
@@ -351,13 +336,7 @@ export function BlogPage() {
             {company && companyHandle && (
               <div className="rounded-[8px] border border-line flex" style={{ padding: 18, gap: 14 }}>
                 <Link to={buildRoute.company(companyHandle)} className="flex-shrink-0">
-                  {company.logoUrl ? (
-                    <img src={company.logoUrl} alt={companyName} className="rounded-[6px] object-cover" style={{ width: 48, height: 48 }} />
-                  ) : (
-                    <div className="rounded-[6px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2" style={{ width: 48, height: 48, fontSize: 18 }}>
-                      {initials(companyName)}
-                    </div>
-                  )}
+                  <UserAvatar avatarUrl={company.logoUrl} name={companyName} size={48} shape="square" />
                 </Link>
                 <div className="flex-1 min-w-0">
                   <div className="text-ink-3 font-mono uppercase" style={{ fontSize: 9, letterSpacing: '1px', marginBottom: 3 }}>Published by</div>

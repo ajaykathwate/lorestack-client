@@ -27,6 +27,7 @@ import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { UserAvatar } from '@/shared/components/ui/UserAvatar'
+import { ScheduleModal } from '@/shared/components/ScheduleModal'
 import { computePublishingScore } from '@/lib/publishingScore'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 import { Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react'
@@ -246,11 +247,6 @@ export function EditorPage() {
 
   const [showRail, setShowRail] = useState(true)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
-  const [scheduleDate, setScheduleDate] = useState('')
-  const [scheduleTime, setScheduleTime] = useState('09:00')
-  const [scheduleTimezone, setScheduleTimezone] = useState(
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone
-  )
 
   // FORMAT popover
   const formatBtnRef = useRef<HTMLButtonElement>(null)
@@ -490,15 +486,12 @@ export function EditorPage() {
     }
   }
 
-  function handleSchedule() {
+  function handleSchedule(isoDateTime: string) {
     if (!currentSlug) { toast.error('Save the draft first.'); return }
-    if (!scheduleDate || !scheduleTime) { toast.error('Please pick a date and time.'); return }
-    const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString()
-    if (new Date(scheduledAt).getTime() <= Date.now()) { toast.error('Selected time is in the past.'); return }
-    if (new Date(scheduledAt).getTime() > Date.now() + SIX_MONTHS_MS) {
+    if (new Date(isoDateTime).getTime() > Date.now() + SIX_MONTHS_MS) {
       if (!confirm('Scheduling more than 6 months ahead — confirm?')) return
     }
-    scheduleBlog({ slug: currentSlug, payload: { scheduledAt, scheduledTimezone: scheduleTimezone } }, {
+    scheduleBlog({ slug: currentSlug, payload: { scheduledAt: isoDateTime } }, {
       onSuccess: () => { toast.success('Blog scheduled!'); setShowScheduleModal(false); navigate(ROUTES.MY_BLOGS) },
       onError: (err) => toast.error(apiErr(err, 'Failed to schedule.')),
     })
@@ -545,8 +538,6 @@ export function EditorPage() {
     title, summary, coverImageUrl, body, tags,
     seoTitleOverride: seoTitle, seoDescOverride: seoDesc,
   }), [title, summary, coverImageUrl, body, tags, seoTitle, seoDesc])
-  const todayISO = new Date().toISOString().slice(0, 10)
-
   const statusDot = {
     idle: 'transparent',
     saved: '#5a8b5e',
@@ -1276,45 +1267,11 @@ export function EditorPage() {
 
       {/* ══ Schedule modal ═════════════════════════════════════════════════════ */}
       {showScheduleModal && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)' }}
-          onClick={() => setShowScheduleModal(false)}
-        >
-          <div
-            style={{ background: 'var(--ls-bg)', borderRadius: 10, border: '1px solid var(--ls-line)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)', width: 440, padding: 28 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <h3 style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700, fontSize: 20, color: 'var(--ls-ink)', margin: 0 }}>Schedule blog</h3>
-              <button onClick={() => setShowScheduleModal(false)} style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ls-ink-3)' }}><X size={16} /></button>
-            </div>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ls-ink-2)', lineHeight: 1.5 }}>
-              Set when this blog should auto-publish. You can edit or cancel anytime before.
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              {[
-                { label: 'Date', type: 'date', value: scheduleDate, min: todayISO, onChange: (v: string) => setScheduleDate(v) },
-                { label: 'Time', type: 'time', value: scheduleTime, min: undefined, onChange: (v: string) => setScheduleTime(v) },
-              ].map(({ label, type, value, min, onChange }) => (
-                <div key={label}>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--ls-ink-3)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</label>
-                  <input type={type} value={value} min={min} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', border: '1px solid var(--ls-line)', borderRadius: 6, padding: '8px 10px', fontSize: 13, background: 'var(--ls-bg)', color: 'var(--ls-ink)', outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-              ))}
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--ls-ink-3)', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.6px' }}>Timezone</label>
-              <input type="text" value={scheduleTimezone} onChange={(e) => setScheduleTimezone(e.target.value)} style={{ width: '100%', border: '1px solid var(--ls-line)', borderRadius: 6, padding: '8px 10px', fontSize: 13, background: 'var(--ls-bg)', color: 'var(--ls-ink)', outline: 'none', boxSizing: 'border-box' }} />
-              <p style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--ls-ink-3)' }}>Auto-detected from your browser locale.</p>
-            </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowScheduleModal(false)} style={{ padding: '8px 16px', fontSize: 13, border: '1px solid var(--ls-line)', borderRadius: 6, background: 'transparent', color: 'var(--ls-ink-2)', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleSchedule} disabled={scheduling || !scheduleDate} style={{ padding: '8px 20px', fontSize: 13, fontWeight: 500, background: 'var(--ls-ink)', color: 'var(--ls-bg)', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: scheduling || !scheduleDate ? 0.5 : 1 }}>
-                {scheduling ? 'Scheduling…' : 'Schedule →'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ScheduleModal
+          onClose={() => setShowScheduleModal(false)}
+          onSchedule={handleSchedule}
+          isPending={scheduling}
+        />
       )}
     </div>
   )

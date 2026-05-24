@@ -52,7 +52,13 @@ export function ProfileSettingsPage() {
   }
 
   function onSubmit(values: UpdateProfileFormValues) {
-    updateProfile(values, {
+    const payload = {
+      ...values,
+      avatarUrl:   values.avatarUrl   || undefined,
+      websiteUrl:  values.websiteUrl  || undefined,
+      linkedinUrl: values.linkedinUrl || undefined,
+    }
+    updateProfile(payload, {
       onSuccess: () => toast.success('Profile updated.'),
       onError: () => toast.error('Failed to update profile.'),
     })

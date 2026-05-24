@@ -164,7 +164,7 @@ export function HomePage() {
       {/* ── BROWSE BY TYPE ── */}
       <section
         className="bg-bg border-b border-line"
-        style={{ position: 'sticky', top: 46, zIndex: 20, boxShadow: '0 2px 12px rgba(0,0,0,.07)', paddingTop: 10 }}
+        style={{ position: 'sticky', top: 56, zIndex: 20, boxShadow: '0 2px 12px rgba(0,0,0,.07)', paddingTop: 10 }}
       >
         <div
           className="flex overflow-x-auto"

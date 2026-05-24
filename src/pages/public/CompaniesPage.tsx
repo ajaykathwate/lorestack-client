@@ -144,7 +144,7 @@ export function CompaniesPage() {
                 style={{ overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.04)', textDecoration: 'none' }}
               >
                 {/* Card body — grows to fill */}
-                <div className="flex-1" style={{ padding: '20px 20px 0' }}>
+                <div className="flex-1" style={{ padding: '20px 20px ' }}>
                   <div className="flex items-start" style={{ gap: 14 }}>
                     {company.logoUrl ? (
                       <img
@@ -161,7 +161,7 @@ export function CompaniesPage() {
                         {initials(company.name).charAt(0)}
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0">
                       <div className="font-serif font-bold text-ink truncate" style={{ fontSize: 16 }}>
                         {company.name}
                       </div>
@@ -197,13 +197,8 @@ export function CompaniesPage() {
                   </div>
                 </div>
 
-                {/* Gallery strip */}
-                {company.galleryImages && company.galleryImages.length > 0 && (
-                  <GalleryStrip images={company.galleryImages} />
-                )}
-
                 {/* Fixed bottom action */}
-                <div className="border-t border-line mt-auto" style={{ padding: '11px 18px' }}>
+                <div className="border-t border-line" style={{ padding: '11px 18px' }}>
                   <span className="font-mono text-ls-accent" style={{ fontSize: 12 }}>
                     View profile →
                   </span>

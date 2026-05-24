@@ -41,7 +41,7 @@ export function ProfileSettingsPage() {
     if (!file) return
     setIsAvatarUploading(true)
     try {
-      const url = await uploadToCloudinary(file)
+      const url = await uploadToCloudinary(file, 'authors')
       setValue('avatarUrl', url, { shouldDirty: true })
     } catch {
       toast.error('Avatar upload failed. Please try again.')

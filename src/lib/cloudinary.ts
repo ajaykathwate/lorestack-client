@@ -1,4 +1,6 @@
-export async function uploadToCloudinary(file: File): Promise<string> {
+export type CloudinaryFolder = 'authors' | 'companies' | 'articles'
+
+export async function uploadToCloudinary(file: File, folder: CloudinaryFolder): Promise<string> {
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
@@ -9,6 +11,7 @@ export async function uploadToCloudinary(file: File): Promise<string> {
   const form = new FormData()
   form.append('file', file)
   form.append('upload_preset', uploadPreset)
+  form.append('folder', folder)
 
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,

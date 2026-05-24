@@ -82,7 +82,7 @@ export function CreateCompanyPage() {
     if (!file) return
     setIsLogoUploading(true)
     try {
-      const url = await uploadToCloudinary(file)
+      const url = await uploadToCloudinary(file, 'companies')
       setLogoUrl(url)
     } catch {
       toast.error('Logo upload failed. Please try again.')
@@ -99,7 +99,7 @@ export function CreateCompanyPage() {
     const toUpload = files.slice(0, remaining)
     setIsGalleryUploading(true)
     try {
-      const urls = await Promise.all(toUpload.map((f) => uploadToCloudinary(f)))
+      const urls = await Promise.all(toUpload.map((f) => uploadToCloudinary(f, 'companies')))
       setGalleryImages((prev) => [...prev, ...urls].slice(0, 5))
     } catch {
       toast.error('Gallery upload failed. Please try again.')

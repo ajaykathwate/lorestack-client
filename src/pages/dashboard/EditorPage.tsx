@@ -284,7 +284,7 @@ export function EditorPage() {
       if (!file) return
       const toastId = toast.loading('Uploading image…')
       try {
-        const url = await uploadToCloudinary(file)
+        const url = await uploadToCloudinary(file, 'articles')
         const quill = quillRef.current?.getEditor()
         if (quill) {
           const range = quill.getSelection(true)
@@ -499,7 +499,7 @@ export function EditorPage() {
       if (!confirm('Scheduling more than 6 months ahead — confirm?')) return
     }
     scheduleBlog({ slug: currentSlug, payload: { scheduledAt, scheduledTimezone: scheduleTimezone } }, {
-      onSuccess: () => { toast.success('Blog scheduled!'); setShowScheduleModal(false); navigate(ROUTES.SCHEDULED) },
+      onSuccess: () => { toast.success('Blog scheduled!'); setShowScheduleModal(false); navigate(ROUTES.MY_BLOGS) },
       onError: (err) => toast.error(apiErr(err, 'Failed to schedule.')),
     })
   }
@@ -523,7 +523,7 @@ export function EditorPage() {
     if (!file) return
     setIsCoverUploading(true)
     try {
-      const url = await uploadToCloudinary(file)
+      const url = await uploadToCloudinary(file, 'articles')
       setCoverImageUrl(url)
       setSaveStatus('unsaved')
     } catch (err) {
@@ -955,9 +955,6 @@ export function EditorPage() {
               <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Tags</h3>
               <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--ls-ink-3)' }}>{tags.length} / {BLOG_CONFIG.TAGS_MAX_COUNT}</span>
             </div>
-            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
-              Help readers and SEO find this. Press Enter to add.
-            </p>
             <div style={{
               padding: '10px 12px',
               background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 6,
@@ -991,9 +988,6 @@ export function EditorPage() {
           {/* Cover image */}
           <section>
             <h3 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Cover image</h3>
-            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
-              Shown on cards and social previews. Recommended 1200×630.
-            </p>
 
             {coverImageUrl ? (
               <div style={{ position: 'relative', marginBottom: 10 }}>
@@ -1051,9 +1045,6 @@ export function EditorPage() {
                 {summary.length} / {BLOG_CONFIG.SUMMARY_MAX_LENGTH}
               </span>
             </div>
-            <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
-              A brief description that shows on cards, search, and social.
-            </p>
             <textarea
               value={summary}
               onChange={(e) => { setSummary(e.target.value.slice(0, BLOG_CONFIG.SUMMARY_MAX_LENGTH)); setSaveStatus('unsaved') }}

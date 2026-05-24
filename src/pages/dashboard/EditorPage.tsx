@@ -30,6 +30,7 @@ import { initials } from '@/lib/utils'
 import { computePublishingScore } from '@/lib/publishingScore'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 import { Settings, ChevronDown, CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react'
+import { BLOG_CONFIG } from '@/config/blog'
 import type { ArticleType } from '@/types/api'
 import type { ScoreSignal } from '@/lib/publishingScore'
 
@@ -63,7 +64,7 @@ const QUILL_FORMATS = [
 
 type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'idle'
 
-const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000
+const SIX_MONTHS_MS = BLOG_CONFIG.SCHEDULE_MAX_MONTHS_AHEAD * 30 * 24 * 60 * 60 * 1000
 
 // ── Two-row Quill toolbar ──────────────────────────────────────────────────
 function QuillToolbar({ wordCount }: { wordCount: number }) {
@@ -349,7 +350,7 @@ export function EditorPage() {
     (overrideSlug?: string) => {
       const slug = overrideSlug ?? currentSlug
       const payload = {
-        title: title.trim() || 'Untitled',
+        title: title.trim(),
         body, articleType,
         ...(companyId ? { companyId } : {}),
         tags,
@@ -417,7 +418,7 @@ export function EditorPage() {
     if (saveStatus === 'unsaved') {
       const slug = currentSlug
       const payload = {
-        title: title.trim() || 'Untitled', body, articleType,
+        title: title.trim(), body, articleType,
         ...(companyId ? { companyId } : {}), tags,
         ...(coverImageUrl ? { coverImageUrl } : {}),
         ...(summary ? { summary } : {}),
@@ -456,7 +457,7 @@ export function EditorPage() {
 
   function addTag() {
     const t = tagInput.trim().toLowerCase().replace(/\s+/g, '-')
-    if (!t || tags.includes(t) || tags.length >= 5) return
+    if (!t || tags.includes(t) || tags.length >= BLOG_CONFIG.TAGS_MAX_COUNT) return
     setTags([...tags, t])
     setTagInput('')
     setSaveStatus('unsaved')
@@ -831,7 +832,7 @@ export function EditorPage() {
                 className="editor-summary-input"
                 type="text"
                 value={summary}
-                onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
+                onChange={(e) => { setSummary(e.target.value.slice(0, BLOG_CONFIG.SUMMARY_MAX_LENGTH)); setSaveStatus('unsaved') }}
                 placeholder="A one-line summary shown on article cards…"
                 style={{
                   width: '100%', background: 'transparent',
@@ -895,7 +896,7 @@ export function EditorPage() {
           <section>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
               <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Tags</h3>
-              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--ls-ink-3)' }}>{tags.length} / 5</span>
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--ls-ink-3)' }}>{tags.length} / {BLOG_CONFIG.TAGS_MAX_COUNT}</span>
             </div>
             <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
               Help readers and SEO find this. Press Enter to add.
@@ -920,7 +921,7 @@ export function EditorPage() {
                   if (e.key === 'Backspace' && !tagInput && tags.length > 0) removeTag(tags[tags.length - 1])
                 }}
                 placeholder={tags.length === 0 ? '+ Add tag, press Enter' : tags.length < 5 ? '+ Add more…' : ''}
-                disabled={tags.length >= 5}
+                disabled={tags.length >= BLOG_CONFIG.TAGS_MAX_COUNT}
                 style={{
                   flex: 1, minWidth: 120, border: 'none', outline: 'none',
                   background: 'transparent', fontSize: 13,
@@ -989,8 +990,8 @@ export function EditorPage() {
           <section>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
               <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}>Summary</h3>
-              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: summary.length > 280 ? '#ef4444' : 'var(--ls-ink-3)' }}>
-                {summary.length} / 300
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: summary.length > BLOG_CONFIG.SUMMARY_MAX_LENGTH - 20 ? '#ef4444' : 'var(--ls-ink-3)' }}>
+                {summary.length} / {BLOG_CONFIG.SUMMARY_MAX_LENGTH}
               </span>
             </div>
             <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--ls-ink-3)', lineHeight: 1.5 }}>
@@ -998,7 +999,7 @@ export function EditorPage() {
             </p>
             <textarea
               value={summary}
-              onChange={(e) => { setSummary(e.target.value.slice(0, 300)); setSaveStatus('unsaved') }}
+              onChange={(e) => { setSummary(e.target.value.slice(0, BLOG_CONFIG.SUMMARY_MAX_LENGTH)); setSaveStatus('unsaved') }}
               rows={4}
               placeholder="A brief summary shown on cards and search results…"
               style={{

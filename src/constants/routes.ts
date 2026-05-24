@@ -23,15 +23,14 @@ export const ROUTES = {
   // ── Dashboard ─────────────────────────────────────────────────────────────
   DASHBOARD: '/dashboard',
   MY_BLOGS: '/me/blogs',
-  DRAFTS: '/me/drafts',
-  SCHEDULED: '/me/scheduled',
-  ARCHIVED: '/me/archived',
   EDITOR_NEW: '/write',
   EDITOR: '/write/:slug',
   PROFILE_SETTINGS: '/me/profile',
   NOTIFICATIONS: '/me/notifications',
   FOLLOWING: '/me/following',
+  FOLLOWERS: '/me/followers',
   SAVED: '/me/saved',
+  MY_COMPANIES: '/me/companies',
 
   // ── Settings ──────────────────────────────────────────────────────────
   SETTINGS_ACCOUNT:       '/me/settings/account',

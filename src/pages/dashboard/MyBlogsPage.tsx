@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
 import { useArchiveBlog, useDeleteBlog, useUnarchiveBlog, usePublishBlog } from '@/api/hooks/useBlogMutations'
-import { ROUTES, buildRoute } from '@/constants/routes'
+import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort } from '@/lib/utils'
 import type { BlogStatus, BlogSummary } from '@/types/api'
 
@@ -95,21 +95,12 @@ export function MyBlogsPage() {
   return (
     <div className="flex flex-col bg-bg min-h-full -m-4 lg:-m-6 p-4 lg:p-6">
       {/* Header */}
-      <div className="flex justify-between items-baseline" style={{ marginBottom: 20 }}>
-        <div>
-          <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
-          <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
-            My Blogs
-            <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}> · {countByStatus.all ?? 0}</span>
-          </h1>
-        </div>
-        <Link
-          to={ROUTES.EDITOR_NEW}
-          className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-          style={{ padding: '8px 16px', fontSize: 13 }}
-        >
-          + Write blog
-        </Link>
+      <div style={{ marginBottom: 20 }}>
+        <span className="font-mono uppercase text-ink-3" style={{ fontSize: 11, letterSpacing: '1.2px' }}>Writing</span>
+        <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26, marginTop: 4 }}>
+          My Blogs
+          <span className="text-ink-3 font-normal" style={{ fontSize: 18 }}> · {countByStatus.all ?? 0}</span>
+        </h1>
       </div>
 
       {/* Status tabs + search + sort in one row */}
@@ -194,15 +185,6 @@ export function MyBlogsPage() {
           <p className="text-ink-2" style={{ margin: '6px 0 18px', fontSize: 13 }}>
             {search ? 'Try a different search term.' : 'Start writing to see your blogs here.'}
           </p>
-          {!search && (
-            <Link
-              to={ROUTES.EDITOR_NEW}
-              className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-              style={{ padding: '8px 16px', fontSize: 13 }}
-            >
-              + Write blog
-            </Link>
-          )}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 14 }}>

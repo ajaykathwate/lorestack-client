@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
 import {
   X, LayoutDashboard, BookOpen, Users, Bookmark, Building2,
-  Plus, UserCog, Settings, ShieldCheck, Link2, Mail, Trash2,
+  UserCog, Settings, ShieldCheck, Link2, Mail, Trash2,
   ShieldAlert, ChevronDown, UserRound,
 } from 'lucide-react'
 import { ROUTES, buildRoute } from '@/constants/routes'
@@ -20,14 +20,15 @@ const SETTINGS_ITEMS = [
   { label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,    Icon: Trash2 },
 ]
 
-function NavItem({ to, label, Icon, external }: { to: string; label: string; Icon: React.ElementType; external?: boolean }) {
+function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.ElementType }) {
   return (
     <NavLink
       to={to}
+      end
       className={({ isActive }) =>
         cn(
           'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2',
-          isActive && !external
+          isActive
             ? 'bg-bg-soft text-ink font-semibold border-ls-accent'
             : 'text-ink-2 border-transparent hover:bg-bg-tint hover:text-ink',
         )
@@ -49,62 +50,28 @@ function SidebarNav() {
   return (
     <nav className="flex-1 min-h-0 overflow-y-auto py-3 px-2" style={{ scrollbarWidth: 'none' }}>
 
-      {/* Dashboard */}
-      <NavLink
-        to={ROUTES.DASHBOARD}
-        end
-        className={({ isActive }) =>
-          cn(
-            'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 mb-0.5',
-            isActive
-              ? 'bg-bg-soft text-ink font-semibold border-ls-accent'
-              : 'text-ink-2 border-transparent hover:bg-bg-tint hover:text-ink',
-          )
-        }
-        style={{ fontSize: 13 }}
-      >
-        <LayoutDashboard size={14} className="flex-shrink-0 text-ink-3" />
-        <span>Dashboard</span>
-      </NavLink>
-
-      {/* My Blogs */}
+      <NavItem to={ROUTES.DASHBOARD} label="Dashboard" Icon={LayoutDashboard} />
       <NavItem to={ROUTES.MY_BLOGS} label="My Blogs" Icon={BookOpen} />
 
-      {/* View My Profile */}
+      <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
+
+      <NavItem to={ROUTES.FOLLOWING} label="Following" Icon={Users} />
+      <NavItem to={ROUTES.FOLLOWERS} label="Followers" Icon={Users} />
+      <NavItem to={ROUTES.SAVED} label="Saved" Icon={Bookmark} />
+      <NavItem to={ROUTES.MY_COMPANIES} label="Companies" Icon={Building2} />
+
+      {/* View My Profile — never shows as active (it's a public page) */}
       <NavLink
         to={authorProfile ? buildRoute.author(authorProfile.username) : ROUTES.PROFILE_SETTINGS}
-        className="flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 border-transparent text-ink-2 hover:bg-bg-tint hover:text-ink mb-0.5"
+        className="flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 border-transparent text-ink-2 hover:bg-bg-tint hover:text-ink"
         style={{ fontSize: 13 }}
       >
         <UserRound size={14} className="flex-shrink-0 text-ink-3" />
-        <span>View My Profile</span>
+        <span className="flex-1 truncate">View My Profile</span>
       </NavLink>
 
-      {/* Divider */}
       <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
 
-      {/* Following */}
-      <NavItem to={ROUTES.FOLLOWING} label="Following" Icon={Users} />
-
-      {/* Followers */}
-      <NavItem to={ROUTES.FOLLOWERS} label="Followers" Icon={Users} />
-
-      {/* Saved */}
-      <NavItem to={ROUTES.SAVED} label="Saved" Icon={Bookmark} />
-
-      {/* Divider */}
-      <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
-
-      {/* My Companies */}
-      <NavItem to={ROUTES.MY_COMPANIES} label="My Companies" Icon={Building2} />
-
-      {/* Create Company */}
-      <NavItem to={ROUTES.CREATE_COMPANY} label="Create Company" Icon={Plus} />
-
-      {/* Divider */}
-      <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
-
-      {/* Settings — collapsible */}
       <CollapsibleSection
         label="Settings"
         isOpen={settingsOpen}
@@ -115,7 +82,6 @@ function SidebarNav() {
         ))}
       </CollapsibleSection>
 
-      {/* Platform admin */}
       {isAdmin && (
         <CollapsibleSection
           label="Platform"
@@ -130,10 +96,7 @@ function SidebarNav() {
 }
 
 function CollapsibleSection({
-  label,
-  isOpen,
-  onToggle,
-  children,
+  label, isOpen, onToggle, children,
 }: {
   label: string
   isOpen: boolean
@@ -172,7 +135,7 @@ export function DashboardLayout() {
   const { sidebarOpen, setSidebarOpen } = useUiStore()
 
   return (
-    <div className="h-screen flex flex-col bg-bg-soft font-sans">
+    <div className="h-screen flex flex-col bg-bg font-sans">
       <TopNav />
 
       <div className="flex flex-1 overflow-hidden">
@@ -212,7 +175,7 @@ export function DashboardLayout() {
         </aside>
 
         {/* Main area */}
-        <main className="flex-1 min-w-0 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 min-w-0 overflow-y-auto bg-bg p-4 lg:p-6">
           <Outlet />
         </main>
       </div>

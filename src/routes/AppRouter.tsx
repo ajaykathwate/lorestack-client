@@ -32,9 +32,6 @@ import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 // Dashboard pages
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { MyBlogsPage } from '@/pages/dashboard/MyBlogsPage'
-import { DraftsPage } from '@/pages/dashboard/DraftsPage'
-import { ScheduledPage } from '@/pages/dashboard/ScheduledPage'
-import { ArchivedPage } from '@/pages/dashboard/ArchivedPage'
 import { ProfileSettingsPage } from '@/pages/dashboard/ProfileSettingsPage'
 import { NotificationsPage } from '@/pages/dashboard/NotificationsPage'
 import { EditorPage } from '@/pages/dashboard/EditorPage'
@@ -114,9 +111,6 @@ const router = createBrowserRouter([
           // Dashboard & writing
           { path: ROUTES.DASHBOARD,          element: <DashboardPage /> },
           { path: ROUTES.MY_BLOGS,           element: <MyBlogsPage /> },
-          { path: ROUTES.DRAFTS,             element: <DraftsPage /> },
-          { path: ROUTES.SCHEDULED,          element: <ScheduledPage /> },
-          { path: ROUTES.ARCHIVED,           element: <ArchivedPage /> },
           { path: ROUTES.NOTIFICATIONS,      element: <NotificationsPage /> },
           { path: ROUTES.FOLLOWING,          element: <FollowingPage /> },
           { path: ROUTES.FOLLOWERS,          element: <FollowersPage /> },

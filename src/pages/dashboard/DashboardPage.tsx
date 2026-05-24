@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+
 import { toast } from 'sonner'
 import {
   MoreHorizontal, Pencil, ExternalLink, Archive, Trash2,
-  BookOpen, FileText, Clock, Send, PenLine,
+  BookOpen, FileText, Clock, Send,
 } from 'lucide-react'
 import { useMyBlogs } from '@/api/hooks/useBlogQueries'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
@@ -153,14 +154,6 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <Link
-          to={ROUTES.EDITOR_NEW}
-          className="flex items-center gap-2 bg-ink text-bg font-semibold rounded-[6px] hover:bg-ink/90 transition-colors"
-          style={{ padding: '10px 18px', fontSize: 13 }}
-        >
-          <PenLine size={14} />
-          Write new article
-        </Link>
       </div>
 
       {/* ── Stat cards ── */}
@@ -178,14 +171,14 @@ export function DashboardPage() {
           value={String(drafts.length)}
           sub={drafts.length > 0 ? 'In progress' : 'Nothing in progress'}
           Icon={FileText}
-          to={ROUTES.DRAFTS}
+          to={ROUTES.MY_BLOGS}
         />
         <StatCard
           label="Scheduled"
           value={String(scheduled.length)}
           sub={scheduled.length > 0 ? 'Queued to publish' : 'No scheduled posts'}
           Icon={Clock}
-          to={ROUTES.SCHEDULED}
+          to={ROUTES.MY_BLOGS}
         />
         <StatCard
           label="Total reads"
@@ -214,14 +207,6 @@ export function DashboardPage() {
             Share your engineering story — an architecture deep-dive, a postmortem, a tutorial. Your audience is waiting.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              to={ROUTES.EDITOR_NEW}
-              className="flex items-center gap-2 bg-ink text-bg font-semibold rounded-[6px] hover:bg-ink/90 transition-colors"
-              style={{ padding: '10px 18px', fontSize: 13 }}
-            >
-              <PenLine size={14} />
-              Start writing
-            </Link>
             <Link
               to={ROUTES.EXPLORE}
               className="flex items-center gap-2 border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint transition-colors"

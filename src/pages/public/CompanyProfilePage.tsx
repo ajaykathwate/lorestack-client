@@ -30,7 +30,7 @@ const MILESTONE_TYPE_LABELS: Record<string, string> = {
 
 export function CompanyProfilePage() {
   const { handle = '' } = useParams()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [articleTypeFilter, setArticleTypeFilter] = useState<string>('all')
   const [sort, setSort] = useState<SortOption>('newest')
@@ -83,6 +83,7 @@ export function CompanyProfilePage() {
 
   const allArticles = blogs ?? []
   const team = members ?? []
+  const isOwnCompany = !!user && team.some((m) => m.userId === user.id)
   const timeline = milestones ?? []
   const gallery = company?.galleryImages ?? []
 
@@ -157,7 +158,7 @@ export function CompanyProfilePage() {
             ))}
           </div>
 
-          <div className="flex" style={{ gap: 14, marginTop: 14, fontSize: 12, color: 'var(--ls-ink-2)' }}>
+          <div className="flex flex-wrap items-center" style={{ gap: 14, marginTop: 14, fontSize: 12, color: 'var(--ls-ink-2)' }}>
             {company.websiteUrl && (
               <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-ink transition-colors">
                 ↗ {company.websiteUrl.replace(/^https?:\/\//, '')}
@@ -168,14 +169,17 @@ export function CompanyProfilePage() {
                 ↗ founder
               </a>
             )}
+            <span className="text-ink-3" style={{ fontSize: 12 }}>
+              {allArticles.length} posts · {team.length} team
+            </span>
           </div>
         </div>
 
-        <div className="flex flex-col items-end" style={{ gap: 8 }}>
+        {!isOwnCompany && (
           <button
             onClick={handleFollow}
             disabled={following || unfollowing}
-            className="font-medium rounded-[6px] transition-colors"
+            className="font-medium rounded-[6px] transition-colors self-start"
             style={{
               padding: '8px 16px', fontSize: 13,
               background: isFollowing ? 'transparent' : 'var(--ls-accent)',
@@ -185,10 +189,7 @@ export function CompanyProfilePage() {
           >
             {isFollowing ? 'Unfollow' : '+ Follow'}
           </button>
-          <div className="text-ink-3" style={{ fontSize: 11 }}>
-            {allArticles.length} posts · {team.length} team
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}

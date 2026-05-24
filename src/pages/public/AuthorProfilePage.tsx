@@ -13,7 +13,7 @@ import { Spinner } from '@/shared/components/feedback/Spinner'
 
 export function AuthorProfilePage() {
   const { username = '' } = useParams()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const { data: profile, isLoading: profileLoading } = useProfileByUsername(username)
   const { data: blogs, isLoading: blogsLoading } = useAuthorBlogs(username)
 
@@ -32,6 +32,7 @@ export function AuthorProfilePage() {
 
   const articles = blogs ?? []
   const isLoading = profileLoading
+  const isOwnProfile = !!user && !!profile && user.id === profile.userId
 
   function handleFollow() {
     if (!isAuthenticated) { toast.error('Sign in to follow authors.'); return }
@@ -115,21 +116,23 @@ export function AuthorProfilePage() {
           </div>
         </div>
 
-        <div className="flex flex-col items-end" style={{ gap: 8 }}>
-          <button
-            onClick={handleFollow}
-            disabled={following || unfollowing}
-            className="font-medium rounded-[6px] transition-colors"
-            style={{
-              padding: '8px 16px', fontSize: 13,
-              background: isFollowing ? 'transparent' : 'var(--ls-accent)',
-              color: isFollowing ? 'var(--ls-ink-2)' : 'white',
-              border: isFollowing ? '1px solid var(--ls-line)' : '1px solid transparent',
-            }}
-          >
-            {isFollowing ? 'Unfollow' : '+ Follow'}
-          </button>
-        </div>
+        {!isOwnProfile && (
+          <div className="flex flex-col items-end" style={{ gap: 8 }}>
+            <button
+              onClick={handleFollow}
+              disabled={following || unfollowing}
+              className="font-medium rounded-[6px] transition-colors"
+              style={{
+                padding: '8px 16px', fontSize: 13,
+                background: isFollowing ? 'transparent' : 'var(--ls-accent)',
+                color: isFollowing ? 'var(--ls-ink-2)' : 'white',
+                border: isFollowing ? '1px solid var(--ls-line)' : '1px solid transparent',
+              }}
+            >
+              {isFollowing ? 'Unfollow' : '+ Follow'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Writing for strip */}

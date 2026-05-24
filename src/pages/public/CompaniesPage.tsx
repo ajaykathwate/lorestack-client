@@ -76,8 +76,8 @@ export function CompaniesPage() {
         </h1>
         <p className="font-serif text-ink-2" style={{ maxWidth: 520, marginTop: 8, fontSize: 14 }}>
           Real engineering teams sharing their stories, architecture decisions, and lessons learned on Lorestack.
-          {data?.total != null && (
-            <span className="text-ink-3"> · {data.total} {data.total === 1 ? 'company' : 'companies'}</span>
+          {data?.meta.total != null && (
+            <span className="text-ink-3"> · {data.meta.total} {data.meta.total === 1 ? 'company' : 'companies'}</span>
           )}
         </p>
       </div>

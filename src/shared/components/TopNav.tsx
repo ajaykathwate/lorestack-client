@@ -93,11 +93,7 @@ export function TopNav() {
   const menuRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
 
-  const avatarInitials = authorProfile?.displayName
-    ? authorProfile.displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
-    : '?'
-
-  const openSearch = useCallback(() => setShowSearch(true), [])
+const openSearch = useCallback(() => setShowSearch(true), [])
   const closeSearch = useCallback(() => setShowSearch(false), [])
 
   // ⌘K + Escape
@@ -277,9 +273,7 @@ export function TopNav() {
         >
           {/* Left: wordmark + desktop nav */}
           <div className="flex items-center gap-5 lg:gap-7">
-            <Link to={ROUTES.HOME}>
-              <Wordmark size={19} />
-            </Link>
+            <Wordmark size={19} />
             <nav className="hidden md:flex items-center gap-5 lg:gap-6">
               {NAV_LINKS.map(({ label, to }) => (
                 <NavLink

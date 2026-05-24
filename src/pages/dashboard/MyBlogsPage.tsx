@@ -28,11 +28,11 @@ const STATUS_TABS: { key: StatusTab; label: string }[] = [
 ]
 
 const STATUS_PILL: Record<BlogStatus, { label: string; bg: string; color: string }> = {
-  published:      { label: 'Published',  bg: '#e8f5e9', color: '#2e7d32' },
-  draft:          { label: 'Draft',      bg: 'var(--ls-bg-soft)', color: 'var(--ls-ink-3)' },
-  scheduled:      { label: 'Scheduled',  bg: '#fff8e1', color: '#f57f17' },
-  archived:       { label: 'Archived',   bg: '#fff3e0', color: '#e65100' },
-  publish_failed: { label: 'Failed',     bg: '#ffebee', color: '#c62828' },
+  published:      { label: 'Published',  bg: '#16a34a', color: '#fff' },
+  draft:          { label: 'Draft',      bg: '#d97706', color: '#fff' },
+  scheduled:      { label: 'Scheduled',  bg: '#2563eb', color: '#fff' },
+  archived:       { label: 'Archived',   bg: '#6b7280', color: '#fff' },
+  publish_failed: { label: 'Failed',     bg: '#dc2626', color: '#fff' },
 }
 
 function timeUntil(isoDate: string): string {
@@ -51,6 +51,13 @@ function formatScheduledDate(isoDate: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     + ' at '
     + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
+
+function formatDateWithTime(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    + ', '
+    + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 export function MyBlogsPage() {
@@ -262,32 +269,32 @@ function BlogCard({
 }) {
   const pill = STATUS_PILL[blog.status] ?? STATUS_PILL.draft
 
-  const dateIcon = blog.status === 'published' || blog.status === 'scheduled'
-    ? <CalendarDays size={11} className="text-ink-3 flex-shrink-0" />
-    : <Clock size={11} className="text-ink-3 flex-shrink-0" />
-
-  const dateLabel = (() => {
-    if (blog.status === 'published' && blog.publishedAt) return `Published ${formatDateShort(blog.publishedAt)}`
-    if (blog.status === 'archived') return `Created ${formatDateShort(blog.createdAt)}`
-    return `Updated ${formatDateShort(blog.updatedAt)}`
+  const metaDate = (() => {
+    if (blog.status === 'published' && blog.publishedAt) return formatDateShort(blog.publishedAt)
+    if (blog.status === 'draft') return `Last saved: ${formatDateWithTime(blog.updatedAt)}`
+    if (blog.status === 'archived') return formatDateShort(blog.createdAt)
+    return formatDateShort(blog.updatedAt)
   })()
+
+  const MetaIcon = blog.status === 'draft' ? Clock : CalendarDays
 
   return (
     <div
-      className="flex flex-col rounded-[12px] border border-line bg-bg transition-shadow hover:shadow-sm hover:border-line-strong"
-      style={{ overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}
+      className="flex flex-col rounded-[16px] transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+      style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
     >
       {/* Card body */}
-      <div style={{ padding: '22px 22px 16px', flex: 1 }}>
-        {/* Status pill + type */}
-        <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+      <div style={{ padding: '20px 20px 0', flex: 1 }}>
+        {/* Status pill + article type */}
+        <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
           <span
-            className="font-mono font-semibold rounded-full"
-            style={{ fontSize: 10, padding: '3px 10px', background: pill.bg, color: pill.color, letterSpacing: '0.4px' }}
+            className="font-semibold rounded-full"
+            style={{ fontSize: 11, padding: '3px 10px', background: pill.bg, color: pill.color }}
           >
             {pill.label}
           </span>
-          <span className="text-ink-3 font-mono" style={{ fontSize: 10, letterSpacing: '0.2px' }}>
+          <span className="flex items-center text-ink-3" style={{ gap: 5, fontSize: 12 }}>
+            <FileText size={12} />
             {articleTypeLabel(blog.articleType)}
           </span>
         </div>
@@ -296,14 +303,14 @@ function BlogCard({
         <Link
           to={buildRoute.editor(blog.slug)}
           className="font-serif font-bold text-ink hover:text-ls-accent transition-colors"
-          style={{ fontSize: 16, lineHeight: 1.3, display: 'block', marginBottom: blog.summary ? 10 : 0 }}
+          style={{ fontSize: 17, lineHeight: 1.3, display: 'block', marginBottom: 8 }}
         >
-          {blog.title || <span className="text-ink-3 italic">Untitled</span>}
+          {blog.title || <span className="text-ink-3 italic">Untitled Draft</span>}
         </Link>
 
         {/* Summary */}
         {blog.summary && (
-          <p className="text-ink-3 line-clamp-2" style={{ fontSize: 13, lineHeight: 1.55 }}>
+          <p className="text-ink-3 line-clamp-2" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 4 }}>
             {blog.summary}
           </p>
         )}
@@ -312,7 +319,7 @@ function BlogCard({
         {blog.status === 'scheduled' && blog.scheduledAt && (
           <div
             className="rounded-[8px] border border-line-soft bg-bg-soft"
-            style={{ marginTop: 14, padding: '10px 12px' }}
+            style={{ marginTop: 10, padding: '10px 12px' }}
           >
             <div className="flex items-center" style={{ gap: 6, marginBottom: 4 }}>
               <CalendarClock size={12} className="text-ink-3" />
@@ -329,37 +336,38 @@ function BlogCard({
       </div>
 
       {/* Meta row */}
-      <div className="flex items-center border-t border-line-soft" style={{ padding: '10px 22px', gap: 6 }}>
-        {dateIcon}
-        <span className="text-ink-3" style={{ fontSize: 12 }}>{dateLabel}</span>
+      <div className="flex items-center" style={{ padding: '12px 20px', gap: 6 }}>
+        <MetaIcon size={12} className="text-ink-3 flex-shrink-0" />
+        <span className="text-ink-3" style={{ fontSize: 12 }}>{metaDate}</span>
         {blog.status === 'published' && blog.viewsCount > 0 && (
           <>
-            <span className="text-line-strong" style={{ fontSize: 10 }}>·</span>
-            <Eye size={11} className="text-ink-3" />
-            <span className="text-ink-3" style={{ fontSize: 12 }}>{blog.viewsCount.toLocaleString()} views</span>
+            <span className="text-ink-3" style={{ margin: '0 2px', fontSize: 10 }}>·</span>
+            <Eye size={12} className="text-ink-3" />
+            <span className="text-ink-3" style={{ fontSize: 12 }}>{blog.viewsCount.toLocaleString()} Views</span>
           </>
         )}
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center border-t border-line" style={{ padding: '12px 16px', gap: 8 }}>
-        {/* Edit — always shown */}
+      <div
+        className="flex items-center"
+        style={{ borderTop: '1px solid rgba(0,0,0,0.07)', padding: '12px 16px', gap: 8 }}
+      >
         <Link
           to={buildRoute.editor(blog.slug)}
-          className="flex items-center rounded-[6px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+          className="flex items-center rounded-[8px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
           style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', flex: 1, justifyContent: 'center' }}
         >
           <Pencil size={13} />
           Edit
         </Link>
 
-        {/* Status-specific primary action */}
         {blog.status === 'published' && (
           <a
             href={buildRoute.blog(blog.slug)}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center rounded-[6px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+            className="flex items-center rounded-[8px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
             style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, flex: 1, justifyContent: 'center', textDecoration: 'none' }}
           >
             <ExternalLink size={13} />
@@ -371,7 +379,7 @@ function BlogCard({
           <>
             <button
               onClick={() => onPublish(blog.slug)}
-              className="flex items-center rounded-[6px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+              className="flex items-center rounded-[8px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
               style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, flex: 1, justifyContent: 'center', cursor: 'pointer', background: 'none' }}
             >
               <Send size={13} />
@@ -379,7 +387,7 @@ function BlogCard({
             </button>
             <button
               onClick={() => onSchedule(blog.slug)}
-              className="flex items-center rounded-[6px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+              className="flex items-center rounded-[8px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
               style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, flex: 1, justifyContent: 'center', cursor: 'pointer', background: 'none' }}
             >
               <CalendarClock size={13} />
@@ -391,7 +399,7 @@ function BlogCard({
         {blog.status === 'archived' && (
           <button
             onClick={() => onUnarchive(blog.slug)}
-            className="flex items-center rounded-[6px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+            className="flex items-center rounded-[8px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
             style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, flex: 1, justifyContent: 'center', cursor: 'pointer', background: 'none' }}
           >
             <RotateCcw size={13} />
@@ -402,7 +410,7 @@ function BlogCard({
         {blog.status === 'scheduled' && (
           <button
             onClick={() => onSchedule(blog.slug)}
-            className="flex items-center rounded-[6px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
+            className="flex items-center rounded-[8px] border border-line text-ink-2 hover:bg-bg-tint hover:text-ink transition-colors"
             style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, flex: 1, justifyContent: 'center', cursor: 'pointer', background: 'none' }}
           >
             <CalendarClock size={13} />
@@ -410,30 +418,27 @@ function BlogCard({
           </button>
         )}
 
-        {/* Destructive / secondary */}
-        <div style={{ flexShrink: 0 }}>
-          {(blog.status === 'published' || blog.status === 'scheduled') && (
-            <button
-              onClick={() => onArchive(blog.slug, blog.title)}
-              className="flex items-center rounded-[6px] border border-line text-ink-3 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-              style={{ gap: 5, padding: '7px 12px', fontSize: 13, cursor: 'pointer', background: 'none' }}
-              title="Archive"
-            >
-              <Archive size={13} />
-            </button>
-          )}
+        {(blog.status === 'published' || blog.status === 'scheduled') && (
+          <button
+            onClick={() => onArchive(blog.slug, blog.title)}
+            className="flex items-center rounded-[8px] border border-line text-ink-3 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+            style={{ padding: '7px 10px', cursor: 'pointer', background: 'none', flexShrink: 0 }}
+            title="Archive"
+          >
+            <Archive size={13} />
+          </button>
+        )}
 
-          {(blog.status === 'draft' || blog.status === 'archived') && (
-            <button
-              onClick={() => onDelete(blog.slug, blog.title)}
-              className="flex items-center rounded-[6px] border border-line text-ink-3 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-              style={{ gap: 5, padding: '7px 12px', fontSize: 13, cursor: 'pointer', background: 'none' }}
-              title="Delete"
-            >
-              <Trash2 size={13} />
-            </button>
-          )}
-        </div>
+        {(blog.status === 'draft' || blog.status === 'archived') && (
+          <button
+            onClick={() => onDelete(blog.slug, blog.title)}
+            className="flex items-center rounded-[8px] border border-line text-ink-3 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+            style={{ padding: '7px 10px', cursor: 'pointer', background: 'none', flexShrink: 0 }}
+            title="Delete"
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
       </div>
     </div>
   )

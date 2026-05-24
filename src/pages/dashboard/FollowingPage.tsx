@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, Tag as TagIcon, Building2, UserMinus } from 'lucide-react'
+import { Users, Tag as TagIcon, Building2, UserMinus, ExternalLink } from 'lucide-react'
 import { useFollowingAuthors, useFollowingTags, useFollowingCompanies } from '@/api/hooks/useFollowingQueries'
 import { useUnfollowProfile } from '@/api/hooks/useProfileMutations'
 import { useUnfollowTag } from '@/api/hooks/useTagMutations'
@@ -88,78 +88,132 @@ export function FollowingPage() {
         <>
           {/* Authors tab */}
           {activeTab === 'authors' && (
-            <div className="flex flex-col" style={{ gap: 12 }}>
-              {(authors ?? []).length === 0 ? (
-                <EmptyState icon={<Users size={24} />} title="Not following anyone yet" subtitle="Follow authors to see their articles in your feed." />
-              ) : (
-                (authors ?? []).map((author) => (
-                  <div key={author.id} className="rounded-[8px] border border-line flex items-center" style={{ padding: '14px 16px', gap: 14 }}>
-                    <Link to={buildRoute.author(author.username)} className="flex-shrink-0">
-                      <UserAvatar avatarUrl={author.avatarUrl} name={author.displayName} size={44} />
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link to={buildRoute.author(author.username)} className="font-semibold text-ink hover:text-ls-accent transition-colors" style={{ fontSize: 14 }}>
-                        {author.displayName}
-                      </Link>
-                      <div className="font-mono text-ink-3" style={{ fontSize: 11 }}>@{author.username}</div>
+            (authors ?? []).length === 0 ? (
+              <EmptyState icon={<Users size={24} />} title="Not following anyone yet" subtitle="Follow authors to see their articles in your feed." />
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                {(authors ?? []).map((author) => (
+                  <div
+                    key={author.id}
+                    className="rounded-[16px] flex flex-col transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+                    style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                  >
+                    <div style={{ padding: '20px 20px 0', flex: 1 }}>
+                      <div className="flex items-start" style={{ gap: 12, marginBottom: 12 }}>
+                        <Link to={buildRoute.author(author.username)} className="flex-shrink-0">
+                          <UserAvatar avatarUrl={author.avatarUrl} name={author.displayName} size={48} />
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            to={buildRoute.author(author.username)}
+                            className="font-serif font-bold text-ink hover:text-ls-accent transition-colors block truncate"
+                            style={{ fontSize: 16 }}
+                          >
+                            {author.displayName}
+                          </Link>
+                          <div className="font-mono text-ink-3" style={{ fontSize: 12, marginTop: 2 }}>@{author.username}</div>
+                        </div>
+                      </div>
+
                       {author.bio && (
-                        <p className="text-ink-2 line-clamp-1" style={{ fontSize: 12, marginTop: 3 }}>{author.bio}</p>
+                        <p className="text-ink-3 line-clamp-2" style={{ fontSize: 13, lineHeight: 1.55 }}>
+                          {author.bio}
+                        </p>
                       )}
+
                       {author.expertiseTags.length > 0 && (
-                        <div className="flex flex-wrap" style={{ gap: 4, marginTop: 5 }}>
-                          {author.expertiseTags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="border border-line text-ink-3 rounded-full font-mono" style={{ padding: '1px 7px', fontSize: 10 }}>
+                        <div className="flex flex-wrap" style={{ gap: 6, marginTop: 10 }}>
+                          {author.expertiseTags.slice(0, 4).map((tag) => (
+                            <span
+                              key={tag}
+                              className="font-mono text-ink-3 rounded-full border border-line bg-bg-soft"
+                              style={{ fontSize: 11, padding: '2px 8px' }}
+                            >
                               {tag}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleUnfollowAuthor(author.id)}
-                      className="flex items-center border border-line text-ink-3 rounded-[6px] hover:border-red-300 hover:text-red-500 transition-colors flex-shrink-0"
-                      style={{ gap: 5, padding: '6px 11px', fontSize: 12 }}
+
+                    <div
+                      className="flex items-center"
+                      style={{ borderTop: '1px solid rgba(0,0,0,0.07)', margin: '16px 0 0', padding: '12px 16px', gap: 8 }}
                     >
-                      <UserMinus size={12} />
-                      Unfollow
-                    </button>
+                      <Link
+                        to={buildRoute.author(author.username)}
+                        className="flex items-center border border-line text-ink-2 rounded-[8px] hover:bg-bg-tint hover:text-ink transition-colors"
+                        style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', flex: 1, justifyContent: 'center' }}
+                      >
+                        <ExternalLink size={13} />
+                        View Profile
+                      </Link>
+                      <button
+                        onClick={() => handleUnfollowAuthor(author.id)}
+                        className="flex items-center border border-line text-ink-3 rounded-[8px] hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        style={{ gap: 5, padding: '7px 12px', fontSize: 13, flexShrink: 0, background: 'none', cursor: 'pointer' }}
+                        title="Unfollow"
+                      >
+                        <UserMinus size={13} />
+                      </button>
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )
           )}
 
           {/* Companies tab */}
           {activeTab === 'companies' && (
-            <div className="flex flex-col" style={{ gap: 12 }}>
-              {(companies ?? []).length === 0 ? (
-                <EmptyState icon={<Building2 size={24} />} title="Not following any companies" subtitle="Follow companies to see their engineering blogs." />
-              ) : (
-                (companies ?? []).map((company) => (
-                  <div key={company.id} className="rounded-[8px] border border-line flex items-center" style={{ padding: '14px 16px', gap: 14 }}>
-                    <Link to={buildRoute.company(company.handle)} className="flex-shrink-0">
-                      <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={44} shape="square" />
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link to={buildRoute.company(company.handle)} className="font-semibold text-ink hover:text-ls-accent transition-colors" style={{ fontSize: 14 }}>
-                        {company.name}
-                      </Link>
-                      <div className="font-mono text-ink-3" style={{ fontSize: 11 }}>@{company.handle}</div>
+            (companies ?? []).length === 0 ? (
+              <EmptyState icon={<Building2 size={24} />} title="Not following any companies" subtitle="Follow companies to see their engineering blogs." />
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                {(companies ?? []).map((company) => (
+                  <div
+                    key={company.id}
+                    className="rounded-[16px] flex flex-col transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+                    style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                  >
+                    <div style={{ padding: '20px 20px 0', flex: 1 }}>
+                      <div className="flex items-start" style={{ gap: 12, marginBottom: 12 }}>
+                        <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={48} shape="square" />
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            to={buildRoute.company(company.handle)}
+                            className="font-serif font-bold text-ink hover:text-ls-accent transition-colors block truncate"
+                            style={{ fontSize: 16 }}
+                          >
+                            {company.name}
+                          </Link>
+                          <div className="font-mono text-ink-3" style={{ fontSize: 12, marginTop: 2 }}>@{company.handle}</div>
+                        </div>
+                      </div>
+
                       {company.tagline && (
-                        <p className="text-ink-2 line-clamp-1" style={{ fontSize: 12, marginTop: 3 }}>{company.tagline}</p>
+                        <p className="text-ink-3 line-clamp-2" style={{ fontSize: 13, lineHeight: 1.55 }}>
+                          {company.tagline}
+                        </p>
                       )}
                     </div>
-                    <Link
-                      to={buildRoute.company(company.handle)}
-                      className="border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint transition-colors flex-shrink-0"
-                      style={{ padding: '6px 11px', fontSize: 12 }}
+
+                    <div
+                      className="flex items-center"
+                      style={{ borderTop: '1px solid rgba(0,0,0,0.07)', margin: '16px 0 0', padding: '12px 16px', gap: 8 }}
                     >
-                      View →
-                    </Link>
+                      <Link
+                        to={buildRoute.company(company.handle)}
+                        className="flex items-center border border-line text-ink-2 rounded-[8px] hover:bg-bg-tint hover:text-ink transition-colors"
+                        style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', flex: 1, justifyContent: 'center' }}
+                      >
+                        <ExternalLink size={13} />
+                        View
+                      </Link>
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )
           )}
 
           {/* Tags tab */}

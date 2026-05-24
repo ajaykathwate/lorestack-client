@@ -95,34 +95,39 @@ export function MyCompaniesPage() {
           {(companies ?? []).map((company) => (
             <div
               key={company.id}
-              className="rounded-[10px] border border-line bg-bg flex flex-col"
-              style={{ overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}
+              className="rounded-[16px] flex flex-col transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+              style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}
             >
-              {/* Card body — grows to push actions to bottom */}
+              {/* Card body */}
               <div className="flex-1" style={{ padding: '20px 20px 0' }}>
-                <div className="flex items-start" style={{ gap: 14 }}>
+                {/* Logo + name */}
+                <div className="flex items-start" style={{ gap: 14, marginBottom: 12 }}>
                   <UserAvatar avatarUrl={company.logoUrl} name={company.name} size={48} shape="square" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-serif font-bold text-ink truncate" style={{ fontSize: 16 }}>
+                    <div className="font-serif font-bold text-ink truncate" style={{ fontSize: 17 }}>
                       {company.name}
                     </div>
-                    <div className="font-mono text-ink-3" style={{ fontSize: 11, marginTop: 2 }}>
+                    <div className="font-mono text-ink-3" style={{ fontSize: 12, marginTop: 3 }}>
                       @{company.handle}
                     </div>
                   </div>
                 </div>
 
                 {company.tagline && (
-                  <p className="text-ink-2 line-clamp-2" style={{ fontSize: 13, marginTop: 12, lineHeight: 1.5 }}>
+                  <p className="text-ink-3 line-clamp-2" style={{ fontSize: 13, lineHeight: 1.55 }}>
                     {company.tagline}
                   </p>
                 )}
 
                 {/* Tech stack tags */}
                 {company.techStack && company.techStack.length > 0 && (
-                  <div className="flex flex-wrap" style={{ gap: 8, marginTop: 10 }}>
+                  <div className="flex flex-wrap" style={{ gap: 6, marginTop: 10 }}>
                     {company.techStack.slice(0, 5).map((tech) => (
-                      <span key={tech} className="font-mono text-ink-3" style={{ fontSize: 11 }}>
+                      <span
+                        key={tech}
+                        className="font-mono text-ink-3 rounded-full border border-line bg-bg-soft"
+                        style={{ fontSize: 11, padding: '2px 8px' }}
+                      >
                         #{tech}
                       </span>
                     ))}
@@ -135,13 +140,14 @@ export function MyCompaniesPage() {
                 <GalleryStrip images={company.galleryImages} />
               )}
 
-              <div className="border-t border-line" style={{ margin: '16px 0 0' }} />
-
               {/* Actions */}
-              <div className="flex items-center" style={{ padding: '12px 16px', gap: 8 }}>
+              <div
+                className="flex items-center"
+                style={{ borderTop: '1px solid rgba(0,0,0,0.07)', margin: '16px 0 0', padding: '12px 16px', gap: 8 }}
+              >
                 <Link
                   to={buildRoute.companyDashboard(company.handle)}
-                  className="flex items-center border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint hover:text-ink transition-colors"
+                  className="flex items-center border border-line text-ink-2 rounded-[8px] hover:bg-bg-tint hover:text-ink transition-colors"
                   style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', flex: 1, justifyContent: 'center' }}
                 >
                   <Building2 size={13} />
@@ -151,16 +157,16 @@ export function MyCompaniesPage() {
                   to={buildRoute.company(company.handle)}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center border border-line text-ink-2 rounded-[6px] hover:bg-bg-tint hover:text-ink transition-colors"
+                  className="flex items-center border border-line text-ink-2 rounded-[8px] hover:bg-bg-tint hover:text-ink transition-colors"
                   style={{ gap: 6, padding: '7px 14px', fontSize: 13, fontWeight: 500, textDecoration: 'none', flex: 1, justifyContent: 'center' }}
                 >
                   <ExternalLink size={13} />
-                  View Public
+                  View
                 </Link>
                 <Link
                   to={buildRoute.companySettings(company.handle)}
-                  className="flex items-center border border-line text-ink-3 rounded-[6px] hover:bg-bg-tint hover:text-ink transition-colors"
-                  style={{ padding: '7px 11px', textDecoration: 'none' }}
+                  className="flex items-center border border-line text-ink-3 rounded-[8px] hover:bg-bg-tint hover:text-ink transition-colors"
+                  style={{ padding: '7px 11px', textDecoration: 'none', flexShrink: 0 }}
                   title="Settings"
                 >
                   <Settings size={13} />

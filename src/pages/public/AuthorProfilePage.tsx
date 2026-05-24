@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Twitter, Linkedin, Github, Globe, Check } from 'lucide-react'
+import { Twitter, Linkedin, Github, Globe } from 'lucide-react'
 import { useProfileByUsername, useAuthorBlogs } from '@/api/hooks/useProfileQueries'
 import { useFollowProfile, useUnfollowProfile } from '@/api/hooks/useProfileMutations'
+import { useFollowingAuthors } from '@/api/hooks/useFollowingQueries'
 import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
@@ -18,7 +19,15 @@ export function AuthorProfilePage() {
   const { mutate: followProfile, isPending: following } = useFollowProfile(username)
   const { mutate: unfollowProfile, isPending: unfollowing } = useUnfollowProfile(username)
 
+  const { data: followingAuthors } = useFollowingAuthors()
   const [isFollowing, setIsFollowing] = useState(false)
+
+  useEffect(() => {
+    if (followingAuthors !== undefined && profile) {
+      setIsFollowing(followingAuthors.some((a) => a.id === profile.id))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [followingAuthors, profile])
 
   const articles = blogs ?? []
   const isLoading = profileLoading
@@ -133,7 +142,7 @@ export function AuthorProfilePage() {
               border: isFollowing ? '1px solid var(--ls-line)' : '1px solid transparent',
             }}
           >
-            {isFollowing ? <><Check size={13} /> Following</> : '+ Follow'}
+            {isFollowing ? 'Unfollow' : '+ Follow'}
           </button>
         </div>
       </div>

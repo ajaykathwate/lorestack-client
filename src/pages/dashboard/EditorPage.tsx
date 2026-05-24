@@ -22,7 +22,7 @@ function normalizeToHtml(body: string): string {
   return marked.parse(body) as string
 }
 
-import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
+import { useEditableBlog } from '@/api/hooks/useBlogQueries'
 import { useCreateBlog, useUpdateBlog, usePublishBlog, useScheduleBlog } from '@/api/hooks/useBlogMutations'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
@@ -216,7 +216,7 @@ export function EditorPage() {
   const navigate = useNavigate()
   const isNew = !urlSlug
 
-  const { data: existingBlog } = useBlogBySlug(urlSlug ?? '')
+  const { data: existingBlog } = useEditableBlog(urlSlug ?? '')
   const { data: companies } = useMyCompanies()
 
   const { mutate: createBlog, isPending: creating } = useCreateBlog()
@@ -301,6 +301,28 @@ export function EditorPage() {
     [companies, companyId]
   )
 
+  // Root-cause #2 fix: when navigating between slugs (or /write → /write/:slug)
+  // React reuses the component instance without remounting. Reset all local state
+  // and the initialized guard so the data effect can re-populate correctly.
+  useEffect(() => {
+    initialized.current = false
+    setCurrentSlug(urlSlug ?? null)
+    setTitle('')
+    setBody('')
+    setArticleType('engineering_blog')
+    setCompanyId('')
+    setTags([])
+    setCoverImageUrl('')
+    setSummary('')
+    setSeoTitle('')
+    setSeoDesc('')
+    setSaveStatus('idle')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlSlug])
+
+  // Root-cause #1 fix: populate form once the blog data arrives.
+  // `initialized.current` is false until the reset effect has fired, so this
+  // only runs once per slug — even if the query refetches.
   useEffect(() => {
     if (existingBlog && !initialized.current) {
       initialized.current = true
@@ -317,6 +339,8 @@ export function EditorPage() {
     }
   }, [existingBlog])
 
+  // For brand-new blogs (/write with no slug): mark initialized so autosave
+  // doesn't fire before the user has typed anything.
   useEffect(() => {
     if (!initialized.current && isNew) initialized.current = true
   }, [isNew])
@@ -461,6 +485,7 @@ export function EditorPage() {
   }
 
   const isPublished = existingBlog?.status === 'published'
+  const isScheduled = existingBlog?.status === 'scheduled'
 
   const plainText = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const wordCount = plainText ? plainText.split(' ').filter(Boolean).length : 0
@@ -663,7 +688,7 @@ export function EditorPage() {
           </button>
 
           {isPublished ? (
-            /* Published articles: only save changes, no publish button */
+            /* Published: save changes only */
             <button
               onClick={handleSaveDraft}
               disabled={creating}
@@ -677,7 +702,49 @@ export function EditorPage() {
             >
               {creating ? 'Saving…' : 'Save changes'}
             </button>
+          ) : isScheduled ? (
+            /* Scheduled: save + publish now + reschedule */
+            <>
+              <button
+                onClick={handleSaveDraft}
+                disabled={creating}
+                style={{
+                  padding: '0 12px', height: 32,
+                  background: 'transparent', border: '1px solid var(--ls-line)', borderRadius: 6,
+                  fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer',
+                  opacity: creating ? 0.4 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Save changes
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                style={{
+                  padding: '0 14px', height: 32,
+                  background: 'transparent', border: '1px solid var(--ls-accent)', borderRadius: 6,
+                  fontSize: 13, fontWeight: 500, color: 'var(--ls-accent-ink)', cursor: 'pointer',
+                  opacity: publishing ? 0.5 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {publishing ? 'Publishing…' : 'Publish Now'}
+              </button>
+              <button
+                onClick={() => setShowScheduleModal(true)}
+                style={{
+                  padding: '0 14px', height: 32,
+                  background: 'var(--ls-ink)', border: 'none', borderRadius: 6,
+                  fontSize: 13, fontWeight: 600, color: 'var(--ls-bg)', cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Reschedule
+              </button>
+            </>
           ) : (
+            /* Draft / new: save draft + publish/schedule split */
             <>
               <button
                 onClick={handleSaveDraft}

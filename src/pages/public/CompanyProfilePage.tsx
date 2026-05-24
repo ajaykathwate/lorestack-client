@@ -1,7 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useCompanyByHandle, useCompanyMembers, useCompanyMilestones } from '@/api/hooks/useCompanyQueries'
 import { useCompanyBlogs } from '@/api/hooks/useBlogQueries'
+import { useFollowCompany, useUnfollowCompany } from '@/api/hooks/useCompanyMutations'
+import { useFollowingCompanies } from '@/api/hooks/useFollowingQueries'
+import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate, formatDateShort, initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
@@ -24,6 +28,7 @@ const MILESTONE_TYPE_LABELS: Record<string, string> = {
 
 export function CompanyProfilePage() {
   const { handle = '' } = useParams()
+  const { isAuthenticated } = useAuthStore()
   const [activeTab, setActiveTab] = useState<Tab>('blogs')
   const [articleTypeFilter, setArticleTypeFilter] = useState<string>('all')
   const [sort, setSort] = useState<SortOption>('newest')
@@ -32,6 +37,30 @@ export function CompanyProfilePage() {
   const { data: blogs } = useCompanyBlogs(handle)
   const { data: members } = useCompanyMembers(handle)
   const { data: milestones } = useCompanyMilestones(handle)
+
+  const { data: followingCompanies } = useFollowingCompanies()
+  const { mutate: followCompany, isPending: following } = useFollowCompany(handle)
+  const { mutate: unfollowCompany, isPending: unfollowing } = useUnfollowCompany(handle)
+  const [isFollowing, setIsFollowing] = useState(false)
+
+  useEffect(() => {
+    if (followingCompanies !== undefined && company) {
+      setIsFollowing(followingCompanies.some((c) => c.id === company.id))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [followingCompanies, company])
+
+  function handleFollow() {
+    if (!isAuthenticated) { toast.error('Sign in to follow companies.'); return }
+    if (!company) return
+    if (isFollowing) {
+      setIsFollowing(false)
+      unfollowCompany(company.id, { onError: () => setIsFollowing(true) })
+    } else {
+      setIsFollowing(true)
+      followCompany(company.id, { onError: () => setIsFollowing(false) })
+    }
+  }
 
   const allArticles = blogs ?? []
   const team = members ?? []
@@ -135,10 +164,17 @@ export function CompanyProfilePage() {
 
         <div className="flex flex-col items-end" style={{ gap: 8 }}>
           <button
-            className="bg-ls-accent text-white font-medium rounded-[6px] hover:bg-accent-ink transition-colors"
-            style={{ padding: '8px 16px', fontSize: 13 }}
+            onClick={handleFollow}
+            disabled={following || unfollowing}
+            className="font-medium rounded-[6px] transition-colors"
+            style={{
+              padding: '8px 16px', fontSize: 13,
+              background: isFollowing ? 'transparent' : 'var(--ls-accent)',
+              color: isFollowing ? 'var(--ls-ink-2)' : 'white',
+              border: isFollowing ? '1px solid var(--ls-line)' : '1px solid transparent',
+            }}
           >
-            + Follow
+            {isFollowing ? 'Unfollow' : '+ Follow'}
           </button>
           <div className="text-ink-3" style={{ fontSize: 11 }}>
             {articles.length} posts · {team.length} team

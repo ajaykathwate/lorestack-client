@@ -51,4 +51,10 @@ export const companyService = {
 
   getBlogs: (handle: string) =>
     apiClient.get<ApiResponse<PaginatedResult<BlogSummary>>>(`/companies/${handle}/blogs`),
+
+  follow: (companyId: string) =>
+    apiClient.post(`/companies/${companyId}/follow`),
+
+  unfollow: (companyId: string) =>
+    apiClient.delete(`/companies/${companyId}/follow`),
 }

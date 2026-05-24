@@ -8,7 +8,10 @@ export function useFollowProfile(username: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (authorProfileId: string) => profileService.follow(authorProfileId),
-    onSettled: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.AUTHOR_PROFILES.BY_USERNAME(username) }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.AUTHOR_PROFILES.BY_USERNAME(username) })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.FOLLOWING.AUTHORS })
+    },
   })
 }
 
@@ -16,7 +19,10 @@ export function useUnfollowProfile(username: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (authorProfileId: string) => profileService.unfollow(authorProfileId),
-    onSettled: () => qc.invalidateQueries({ queryKey: QUERY_KEYS.AUTHOR_PROFILES.BY_USERNAME(username) }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.AUTHOR_PROFILES.BY_USERNAME(username) })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.FOLLOWING.AUTHORS })
+    },
   })
 }
 

@@ -20,6 +20,9 @@ export const blogService = {
   getBySlug: (slug: string) =>
     apiClient.get<ApiResponse<Blog>>(`/blogs/${slug}`),
 
+  getMyBlogBySlug: (slug: string) =>
+    apiClient.get<ApiResponse<Blog>>(`/blogs/me/${slug}`),
+
   update: (slug: string, payload: UpdateBlogPayload) =>
     apiClient.patch<ApiResponse<Blog>>(`/blogs/${slug}`, payload),
 

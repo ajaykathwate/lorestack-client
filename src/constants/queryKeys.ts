@@ -40,6 +40,10 @@ export const QUERY_KEYS = {
     COMPANIES: ['following', 'companies'] as const,
   },
 
+  FOLLOWERS: {
+    AUTHORS: ['followers', 'authors'] as const,
+  },
+
   SAVED: {
     LIST: (page: number) => ['saved', page] as const,
   },

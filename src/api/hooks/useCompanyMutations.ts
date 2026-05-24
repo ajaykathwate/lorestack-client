@@ -69,6 +69,28 @@ export function useDeclineInvite() {
   })
 }
 
+export function useFollowCompany(handle: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (companyId: string) => companyService.follow(companyId),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.COMPANIES.BY_HANDLE(handle) })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.FOLLOWING.COMPANIES })
+    },
+  })
+}
+
+export function useUnfollowCompany(handle: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (companyId: string) => companyService.unfollow(companyId),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.COMPANIES.BY_HANDLE(handle) })
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.FOLLOWING.COMPANIES })
+    },
+  })
+}
+
 export function useAddMilestone(handle: string) {
   const qc = useQueryClient()
 

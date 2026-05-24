@@ -1,123 +1,61 @@
 import { useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
 import {
-  X, LayoutDashboard, BookOpen, FileText, Clock, Archive,
-  Building2, Plus, User, UserCog, Settings, ShieldCheck,
-  Link2, Mail, Trash2, ShieldAlert, Users, Bookmark, ChevronDown,
+  X, LayoutDashboard, BookOpen, Users, Bookmark, Building2,
+  Plus, UserCog, Settings, ShieldCheck, Link2, Mail, Trash2,
+  ShieldAlert, ChevronDown, UserRound,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { useUiStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
 import { TopNav } from '@/shared/components/TopNav'
 import { cn } from '@/lib/utils'
 
-interface NavItem {
-  label: string
-  to: string
-  Icon: LucideIcon
-  external?: boolean
-}
+const SETTINGS_ITEMS = [
+  { label: 'My profile',         to: ROUTES.PROFILE_SETTINGS,   Icon: UserCog },
+  { label: 'Account',            to: ROUTES.SETTINGS_ACCOUNT,   Icon: Settings },
+  { label: 'Security',           to: ROUTES.SETTINGS_SECURITY,  Icon: ShieldCheck },
+  { label: 'Connected accounts', to: ROUTES.SETTINGS_CONNECTED, Icon: Link2 },
+  { label: 'Email preferences',  to: ROUTES.SETTINGS_EMAIL,     Icon: Mail },
+  { label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,    Icon: Trash2 },
+]
 
-interface SectionDef {
-  key: string
-  label: string
-  items: NavItem[]
-  defaultOpen?: boolean
-}
-
-function buildSections(companyHandles: string[], username?: string, isAdmin?: boolean): SectionDef[] {
-  const sections: SectionDef[] = [
-    {
-      key: 'writing',
-      label: 'Writing',
-      defaultOpen: true,
-      items: [
-        { label: 'Published',  to: ROUTES.MY_BLOGS,  Icon: BookOpen },
-        { label: 'Drafts',     to: ROUTES.DRAFTS,    Icon: FileText },
-        { label: 'Scheduled',  to: ROUTES.SCHEDULED, Icon: Clock },
-        { label: 'Archived',   to: ROUTES.ARCHIVED,  Icon: Archive },
-      ],
-    },
-    {
-      key: 'library',
-      label: 'Library',
-      defaultOpen: true,
-      items: [
-        { label: 'Following', to: ROUTES.FOLLOWING, Icon: Users },
-        { label: 'Saved',     to: ROUTES.SAVED,     Icon: Bookmark },
-      ],
-    },
-    {
-      key: 'companies',
-      label: 'Companies',
-      defaultOpen: true,
-      items: [
-        ...companyHandles.map<NavItem>((handle) => ({
-          label: handle,
-          to: buildRoute.companyDashboard(handle),
-          Icon: Building2,
-        })),
-        { label: 'Create company', to: ROUTES.CREATE_COMPANY, Icon: Plus },
-      ],
-    },
-    {
-      key: 'you',
-      label: 'You',
-      defaultOpen: true,
-      items: [
-        {
-          label: 'Profile',
-          to: username ? buildRoute.author(username) : ROUTES.PROFILE_SETTINGS,
-          Icon: User,
-          external: true,
-        },
-      ],
-    },
-    {
-      key: 'settings',
-      label: 'Settings',
-      defaultOpen: false, // collapsed by default
-      items: [
-        { label: 'My profile',         to: ROUTES.PROFILE_SETTINGS,   Icon: UserCog },
-        { label: 'Account',            to: ROUTES.SETTINGS_ACCOUNT,   Icon: Settings },
-        { label: 'Security',           to: ROUTES.SETTINGS_SECURITY,  Icon: ShieldCheck },
-        { label: 'Connected accounts', to: ROUTES.SETTINGS_CONNECTED, Icon: Link2 },
-        { label: 'Email preferences',  to: ROUTES.SETTINGS_EMAIL,     Icon: Mail },
-        { label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,    Icon: Trash2 },
-      ],
-    },
-    ...(isAdmin ? [{
-      key: 'platform',
-      label: 'Platform',
-      defaultOpen: false,
-      items: [{ label: 'Admin panel', to: ROUTES.ADMIN_OVERVIEW, Icon: ShieldAlert as LucideIcon }],
-    }] : []),
-  ]
-  return sections
+function NavItem({ to, label, Icon, external }: { to: string; label: string; Icon: React.ElementType; external?: boolean }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2',
+          isActive && !external
+            ? 'bg-bg-soft text-ink font-semibold border-ls-accent'
+            : 'text-ink-2 border-transparent hover:bg-bg-tint hover:text-ink',
+        )
+      }
+      style={{ fontSize: 13 }}
+    >
+      <Icon size={14} className="flex-shrink-0 text-ink-3" />
+      <span className="flex-1 truncate">{label}</span>
+    </NavLink>
+  )
 }
 
 function SidebarNav() {
   const { authorProfile, user } = useAuthStore()
   const isAdmin = user?.platformRole === 'platform_admin'
-  const sections = buildSections([], authorProfile?.username, isAdmin)
-
-  const initialOpen = Object.fromEntries(sections.map((s) => [s.key, s.defaultOpen ?? true]))
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(initialOpen)
-
-  function toggle(key: string) {
-    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [platformOpen, setPlatformOpen] = useState(false)
 
   return (
     <nav className="flex-1 min-h-0 overflow-y-auto py-3 px-2" style={{ scrollbarWidth: 'none' }}>
-      {/* Dashboard link — always visible, not in a section */}
+
+      {/* Dashboard */}
       <NavLink
         to={ROUTES.DASHBOARD}
         end
         className={({ isActive }) =>
           cn(
-            'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 mb-1',
+            'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 mb-0.5',
             isActive
               ? 'bg-bg-soft text-ink font-semibold border-ls-accent'
               : 'text-ink-2 border-transparent hover:bg-bg-tint hover:text-ink',
@@ -129,59 +67,104 @@ function SidebarNav() {
         <span>Dashboard</span>
       </NavLink>
 
-      {sections.map((section) => {
-        const isOpen = openSections[section.key] ?? true
-        return (
-          <div key={section.key} className="mt-3">
-            {/* Section header — clickable to collapse */}
-            <button
-              onClick={() => toggle(section.key)}
-              className="w-full flex items-center justify-between px-2 mb-1 group"
-              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-            >
-              <span
-                className="font-mono uppercase text-ink-3 group-hover:text-ink-2 transition-colors"
-                style={{ fontSize: 10, letterSpacing: '1.2px' }}
-              >
-                {section.label}
-              </span>
-              <ChevronDown
-                size={11}
-                className="text-ink-3 group-hover:text-ink-2 transition-all"
-                style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}
-              />
-            </button>
+      {/* My Blogs */}
+      <NavItem to={ROUTES.MY_BLOGS} label="My Blogs" Icon={BookOpen} />
 
-            {/* Collapsible items */}
-            {isOpen && (
-              <div className="flex flex-col gap-0">
-                {section.items.map((item) => {
-                  const Icon = item.Icon
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2',
-                          isActive && !item.external
-                            ? 'bg-bg-soft text-ink font-semibold border-ls-accent'
-                            : 'text-ink-2 border-transparent hover:bg-bg-tint hover:text-ink',
-                        )
-                      }
-                      style={{ fontSize: 13 }}
-                    >
-                      <Icon size={14} className="flex-shrink-0 text-ink-3" />
-                      <span className="flex-1 truncate">{item.label}</span>
-                    </NavLink>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )
-      })}
+      {/* View My Profile */}
+      <NavLink
+        to={authorProfile ? buildRoute.author(authorProfile.username) : ROUTES.PROFILE_SETTINGS}
+        className="flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 border-transparent text-ink-2 hover:bg-bg-tint hover:text-ink mb-0.5"
+        style={{ fontSize: 13 }}
+      >
+        <UserRound size={14} className="flex-shrink-0 text-ink-3" />
+        <span>View My Profile</span>
+      </NavLink>
+
+      {/* Divider */}
+      <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
+
+      {/* Following */}
+      <NavItem to={ROUTES.FOLLOWING} label="Following" Icon={Users} />
+
+      {/* Followers */}
+      <NavItem to={ROUTES.FOLLOWERS} label="Followers" Icon={Users} />
+
+      {/* Saved */}
+      <NavItem to={ROUTES.SAVED} label="Saved" Icon={Bookmark} />
+
+      {/* Divider */}
+      <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
+
+      {/* My Companies */}
+      <NavItem to={ROUTES.MY_COMPANIES} label="My Companies" Icon={Building2} />
+
+      {/* Create Company */}
+      <NavItem to={ROUTES.CREATE_COMPANY} label="Create Company" Icon={Plus} />
+
+      {/* Divider */}
+      <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
+
+      {/* Settings — collapsible */}
+      <CollapsibleSection
+        label="Settings"
+        isOpen={settingsOpen}
+        onToggle={() => setSettingsOpen((v) => !v)}
+      >
+        {SETTINGS_ITEMS.map((item) => (
+          <NavItem key={item.to} to={item.to} label={item.label} Icon={item.Icon} />
+        ))}
+      </CollapsibleSection>
+
+      {/* Platform admin */}
+      {isAdmin && (
+        <CollapsibleSection
+          label="Platform"
+          isOpen={platformOpen}
+          onToggle={() => setPlatformOpen((v) => !v)}
+        >
+          <NavItem to={ROUTES.ADMIN_OVERVIEW} label="Admin panel" Icon={ShieldAlert as React.ElementType} />
+        </CollapsibleSection>
+      )}
     </nav>
+  )
+}
+
+function CollapsibleSection({
+  label,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  label: string
+  isOpen: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="mt-1">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-2 mb-1 group"
+        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+      >
+        <span
+          className="font-mono uppercase text-ink-3 group-hover:text-ink-2 transition-colors"
+          style={{ fontSize: 10, letterSpacing: '1.2px' }}
+        >
+          {label}
+        </span>
+        <ChevronDown
+          size={11}
+          className="text-ink-3 group-hover:text-ink-2"
+          style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}
+        />
+      </button>
+      {isOpen && (
+        <div className="flex flex-col gap-0">
+          {children}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -189,10 +172,10 @@ export function DashboardLayout() {
   const { sidebarOpen, setSidebarOpen } = useUiStore()
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-soft font-sans">
+    <div className="h-screen flex flex-col bg-bg-soft font-sans">
       <TopNav />
 
-      <div className="flex flex-1 relative min-h-0">
+      <div className="flex flex-1 overflow-hidden">
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div
@@ -201,14 +184,15 @@ export function DashboardLayout() {
           />
         )}
 
-        {/* Sidebar — fixed height + internal scroll */}
+        {/* Sidebar */}
         <aside
           className={cn(
             'fixed md:sticky top-[46px] z-50 flex flex-col border-r border-line bg-bg transition-transform duration-200 md:translate-x-0',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           )}
           style={{
-            width: 'clamp(190px, 15vw, 224px)',
+            width: 220,
+            flexShrink: 0,
             height: 'calc(100vh - 46px)',
             overflowY: 'hidden',
           }}
@@ -228,7 +212,7 @@ export function DashboardLayout() {
         </aside>
 
         {/* Main area */}
-        <main className="flex-1 min-w-0 p-4 lg:p-6 overflow-y-auto">
+        <main className="flex-1 min-w-0 overflow-y-auto p-4 lg:p-6">
           <Outlet />
         </main>
       </div>

@@ -23,6 +23,26 @@ export function useBlogBySlug(slug: string) {
   })
 }
 
+// For editing: tries the private endpoint first (/blogs/me/:slug), falls back
+// to the public endpoint which the authenticated apiClient can also serve for
+// the owner's own drafts on some backend configurations.
+export function useEditableBlog(slug: string) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  return useQuery({
+    queryKey: [...QUERY_KEYS.BLOGS.BY_SLUG(slug), 'editable'] as const,
+    queryFn: async () => {
+      try {
+        return await blogService.getMyBlogBySlug(slug).then((r) => r.data.data)
+      } catch {
+        return blogService.getBySlug(slug).then((r) => r.data.data)
+      }
+    },
+    enabled: !!slug && isAuthenticated,
+    retry: false,
+    staleTime: 0,
+  })
+}
+
 export function useExplore(params?: ExploreParams) {
   return useQuery({
     queryKey: QUERY_KEYS.BLOGS.EXPLORE((params ?? {}) as Record<string, unknown>),

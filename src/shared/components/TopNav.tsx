@@ -174,15 +174,32 @@ export function TopNav() {
             {isAuthenticated ? (
               <>
                 {authorProfile && (
-                  <div className="px-3 py-2.5 border border-line rounded-[6px] bg-bg-soft mb-1">
-                    <div className="font-semibold text-ink" style={{ fontSize: 13 }}>
-                      {authorProfile.displayName}
-                    </div>
-                    {authorProfile.username && (
-                      <div className="text-ink-3 font-mono" style={{ fontSize: 11 }}>
-                        @{authorProfile.username}
+                  <div className="flex items-center border border-line rounded-[6px] bg-bg-soft mb-1" style={{ gap: 10, padding: '10px 12px' }}>
+                    {authorProfile.avatarUrl ? (
+                      <img
+                        src={authorProfile.avatarUrl}
+                        alt={avatarInitials}
+                        className="rounded-full object-cover flex-shrink-0"
+                        style={{ width: 36, height: 36 }}
+                      />
+                    ) : (
+                      <div
+                        className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
+                        style={{ width: 36, height: 36, fontSize: 12 }}
+                      >
+                        {avatarInitials}
                       </div>
                     )}
+                    <div className="min-w-0">
+                      <div className="font-semibold text-ink truncate" style={{ fontSize: 13 }}>
+                        {authorProfile.displayName}
+                      </div>
+                      {authorProfile.username && (
+                        <div className="text-ink-3 font-mono" style={{ fontSize: 11 }}>
+                          @{authorProfile.username}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 <Link
@@ -356,13 +373,18 @@ export function TopNav() {
                   <button
                     onClick={() => setShowMenu((v) => !v)}
                     className={cn(
-                      'rounded-full bg-bg-tint border flex items-center justify-center font-mono text-ink-2 transition-colors focus:outline-none',
+                      'rounded-full border flex items-center justify-center font-mono text-ink-2 transition-colors focus:outline-none overflow-hidden',
                       showMenu ? 'border-ls-accent' : 'border-line hover:border-line-strong',
+                      !authorProfile?.avatarUrl && 'bg-bg-tint',
                     )}
                     style={{ width: 30, height: 30, fontSize: 11 }}
                     aria-label="Account menu"
                   >
-                    {avatarInitials}
+                    {authorProfile?.avatarUrl ? (
+                      <img src={authorProfile.avatarUrl} alt={avatarInitials} className="w-full h-full object-cover" />
+                    ) : (
+                      avatarInitials
+                    )}
                   </button>
 
                   {showMenu && (
@@ -371,15 +393,32 @@ export function TopNav() {
                       style={{ minWidth: 188, boxShadow: '0 8px 24px rgba(0,0,0,.12)' }}
                     >
                       {authorProfile && (
-                        <div className="px-3 py-2.5 border-b border-line-soft">
-                          <div className="font-semibold text-ink truncate" style={{ fontSize: 13 }}>
-                            {authorProfile.displayName}
-                          </div>
-                          {authorProfile.username && (
-                            <div className="text-ink-3 font-mono" style={{ fontSize: 11 }}>
-                              @{authorProfile.username}
+                        <div className="flex items-center border-b border-line-soft" style={{ gap: 10, padding: '10px 12px' }}>
+                          {authorProfile.avatarUrl ? (
+                            <img
+                              src={authorProfile.avatarUrl}
+                              alt={avatarInitials}
+                              className="rounded-full object-cover flex-shrink-0"
+                              style={{ width: 32, height: 32 }}
+                            />
+                          ) : (
+                            <div
+                              className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
+                              style={{ width: 32, height: 32, fontSize: 11 }}
+                            >
+                              {avatarInitials}
                             </div>
                           )}
+                          <div className="min-w-0">
+                            <div className="font-semibold text-ink truncate" style={{ fontSize: 13 }}>
+                              {authorProfile.displayName}
+                            </div>
+                            {authorProfile.username && (
+                              <div className="text-ink-3 font-mono" style={{ fontSize: 11 }}>
+                                @{authorProfile.username}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
 

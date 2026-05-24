@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTags, useTrendingTags } from '@/api/hooks/useTagQueries'
 import { buildRoute } from '@/constants/routes'
 import { Spinner } from '@/shared/components/feedback/Spinner'
+import { Search } from 'lucide-react'
 
 export function TagsPage() {
   const [query, setQuery] = useState('')
@@ -24,16 +25,13 @@ export function TagsPage() {
         <h1 className="font-serif font-bold text-ink" style={{ fontSize: 40, marginTop: 6 }}>
           Topics &amp; Tags
         </h1>
-        <p className="font-serif text-ink-2" style={{ maxWidth: 520, marginTop: 8, fontSize: 14 }}>
-          Every tag used across {allTags?.length ?? '—'} topics on Lorestack. Click any tag to browse its articles.
-        </p>
 
         {/* Search */}
         <div
           className="flex items-center gap-2 border border-line bg-bg-soft rounded-[6px] text-ink-3 hover:border-line-strong transition-colors"
           style={{ marginTop: 16, padding: '8px 12px', fontSize: 13, maxWidth: 360 }}
         >
-          <span className="font-mono text-ink-2" style={{ fontSize: 15 }}>⌕</span>
+          <span className="font-mono text-ink-2" style={{ fontSize: 15 }}><Search className='w-4 h-4'/></span>
           <input
             type="text"
             value={query}

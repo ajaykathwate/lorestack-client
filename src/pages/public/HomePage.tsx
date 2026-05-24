@@ -112,12 +112,21 @@ export function HomePage() {
                     {featuredArticle.title}
                   </div>
                   <div className="text-ink-3 flex items-center" style={{ fontSize: 11, marginTop: 8, gap: 6 }}>
-                    <div
-                      className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2"
-                      style={{ width: 16, height: 16, fontSize: 8 }}
-                    >
-                      {initials(featuredArticle.authorProfile?.displayName ?? featuredArticle.title)}
-                    </div>
+                    {featuredArticle.authorProfile?.avatarUrl ? (
+                      <img
+                        src={featuredArticle.authorProfile.avatarUrl}
+                        alt={featuredArticle.authorProfile.displayName}
+                        className="rounded-full object-cover flex-shrink-0"
+                        style={{ width: 16, height: 16 }}
+                      />
+                    ) : (
+                      <div
+                        className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono text-ink-2 flex-shrink-0"
+                        style={{ width: 16, height: 16, fontSize: 8 }}
+                      >
+                        {initials(featuredArticle.authorProfile?.displayName ?? featuredArticle.title)}
+                      </div>
+                    )}
                     {featuredArticle.readingTimeMinutes ? `${featuredArticle.readingTimeMinutes} min read` : articleTypeLabel(featuredArticle.articleType)}
                   </div>
                 </Link>

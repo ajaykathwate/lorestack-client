@@ -41,6 +41,7 @@ import { TeamManagementPage } from '@/pages/dashboard/TeamManagementPage'
 import { CreateCompanyPage } from '@/pages/dashboard/CreateCompanyPage'
 import { FollowingPage } from '@/pages/dashboard/FollowingPage'
 import { FollowersPage } from '@/pages/dashboard/FollowersPage'
+import { MyProfilePage } from '@/pages/dashboard/MyProfilePage'
 import { SavedPage } from '@/pages/dashboard/SavedPage'
 import { MyCompaniesPage } from '@/pages/dashboard/MyCompaniesPage'
 
@@ -111,6 +112,7 @@ const router = createBrowserRouter([
           // Dashboard & writing
           { path: ROUTES.DASHBOARD,          element: <DashboardPage /> },
           { path: ROUTES.MY_BLOGS,           element: <MyBlogsPage /> },
+          { path: ROUTES.MY_PUBLIC_PROFILE,  element: <MyProfilePage /> },
           { path: ROUTES.NOTIFICATIONS,      element: <NotificationsPage /> },
           { path: ROUTES.FOLLOWING,          element: <FollowingPage /> },
           { path: ROUTES.FOLLOWERS,          element: <FollowersPage /> },

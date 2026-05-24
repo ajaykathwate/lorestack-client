@@ -5,7 +5,7 @@ import {
   UserCog, Settings, ShieldCheck, Link2, Mail, Trash2,
   ShieldAlert, ChevronDown, UserRound,
 } from 'lucide-react'
-import { ROUTES, buildRoute } from '@/constants/routes'
+import { ROUTES } from '@/constants/routes'
 import { useUiStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
 import { TopNav } from '@/shared/components/TopNav'
@@ -42,7 +42,7 @@ function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.E
 }
 
 function SidebarNav() {
-  const { authorProfile, user } = useAuthStore()
+  const { user } = useAuthStore()
   const isAdmin = user?.platformRole === 'platform_admin'
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [platformOpen, setPlatformOpen] = useState(false)
@@ -60,15 +60,7 @@ function SidebarNav() {
       <NavItem to={ROUTES.SAVED} label="Saved" Icon={Bookmark} />
       <NavItem to={ROUTES.MY_COMPANIES} label="Companies" Icon={Building2} />
 
-      {/* View My Profile — never shows as active (it's a public page) */}
-      <NavLink
-        to={authorProfile ? buildRoute.author(authorProfile.username) : ROUTES.PROFILE_SETTINGS}
-        className="flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 border-transparent text-ink-2 hover:bg-bg-tint hover:text-ink"
-        style={{ fontSize: 13 }}
-      >
-        <UserRound size={14} className="flex-shrink-0 text-ink-3" />
-        <span className="flex-1 truncate">View My Profile</span>
-      </NavLink>
+      <NavItem to={ROUTES.MY_PUBLIC_PROFILE} label="View My Profile" Icon={UserRound} />
 
       <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
 

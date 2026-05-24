@@ -26,6 +26,7 @@ export const ROUTES = {
   EDITOR_NEW: '/write',
   EDITOR: '/write/:slug',
   PROFILE_SETTINGS: '/me/profile',
+  MY_PUBLIC_PROFILE: '/me/public-profile',
   NOTIFICATIONS: '/me/notifications',
   FOLLOWING: '/me/following',
   FOLLOWERS: '/me/followers',

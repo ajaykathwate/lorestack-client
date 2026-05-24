@@ -58,7 +58,7 @@ export function PublicLayout() {
               <span className="font-mono uppercase text-ink-3" style={{ fontSize: 10, letterSpacing: '1.2px' }}>Write</span>
               <Link to={ROUTES.EDITOR_NEW} className="hover:text-ink-2 transition-colors">Start writing</Link>
               <Link to={ROUTES.DASHBOARD} className="hover:text-ink-2 transition-colors">Dashboard</Link>
-              <Link to={ROUTES.SCHEDULED} className="hover:text-ink-2 transition-colors">Schedule</Link>
+              <Link to={ROUTES.MY_BLOGS} className="hover:text-ink-2 transition-colors">My blogs</Link>
               <Link to={ROUTES.EXPLORE} className="hover:text-ink-2 transition-colors">Explore</Link>
             </div>
             <div className="flex items-center gap-4 text-ink-3" style={{ fontSize: 11 }}>

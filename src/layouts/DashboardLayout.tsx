@@ -27,7 +27,7 @@ function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.E
       end
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2',
+          'flex items-center gap-2.5 px-[10px] py-[7px] rounded-[4px] transition-colors border-l-2 my-2',
           isActive
             ? 'bg-bg-soft text-ink font-semibold border-ls-accent'
             : 'text-ink-2 border-transparent hover:bg-bg-tint hover:text-ink',
@@ -48,7 +48,7 @@ function SidebarNav() {
   const [platformOpen, setPlatformOpen] = useState(false)
 
   return (
-    <nav className="flex-1 min-h-0 overflow-y-auto py-3 px-2" style={{ scrollbarWidth: 'none' }}>
+    <nav className="flex-1 min-h-0 overflow-y-auto py-3 px-2 gap-2" style={{ scrollbarWidth: 'none' }}>
 
       <NavItem to={ROUTES.DASHBOARD} label="Dashboard" Icon={LayoutDashboard} />
       <NavItem to={ROUTES.MY_BLOGS} label="My Blogs" Icon={BookOpen} />

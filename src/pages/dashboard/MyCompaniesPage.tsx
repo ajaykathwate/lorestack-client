@@ -1,9 +1,49 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Building2, Plus, Settings, ExternalLink } from 'lucide-react'
 import { useMyCompanies } from '@/api/hooks/useCompanyQueries'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { initials } from '@/lib/utils'
 import { Spinner } from '@/shared/components/feedback/Spinner'
+
+function GalleryStrip({ images }: { images: string[] }) {
+  const [idx, setIdx] = useState(0)
+  if (images.length === 0) return null
+
+  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    if (x < rect.width / 2) {
+      setIdx((prev) => (prev - 1 + images.length) % images.length)
+    } else {
+      setIdx((prev) => (prev + 1) % images.length)
+    }
+  }
+
+  return (
+    <div style={{ padding: '14px 20px 0' }}>
+      <div
+        className="relative rounded-[6px] overflow-hidden cursor-pointer select-none"
+        style={{ height: 100, border: '1px solid var(--ls-line)' }}
+        onClick={handleClick}
+      >
+        <img
+          src={images[idx]}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        {images.length > 1 && (
+          <div
+            className="absolute bottom-2 right-2 font-mono text-white rounded-[3px]"
+            style={{ fontSize: 9, padding: '1px 6px', background: 'rgba(0,0,0,.45)' }}
+          >
+            {idx + 1}/{images.length}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export function MyCompaniesPage() {
   const { data: companies, isLoading } = useMyCompanies()
@@ -58,8 +98,8 @@ export function MyCompaniesPage() {
               className="rounded-[10px] border border-line bg-bg flex flex-col"
               style={{ overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}
             >
-              {/* Card body */}
-              <div style={{ padding: '20px 20px 0' }}>
+              {/* Card body — grows to push actions to bottom */}
+              <div className="flex-1" style={{ padding: '20px 20px 0' }}>
                 <div className="flex items-start" style={{ gap: 14 }}>
                   {company.logoUrl ? (
                     <img
@@ -106,23 +146,7 @@ export function MyCompaniesPage() {
 
               {/* Gallery strip */}
               {company.galleryImages && company.galleryImages.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex', gap: 8,
-                    padding: '14px 20px 0',
-                    overflowX: 'auto', scrollbarWidth: 'none',
-                  }}
-                >
-                  {company.galleryImages.map((url, i) => (
-                    <img
-                      key={i}
-                      src={url}
-                      alt=""
-                      className="rounded-[6px] flex-shrink-0 object-cover"
-                      style={{ height: 72, width: 108, border: '1px solid var(--ls-line)' }}
-                    />
-                  ))}
-                </div>
+                <GalleryStrip images={company.galleryImages} />
               )}
 
               <div className="border-t border-line" style={{ margin: '16px 0 0' }} />

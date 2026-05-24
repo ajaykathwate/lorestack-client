@@ -246,10 +246,6 @@ export function BlogPage() {
               <Clock size={12} />
               {readMin} min read
             </span>
-            <span className="flex items-center" style={{ gap: 5 }}>
-              <FileText size={12} />
-              {wordCount.toLocaleString()} words
-            </span>
             {viewsCount > 0 && (
               <span className="flex items-center" style={{ gap: 5 }}>
                 <Eye size={12} />

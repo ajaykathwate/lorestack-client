@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, ExternalLink } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import { useAllCompanies } from '@/api/hooks/useCompanyQueries'
 import { buildRoute, ROUTES } from '@/constants/routes'
 import { initials } from '@/lib/utils'
@@ -16,6 +16,42 @@ const INDUSTRY_MAP: Record<string, string> = {
   Infra: 'infra',
   FinTech: 'fintech',
   Platform: 'platform',
+}
+
+function GalleryStrip({ images }: { images: string[] }) {
+  const [idx, setIdx] = useState(0)
+  if (images.length === 0) return null
+
+  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    e.preventDefault()
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    if (x < rect.width / 2) {
+      setIdx((prev) => (prev - 1 + images.length) % images.length)
+    } else {
+      setIdx((prev) => (prev + 1) % images.length)
+    }
+  }
+
+  return (
+    <div style={{ padding: '14px 20px 0' }}>
+      <div
+        className="relative rounded-[6px] overflow-hidden cursor-pointer select-none"
+        style={{ height: 100, border: '1px solid var(--ls-line)' }}
+        onClick={handleClick}
+      >
+        <img src={images[idx]} alt="" className="w-full h-full object-cover" />
+        {images.length > 1 && (
+          <div
+            className="absolute bottom-2 right-2 font-mono text-white rounded-[3px]"
+            style={{ fontSize: 9, padding: '1px 6px', background: 'rgba(0,0,0,.45)' }}
+          >
+            {idx + 1}/{images.length}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export function CompaniesPage() {
@@ -99,72 +135,78 @@ export function CompaniesPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
             {filtered.map((company) => (
               <Link
                 key={company.id}
                 to={buildRoute.company(company.handle)}
-                className="rounded-[8px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors group"
+                className="rounded-[10px] border border-line bg-bg flex flex-col hover:border-line-strong hover:shadow-sm transition-all"
+                style={{ overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.04)', textDecoration: 'none' }}
               >
-                {/* Cover / Logo header */}
-                <div className="relative bg-bg-tint" style={{ height: 72 }}>
-                  {company.coverImageUrl && (
-                    <img src={company.coverImageUrl} alt="" className="w-full h-full object-cover" />
-                  )}
-                  <div className="absolute" style={{ bottom: -20, left: 16 }}>
+                {/* Card body — grows to fill */}
+                <div className="flex-1" style={{ padding: '20px 20px 0' }}>
+                  <div className="flex items-start" style={{ gap: 14 }}>
                     {company.logoUrl ? (
                       <img
                         src={company.logoUrl}
                         alt={company.name}
-                        className="rounded-[6px] border-2 border-bg object-cover"
-                        style={{ width: 40, height: 40 }}
+                        className="rounded-[8px] object-cover flex-shrink-0"
+                        style={{ width: 48, height: 48, border: '1px solid var(--ls-line)' }}
                       />
                     ) : (
                       <div
-                        className="rounded-[6px] border-2 border-bg bg-bg-tint flex items-center justify-center font-mono font-bold text-ink-2"
-                        style={{ width: 40, height: 40, fontSize: 14 }}
+                        className="rounded-[8px] bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-2 flex-shrink-0"
+                        style={{ width: 48, height: 48, fontSize: 16 }}
                       >
-                        {initials(company.name)}
+                        {initials(company.name).charAt(0)}
                       </div>
                     )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-serif font-bold text-ink truncate" style={{ fontSize: 16 }}>
+                        {company.name}
+                      </div>
+                      <div className="font-mono text-ink-3" style={{ fontSize: 11, marginTop: 2 }}>
+                        @{company.handle}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div style={{ padding: '28px 16px 16px' }}>
-                  <div className="font-semibold text-ink group-hover:text-ls-accent transition-colors" style={{ fontSize: 14 }}>
-                    {company.name}
-                  </div>
-                  <div className="font-mono text-ink-3" style={{ fontSize: 11, marginTop: 1 }}>@{company.handle}</div>
                   {company.tagline && (
-                    <p className="text-ink-2 line-clamp-2" style={{ fontSize: 12, marginTop: 6, lineHeight: 1.5 }}>
+                    <p className="text-ink-2 line-clamp-2" style={{ fontSize: 13, marginTop: 12, lineHeight: 1.5 }}>
                       {company.tagline}
                     </p>
                   )}
 
-                  <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 10 }}>
+                  {/* Industry / stage tags */}
+                  <div className="flex flex-wrap" style={{ gap: 8, marginTop: 10 }}>
                     {company.industry && (
-                      <span
-                        className="border border-line text-ink-3 rounded-full font-mono"
-                        style={{ padding: '2px 8px', fontSize: 10 }}
-                      >
+                      <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>
                         {company.industry}
                       </span>
                     )}
                     {company.stage && (
-                      <span
-                        className="border border-line text-ink-3 rounded-full font-mono"
-                        style={{ padding: '2px 8px', fontSize: 10 }}
-                      >
+                      <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>
                         {company.stage}
                       </span>
                     )}
-                    {company.websiteUrl && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 10 }}>
-                        <ExternalLink size={9} />
-                        website
+                    {company.techStack && company.techStack.slice(0, 3).map((tech) => (
+                      <span key={tech} className="font-mono text-ink-3" style={{ fontSize: 11 }}>
+                        #{tech}
                       </span>
-                    )}
+                    ))}
                   </div>
+                </div>
+
+                {/* Gallery strip */}
+                {company.galleryImages && company.galleryImages.length > 0 && (
+                  <GalleryStrip images={company.galleryImages} />
+                )}
+
+                {/* Fixed bottom action */}
+                <div className="border-t border-line mt-auto" style={{ padding: '11px 18px' }}>
+                  <span className="font-mono text-ls-accent" style={{ fontSize: 12 }}>
+                    View profile →
+                  </span>
                 </div>
               </Link>
             ))}

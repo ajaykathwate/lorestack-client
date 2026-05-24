@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Clock, Bookmark } from 'lucide-react'
+import { Heart, Clock } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useExplore } from '@/api/hooks/useBlogQueries'
 import { useHome } from '@/api/hooks/useHomeQuery'
 import { useStats } from '@/api/hooks/useStatsQuery'
 import { ROUTES, buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDateShort, initials } from '@/lib/utils'
+import { BlogFeedCard } from '@/shared/components/cards/BlogFeedCard'
 import type { ArticleType } from '@/types/api'
 
 const TYPE_PILLS: { label: string; value: ArticleType | '' }[] = [
@@ -135,11 +136,11 @@ export function HomePage() {
             </div>
             <div className="flex flex-wrap" style={{ gap: 8 }}>
               <Link
-                to={ROUTES.DRAFTS}
+                to={ROUTES.MY_BLOGS}
                 className="border border-line text-ink-2 font-medium rounded-[6px] hover:bg-bg-tint transition-colors"
                 style={{ padding: '8px 14px', fontSize: 13 }}
               >
-                My drafts
+                My blogs
               </Link>
               <Link
                 to={ROUTES.DASHBOARD}
@@ -161,21 +162,24 @@ export function HomePage() {
       )}
 
       {/* ── BROWSE BY TYPE ── */}
-      <section className="flex items-center px-4 sm:px-8 lg:px-14 pt-6" style={{ gap: 14, overflow: 'hidden' }}>
-        <span className="font-mono uppercase text-ink-3 flex-shrink-0" style={{ fontSize: 11, letterSpacing: '1.2px' }}>
-          Browse
-        </span>
-        <div className="flex overflow-x-auto" style={{ gap: 6, flex: 1, scrollbarWidth: 'none' }}>
+      <section
+        className="bg-bg border-b border-line"
+        style={{ position: 'sticky', top: 46, zIndex: 20, boxShadow: '0 2px 12px rgba(0,0,0,.07)', paddingTop: 10 }}
+      >
+        <div
+          className="flex overflow-x-auto"
+          style={{ gap: 4, padding: '0 56px 10px', scrollbarWidth: 'none' }}
+        >
           {TYPE_PILLS.map((pill) => (
             <button
               key={pill.value}
               onClick={() => setActiveType(pill.value)}
-              className={`flex-shrink-0 rounded-full border transition-colors font-sans ${
+              className={`flex-shrink-0 rounded-full font-sans transition-colors ${
                 activeType === pill.value
-                  ? 'bg-ink text-bg border-ink'
-                  : 'border-line text-ink-2 hover:border-line-strong hover:text-ink bg-bg'
+                  ? 'bg-ink text-bg font-medium'
+                  : 'text-ink-2 hover:bg-bg-tint hover:text-ink'
               }`}
-              style={{ padding: '4px 12px', fontSize: 12 }}
+              style={{ padding: '5px 14px', fontSize: 12 }}
             >
               {pill.label}
             </button>
@@ -185,7 +189,7 @@ export function HomePage() {
 
       {/* ── TRENDING THIS WEEK ── */}
       <section className="px-4 sm:px-8 lg:px-14 pt-5 pb-8">
-        <div className="flex items-baseline" style={{ gap: 14, marginBottom: 14 }}>
+        <div className="flex items-baseline" style={{ gap: 14, marginBottom: 16 }}>
           <h2 className="font-serif font-bold text-ink" style={{ fontSize: 22 }}>Trending this week</h2>
           <div className="flex-1 border-t border-line" />
           <Link to={ROUTES.EXPLORE} className="text-ls-accent underline underline-offset-2 flex-shrink-0" style={{ fontSize: 11 }}>
@@ -194,46 +198,77 @@ export function HomePage() {
         </div>
 
         {trendingArticles.length === 0 ? (
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: i === 0 ? 320 : 180 }} />
-            ))}
+          <div className="grid gap-4" style={{ gridTemplateColumns: '3fr 2fr' }}>
+            <div className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 380 }} />
+            <div className="flex flex-col gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-[6px] border border-line bg-bg-tint animate-pulse" style={{ height: 80 }} />
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}>
-            {/* Big feature card */}
+          <div className="grid gap-5" style={{ gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)' }}>
+            {/* Large feature card — left ~60% */}
             {trendingArticles[0] && (
               <Link
                 to={buildRoute.blog(trendingArticles[0].slug)}
-                className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors sm:row-span-2"
-                style={{ gridRow: 'span 1' }}
+                className="rounded-[8px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
               >
-                <div className="bg-bg-tint flex-shrink-0" style={{ height: 200 }} />
-                <div className="flex flex-col" style={{ padding: '18px 20px', gap: 8 }}>
-                  <div className="flex items-center" style={{ gap: 8 }}>
-                    <span className="bg-ls-accent text-white font-mono rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                      {articleTypeLabel(trendingArticles[0].articleType)}
-                    </span>
-                    <span className="font-mono text-ink-3" style={{ fontSize: 11 }}>#1 trending</span>
-                  </div>
+                <div className="bg-bg-tint flex-shrink-0 relative" style={{ height: 220 }}>
+                  {trendingArticles[0].coverImageUrl ? (
+                    <img src={trendingArticles[0].coverImageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0" style={{ background: 'var(--ls-bg-soft)' }} />
+                  )}
+                  <span
+                    className="absolute font-mono bg-ls-accent text-white rounded-[3px]"
+                    style={{ fontSize: 10, padding: '2px 7px', top: 12, left: 14 }}
+                  >
+                    #1 trending
+                  </span>
+                </div>
+                <div className="flex flex-col flex-1" style={{ padding: '18px 20px', gap: 10 }}>
+                  <span
+                    className="font-mono text-ls-accent self-start"
+                    style={{ fontSize: 10, letterSpacing: '0.5px' }}
+                  >
+                    {articleTypeLabel(trendingArticles[0].articleType)}
+                  </span>
                   <h3 className="font-serif font-bold text-ink" style={{ fontSize: 22, lineHeight: 1.15 }}>
                     {trendingArticles[0].title}
                   </h3>
                   {trendingArticles[0].summary && (
-                    <p className="font-serif text-ink-2" style={{ fontSize: 14, lineHeight: 1.5 }}>
+                    <p className="font-serif text-ink-2" style={{ fontSize: 14, lineHeight: 1.55 }}>
                       {trendingArticles[0].summary}
                     </p>
                   )}
-                  <div className="flex items-center text-ink-2 flex-wrap" style={{ gap: 10, marginTop: 6, fontSize: 12 }}>
-                    <span>{formatDateShort(trendingArticles[0].publishedAt ?? trendingArticles[0].createdAt)}</span>
-                    {trendingArticles[0].readingTimeMinutes && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
-                        <Clock size={11} />{trendingArticles[0].readingTimeMinutes} min
-                      </span>
+                  {/* Author row */}
+                  <div className="flex items-center mt-auto" style={{ gap: 8, paddingTop: 8, borderTop: '1px solid var(--ls-line-soft)' }}>
+                    {trendingArticles[0].authorProfile?.avatarUrl ? (
+                      <img
+                        src={trendingArticles[0].authorProfile.avatarUrl}
+                        alt=""
+                        className="rounded-full object-cover flex-shrink-0"
+                        style={{ width: 22, height: 22 }}
+                      />
+                    ) : (
+                      <div
+                        className="rounded-full bg-bg-tint border border-line flex items-center justify-center font-mono font-bold text-ink-3 flex-shrink-0"
+                        style={{ width: 22, height: 22, fontSize: 8 }}
+                      >
+                        {initials(trendingArticles[0].authorProfile?.displayName ?? '?')}
+                      </div>
                     )}
-                    {trendingArticles[0].likesCount > 0 && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 4 }}>
-                        <Heart size={11} />{trendingArticles[0].likesCount}
+                    <span className="text-ink-2" style={{ fontSize: 12 }}>
+                      {trendingArticles[0].authorProfile?.displayName}
+                    </span>
+                    <span className="text-ink-3" style={{ fontSize: 12 }}>·</span>
+                    <span className="text-ink-3" style={{ fontSize: 12 }}>
+                      {formatDateShort(trendingArticles[0].publishedAt ?? trendingArticles[0].createdAt)}
+                    </span>
+                    {trendingArticles[0].readingTimeMinutes && (
+                      <span className="flex items-center text-ink-3 ml-auto" style={{ gap: 4, fontSize: 12 }}>
+                        <Clock size={11} />{trendingArticles[0].readingTimeMinutes} min
                       </span>
                     )}
                   </div>
@@ -241,128 +276,99 @@ export function HomePage() {
               </Link>
             )}
 
-            {/* Remaining cards */}
-            {trendingArticles.slice(1, 5).map((blog, i) => (
-              <Link
-                key={blog.id}
-                to={buildRoute.blog(blog.slug)}
-                className="rounded-[6px] border border-line overflow-hidden flex flex-col hover:border-line-strong transition-colors"
-              >
-                <div className="bg-bg-tint flex-shrink-0" style={{ height: 90 }} />
-                <div className="flex flex-col" style={{ padding: '10px 12px', gap: 6 }}>
-                  <div className="flex justify-between items-center">
-                    <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                      {articleTypeLabel(blog.articleType)}
+            {/* Right sidebar — stacked smaller items */}
+            <div className="flex flex-col" style={{ gap: 8 }}>
+              {trendingArticles.slice(1, 5).map((blog, i) => (
+                <Link
+                  key={blog.id}
+                  to={buildRoute.blog(blog.slug)}
+                  className="flex items-start bg-bg border border-line rounded-[8px] hover:border-line-strong hover:shadow-sm transition-all"
+                  style={{ gap: 12, padding: '12px 14px', textDecoration: 'none', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}
+                >
+                  <div className="flex-1 min-w-0" style={{ gap: 4 }}>
+                    <span className="font-mono text-ls-accent" style={{ fontSize: 10 }}>
+                      #{i + 2}
                     </span>
-                    <span className="font-mono text-ink-3" style={{ fontSize: 10 }}>#{i + 2}</span>
+                    <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.25, marginTop: 3 }}>
+                      {blog.title}
+                    </div>
+                    <div className="flex items-center flex-wrap text-ink-3" style={{ gap: 6, marginTop: 6, fontSize: 11 }}>
+                      {blog.authorProfile?.displayName && (
+                        <span>{blog.authorProfile.displayName}</span>
+                      )}
+                      <span>·</span>
+                      <span>{formatDateShort(blog.publishedAt ?? blog.createdAt)}</span>
+                      {blog.readingTimeMinutes && (
+                        <span className="flex items-center" style={{ gap: 3 }}>
+                          <Clock size={9} />{blog.readingTimeMinutes} min
+                        </span>
+                      )}
+                      {blog.likesCount > 0 && (
+                        <span className="flex items-center" style={{ gap: 3 }}>
+                          <Heart size={9} />{blog.likesCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="font-serif font-semibold text-ink" style={{ fontSize: 14, lineHeight: 1.25 }}>
-                    {blog.title}
-                  </div>
-                  <div className="flex items-center flex-wrap text-ink-3" style={{ gap: 8, fontSize: 11 }}>
-                    <span>{formatDateShort(blog.publishedAt ?? blog.createdAt)}</span>
-                    {blog.readingTimeMinutes && (
-                      <span className="flex items-center" style={{ gap: 3 }}>
-                        <Clock size={9} />{blog.readingTimeMinutes} min
-                      </span>
+                  <div className="flex-shrink-0 rounded-[4px] overflow-hidden" style={{ width: 72, height: 54 }}>
+                    {blog.coverImageUrl ? (
+                      <img src={blog.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-bg-tint border border-line rounded-[4px]" />
                     )}
-                    {blog.likesCount > 0 && (
-                      <span className="flex items-center" style={{ gap: 3 }}>
-                        <Heart size={9} />{blog.likesCount}
-                      </span>
-                    )}
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </section>
 
 
       {/* ── DEEP DIVES + RIGHT RAIL ── */}
-      <section className="px-4 sm:px-8 lg:px-14 py-8 grid gap-8 lg:gap-9" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 480px), 1fr))' }}>
+      <section className="px-4 sm:px-8 lg:px-14 py-8 grid gap-10 lg:gap-12" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 520px), 1fr))' }}>
         {/* Recent deep dives */}
         <div>
-          <div className="flex items-baseline" style={{ gap: 14, marginBottom: 14 }}>
+          <div className="flex items-baseline" style={{ gap: 14, marginBottom: 4 }}>
             <h2 className="font-serif font-bold text-ink" style={{ fontSize: 22 }}>Recent deep dives</h2>
             <div className="flex-1 border-t border-line" />
           </div>
           <div className="flex flex-col">
-            {recentDeepDives.map((blog, i) => (
-              <Link
-                key={blog.id}
-                to={buildRoute.blog(blog.slug)}
-                className="hover:bg-bg-tint transition-colors"
-                style={{ display: 'grid', gridTemplateColumns: '36px 1fr auto', gap: 12, padding: '12px 0', borderTop: '1px solid var(--ls-line-soft)', alignItems: 'center' }}
-              >
-                <span className="font-serif font-semibold text-ink-3" style={{ fontSize: 18 }}>0{i + 1}</span>
-                <div>
-                  <div className="flex items-center flex-wrap" style={{ gap: 8 }}>
-                    <span className="border border-line text-ink-2 rounded-[3px]" style={{ fontSize: 10, padding: '2px 6px' }}>
-                      {articleTypeLabel(blog.articleType)}
-                    </span>
-                    <span className="text-ink-3" style={{ fontSize: 11 }}>
-                      {formatDateShort(blog.publishedAt ?? blog.createdAt)}
-                    </span>
-                    {blog.readingTimeMinutes && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
-                        <Clock size={10} />{blog.readingTimeMinutes} min
-                      </span>
-                    )}
-                    {blog.likesCount > 0 && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
-                        <Heart size={10} />{blog.likesCount}
-                      </span>
-                    )}
-                    {blog.savesCount > 0 && (
-                      <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
-                        <Bookmark size={10} />{blog.savesCount}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-serif font-semibold text-ink" style={{ fontSize: 15, marginTop: 6, lineHeight: 1.3 }}>
-                    {blog.title}
-                  </h3>
-                </div>
-                <div className="bg-bg-tint rounded-[4px] flex-shrink-0 hidden sm:block" style={{ height: 60, width: 90 }} />
-              </Link>
+            {recentDeepDives.map((blog) => (
+              <BlogFeedCard key={blog.id} blog={blog} />
             ))}
-
             {recentDeepDives.length === 0 && (
               <div className="text-ink-3 text-center py-8" style={{ fontSize: 13 }}>No articles yet.</div>
             )}
           </div>
         </div>
 
-        {/* Right rail */}
-        <div className="flex flex-col" style={{ gap: 24 }}>
-          {trendingTags.length > 0 && (
-            <div>
-              <div
-                className="font-mono uppercase text-ink-3"
-                style={{ fontSize: 10, letterSpacing: '1.2px', borderTop: '1px solid var(--ls-line-soft)', paddingTop: 10, marginBottom: 10 }}
-              >
-                Trending tags · this week
-              </div>
-              <div className="flex flex-wrap" style={{ gap: 6 }}>
-                {trendingTags.slice(0, 12).map((tag) => (
-                  <Link
-                    key={tag.slug}
-                    to={buildRoute.tag(tag.slug)}
-                    className="border border-line text-ink-2 rounded-full hover:border-line-strong hover:text-ink transition-colors"
-                    style={{ padding: '3px 10px', fontSize: 12 }}
-                  >
-                    #{tag.name}
-                    {tag.blogCount != null && (
-                      <span className="font-mono text-ink-3 ml-1" style={{ fontSize: 10 }}>· {tag.blogCount}</span>
-                    )}
-                  </Link>
-                ))}
-              </div>
+        {/* Right rail — trending tags */}
+        {trendingTags.length > 0 && (
+          <div>
+            <div
+              className="font-mono uppercase text-ink-3"
+              style={{ fontSize: 10, letterSpacing: '1.2px', borderTop: '1px solid var(--ls-line-soft)', paddingTop: 10, marginBottom: 12 }}
+            >
+              Trending tags · this week
             </div>
-          )}
-        </div>
+            <div className="flex flex-wrap" style={{ gap: 6 }}>
+              {trendingTags.slice(0, 12).map((tag) => (
+                <Link
+                  key={tag.slug}
+                  to={buildRoute.tag(tag.slug)}
+                  className="inline-flex items-center gap-1.5 border border-line rounded-full hover:border-line-strong hover:bg-bg-tint transition-colors"
+                  style={{ textDecoration: 'none', padding: '3px 10px', fontSize: 12 }}
+                >
+                  <span className="font-mono text-ink-2">#{tag.name}</span>
+                  {tag.blogCount != null && (
+                    <span className="font-mono text-ink-3" style={{ fontSize: 10 }}>{tag.blogCount}</span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
 

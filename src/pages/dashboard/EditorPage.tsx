@@ -51,7 +51,10 @@ const ARTICLE_TYPE_META: Record<ArticleType, { label: string; desc: string }> = 
 
 const ARTICLE_TYPES = Object.keys(ARTICLE_TYPE_META) as ArticleType[]
 
-const QUILL_MODULES = { toolbar: { container: '#quill-toolbar' } }
+// Extract backend error message, fall back to a generic string.
+function apiErr(err: unknown, fallback: string): string {
+  return (err as any)?.response?.data?.message ?? fallback
+}
 
 const QUILL_FORMATS = [
   'font', 'size', 'header',
@@ -268,6 +271,41 @@ export function EditorPage() {
   const initialized = useRef(false)
   const coverFileRef = useRef<HTMLInputElement>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
+  const quillRef = useRef<ReactQuill>(null)
+
+  // Upload image to Cloudinary and insert into editor at cursor position
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input')
+    input.setAttribute('type', 'file')
+    input.setAttribute('accept', 'image/*')
+    input.click()
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      const toastId = toast.loading('Uploading image…')
+      try {
+        const url = await uploadToCloudinary(file)
+        const quill = quillRef.current?.getEditor()
+        if (quill) {
+          const range = quill.getSelection(true)
+          quill.insertEmbed(range?.index ?? 0, 'image', url)
+          quill.setSelection((range?.index ?? 0) + 1, 0)
+        }
+        toast.dismiss(toastId)
+      } catch (err: any) {
+        toast.dismiss(toastId)
+        toast.error(err?.message ?? 'Image upload failed.')
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const quillModules = useMemo(() => ({
+    toolbar: {
+      container: '#quill-toolbar',
+      handlers: { image: imageHandler },
+    },
+  }), [imageHandler])
 
   function openFormatPopover() {
     if (formatBtnRef.current) {
@@ -348,6 +386,9 @@ export function EditorPage() {
 
   const doSave = useCallback(
     (overrideSlug?: string) => {
+      // Silently skip if title is too short — autosave calls this, so no toast here.
+      if (title.trim().length < BLOG_CONFIG.TITLE_MIN_LENGTH) return
+
       const slug = overrideSlug ?? currentSlug
       const payload = {
         title: title.trim(),
@@ -368,7 +409,7 @@ export function EditorPage() {
             setSaveStatus('saved')
             navigate(buildRoute.editor(blog.slug), { replace: true })
           },
-          onError: () => { setSaveStatus('unsaved'); toast.error('Failed to save draft.') },
+          onError: (err) => { setSaveStatus('unsaved'); toast.error(apiErr(err, 'Failed to save draft.')) },
         })
       } else {
         setSaveStatus('saving')
@@ -380,7 +421,7 @@ export function EditorPage() {
               navigate(buildRoute.editor(blog.slug), { replace: true })
             }
           },
-          onError: () => { setSaveStatus('unsaved'); toast.error('Auto-save failed.') },
+          onError: (err) => { setSaveStatus('unsaved'); toast.error(apiErr(err, 'Failed to save.')) },
         })
       }
     },
@@ -400,18 +441,26 @@ export function EditorPage() {
   }, [title, body])
 
   function handleSaveDraft() {
+    if (title.trim().length < BLOG_CONFIG.TITLE_MIN_LENGTH) {
+      toast.warning(`Title needs at least ${BLOG_CONFIG.TITLE_MIN_LENGTH} characters before saving.`)
+      return
+    }
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current)
     doSave()
   }
 
   function handlePublish() {
+    if (title.trim().length < BLOG_CONFIG.TITLE_MIN_LENGTH) {
+      toast.warning(`Title needs at least ${BLOG_CONFIG.TITLE_MIN_LENGTH} characters before publishing.`)
+      return
+    }
     if (!currentSlug) { toast.error('Save the draft first.'); return }
     if (autosaveTimer.current) { clearTimeout(autosaveTimer.current); autosaveTimer.current = null }
 
     const doPublish = (slug: string) => {
       publishBlog(slug, {
         onSuccess: () => { toast.success('Blog published!'); navigate(ROUTES.MY_BLOGS) },
-        onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Failed to publish.'),
+        onError: (err) => toast.error(apiErr(err, 'Failed to publish.')),
       })
     }
 
@@ -434,7 +483,7 @@ export function EditorPage() {
           }
           doPublish(latestSlug)
         },
-        onError: () => { setSaveStatus('unsaved'); toast.error('Could not save before publishing.') },
+        onError: (err) => { setSaveStatus('unsaved'); toast.error(apiErr(err, 'Could not save before publishing.')) },
       })
     } else {
       doPublish(currentSlug)
@@ -451,7 +500,7 @@ export function EditorPage() {
     }
     scheduleBlog({ slug: currentSlug, payload: { scheduledAt, scheduledTimezone: scheduleTimezone } }, {
       onSuccess: () => { toast.success('Blog scheduled!'); setShowScheduleModal(false); navigate(ROUTES.SCHEDULED) },
-      onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Failed to schedule.'),
+      onError: (err) => toast.error(apiErr(err, 'Failed to schedule.')),
     })
   }
 
@@ -801,30 +850,37 @@ export function EditorPage() {
           <div style={{ width: '100%', maxWidth: 780, padding: 'clamp(24px, 4vw, 40px) clamp(20px, 4vw, 48px) 96px', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             {/* Title */}
-            <textarea
-              className="editor-title-input"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value)
-                if (initialized.current) setSaveStatus('unsaved')
-                // auto-grow
-                const el = e.target
-                el.style.height = 'auto'
-                el.style.height = el.scrollHeight + 'px'
-              }}
-              placeholder="Article title…"
-              rows={1}
-              style={{
-                width: '100%', background: 'transparent',
-                color: 'var(--ls-ink)',
-                fontFamily: '"Source Serif 4", Georgia, serif',
-                fontWeight: 700, fontSize: 52, lineHeight: 1.1,
-                letterSpacing: '-1px',
-                border: 'none', outline: 'none',
-                resize: 'none', overflow: 'hidden', boxSizing: 'border-box', margin: 0,
-                minHeight: 64,
-              }}
-            />
+            <div>
+              <textarea
+                className="editor-title-input"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value)
+                  if (initialized.current) setSaveStatus('unsaved')
+                  const el = e.target
+                  el.style.height = 'auto'
+                  el.style.height = el.scrollHeight + 'px'
+                }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                placeholder="Article title…"
+                rows={1}
+                style={{
+                  width: '100%', background: 'transparent',
+                  color: 'var(--ls-ink)',
+                  fontFamily: '"Source Serif 4", Georgia, serif',
+                  fontWeight: 700, fontSize: 52, lineHeight: 1.1,
+                  letterSpacing: '-1px',
+                  border: 'none', outline: 'none',
+                  resize: 'none', overflow: 'hidden', boxSizing: 'border-box', margin: 0,
+                  minHeight: 64,
+                }}
+              />
+              {title.trim().length > 0 && title.trim().length < BLOG_CONFIG.TITLE_MIN_LENGTH && (
+                <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4, fontFamily: '"JetBrains Mono", monospace' }}>
+                  {title.trim().length} / {BLOG_CONFIG.TITLE_MIN_LENGTH} chars — title too short to save (slug won't generate)
+                </p>
+              )}
+            </div>
 
             {/* Summary line */}
             <div style={{ paddingBottom: 8, borderBottom: '1px dashed var(--ls-line)' }}>
@@ -857,10 +913,11 @@ export function EditorPage() {
               <div className="editor-quill-wrap">
                 <QuillToolbar wordCount={wordCount} />
                 <ReactQuill
+                  ref={quillRef}
                   theme="snow"
                   value={body}
                   onChange={(val) => { setBody(val); if (initialized.current) setSaveStatus('unsaved') }}
-                  modules={QUILL_MODULES}
+                  modules={quillModules}
                   formats={QUILL_FORMATS}
                   placeholder="Start writing your story…"
                   style={{ minHeight: 480 }}

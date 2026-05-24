@@ -1,4 +1,8 @@
 import { useState, useMemo } from 'react'
+
+function apiErr(err: unknown, fallback: string): string {
+  return (err as any)?.response?.data?.message ?? fallback
+}
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -66,7 +70,7 @@ export function MyBlogsPage() {
     if (!confirm(`Archive "${title}"? It will be hidden from public pages.`)) return
     archiveBlog(slug, {
       onSuccess: () => toast.success('Blog archived.'),
-      onError: () => toast.error('Failed to archive.'),
+      onError: (err) => toast.error(apiErr(err, 'Failed to archive.')),
     })
   }
 
@@ -74,21 +78,21 @@ export function MyBlogsPage() {
     if (!confirm(`Permanently delete "${title}"? This cannot be undone.`)) return
     deleteBlog(slug, {
       onSuccess: () => toast.success('Blog deleted.'),
-      onError: () => toast.error('Failed to delete.'),
+      onError: (err) => toast.error(apiErr(err, 'Failed to delete.')),
     })
   }
 
   function handleUnarchive(slug: string) {
     unarchiveBlog(slug, {
       onSuccess: () => toast.success('Blog restored to drafts.'),
-      onError: () => toast.error('Failed to restore.'),
+      onError: (err) => toast.error(apiErr(err, 'Failed to restore.')),
     })
   }
 
   function handlePublish(slug: string) {
     publishBlog(slug, {
       onSuccess: () => toast.success('Blog published!'),
-      onError: () => toast.error('Failed to publish.'),
+      onError: (err) => toast.error(apiErr(err, 'Failed to publish.')),
     })
   }
 

@@ -57,6 +57,11 @@ export const QUERY_KEYS = {
     MY_BY_SLUG: (slug: string) => ['engagement', slug, 'mine'] as const,
   },
 
+  NOTIFICATIONS: {
+    LIST: (page: number) => ['notifications', page] as const,
+    UNREAD_COUNT: ['notifications', 'unread-count'] as const,
+  },
+
   ADMIN: {
     STATS:        ['admin', 'stats'] as const,
     MODERATION:   ['admin', 'moderation'] as const,

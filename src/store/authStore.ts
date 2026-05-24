@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import axios from 'axios'
 import { env } from '@/config/env'
 import type { User, AuthorProfile } from '@/types/api/auth'
+import { notificationsSocket } from '@/lib/notificationsSocket'
 
 export const ACCESS_TOKEN_KEY = 'lorestack_access_token'
 export const REFRESH_TOKEN_KEY = 'lorestack_refresh_token'
@@ -45,11 +46,13 @@ export const useAuthStore = create<AuthState & AuthActions>((set, _get) => ({
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
     set({ accessToken, refreshToken, user, authorProfile, isAuthenticated: true, isLoading: false })
+    notificationsSocket.connect(accessToken)
   },
 
   clearAuth: () => {
     localStorage.removeItem(ACCESS_TOKEN_KEY)
     localStorage.removeItem(REFRESH_TOKEN_KEY)
+    notificationsSocket.disconnect()
     set({ ...initialState, isLoading: false })
   },
 
@@ -104,6 +107,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, _get) => ({
         isAuthenticated: true,
         isLoading: false,
       })
+      notificationsSocket.connect(storedAccess)
     } catch (firstError) {
       // Access token likely expired — attempt a silent refresh
       try {
@@ -136,6 +140,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, _get) => ({
           isAuthenticated: true,
           isLoading: false,
         })
+        notificationsSocket.connect(newAccess)
       } catch {
         // Both tokens are invalid — clear session
         localStorage.removeItem(ACCESS_TOKEN_KEY)

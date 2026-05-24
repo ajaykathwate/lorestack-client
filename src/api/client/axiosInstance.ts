@@ -8,6 +8,7 @@ import { normalizeApiError } from './apiError'
 // Import lazily via getState() to avoid circular dependency:
 // axiosInstance → authStore → (never imports axiosInstance)
 import { useAuthStore } from '@/store/authStore'
+import { notificationsSocket } from '@/lib/notificationsSocket'
 
 export const apiClient = axios.create({
   baseURL: env.VITE_API_BASE_URL,
@@ -80,6 +81,7 @@ apiClient.interceptors.response.use(
       const { accessToken: newAccess, refreshToken: newRefresh } = data.data
 
       setAuth(newAccess, newRefresh, user!, authorProfile ?? null)
+      notificationsSocket.reconnect(newAccess)
       drainQueue(null, newAccess)
 
       original.headers.Authorization = `Bearer ${newAccess}`

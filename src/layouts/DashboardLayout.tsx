@@ -3,11 +3,12 @@ import { Outlet, NavLink } from 'react-router-dom'
 import {
   X, LayoutDashboard, BookOpen, Users, Bookmark, Building2,
   UserCog, Settings, ShieldCheck, Link2, Mail, Trash2,
-  ShieldAlert, ChevronDown, UserRound,
+  ShieldAlert, ChevronDown, UserRound, Bell,
 } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useUiStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
+import { useNotificationsStore } from '@/store/notificationsStore'
 import { TopNav } from '@/shared/components/TopNav'
 import { cn } from '@/lib/utils'
 
@@ -20,7 +21,17 @@ const SETTINGS_ITEMS = [
   { label: 'Delete account',     to: ROUTES.SETTINGS_DELETE,    Icon: Trash2 },
 ]
 
-function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.ElementType }) {
+function NavItem({
+  to,
+  label,
+  Icon,
+  badge,
+}: {
+  to: string
+  label: string
+  Icon: React.ElementType
+  badge?: number
+}) {
   return (
     <NavLink
       to={to}
@@ -37,12 +48,21 @@ function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.E
     >
       <Icon size={14} className="flex-shrink-0 text-ink-3" />
       <span className="flex-1 truncate">{label}</span>
+      {badge != null && badge > 0 && (
+        <span
+          className="bg-ls-accent text-white rounded-full font-mono leading-none"
+          style={{ fontSize: 9, padding: '2px 5px', minWidth: 16, textAlign: 'center' }}
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </NavLink>
   )
 }
 
 function SidebarNav() {
   const { user } = useAuthStore()
+  const { unreadCount } = useNotificationsStore()
   const isAdmin = user?.platformRole === 'platform_admin'
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [platformOpen, setPlatformOpen] = useState(false)
@@ -61,6 +81,7 @@ function SidebarNav() {
       <NavItem to={ROUTES.MY_COMPANIES} label="Companies" Icon={Building2} />
 
       <NavItem to={ROUTES.MY_PUBLIC_PROFILE} label="View My Profile" Icon={UserRound} />
+      <NavItem to={ROUTES.NOTIFICATIONS} label="Notifications" Icon={Bell} badge={unreadCount} />
 
       <div className="border-t border-line-soft" style={{ margin: '8px 8px' }} />
 

@@ -3,6 +3,7 @@ import { Linkedin } from 'lucide-react'
 import { Wordmark } from '@/shared/components/ui/Wordmark'
 import { TopNav } from '@/shared/components/TopNav'
 import { ROUTES } from '@/constants/routes'
+import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary'
 
 export function PublicLayout() {
   return (
@@ -10,7 +11,9 @@ export function PublicLayout() {
       <TopNav />
 
       <main className="flex-1">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {/* Footer */}

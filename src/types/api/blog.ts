@@ -100,6 +100,7 @@ export interface ExploreParams {
   tag?: string
   companyId?: string
   dateRange?: 'week' | 'month' | '6months' | 'all'
+  sort?: 'newest' | 'oldest'
   page?: number
   limit?: number
 }

@@ -13,6 +13,7 @@ import { notificationsSocket } from '@/lib/notificationsSocket'
 export const apiClient = axios.create({
   baseURL: env.VITE_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 })
 
 // ── Request interceptor: attach access token ─────────────────────────────────

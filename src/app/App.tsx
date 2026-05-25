@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { AppRouter } from '@/routes/AppRouter'
 import { useAuthStore } from '@/store/authStore'
+import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary'
 
 function AuthInitialiser() {
   const initAuth = useAuthStore((s) => s.initAuth)
@@ -12,21 +13,23 @@ function AuthInitialiser() {
 
 export function App() {
   return (
-    <QueryProvider>
-      <AuthInitialiser />
-      <AppRouter />
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: 'var(--ls-bg)',
-            border: '1px solid var(--ls-line)',
-            color: 'var(--ls-ink)',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            fontSize: '13px',
-          },
-        }}
-      />
-    </QueryProvider>
+    <ErrorBoundary>
+      <QueryProvider>
+        <AuthInitialiser />
+        <AppRouter />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: 'var(--ls-bg)',
+              border: '1px solid var(--ls-line)',
+              color: 'var(--ls-ink)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontSize: '13px',
+            },
+          }}
+        />
+      </QueryProvider>
+    </ErrorBoundary>
   )
 }

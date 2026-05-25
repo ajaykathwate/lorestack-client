@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate, Link, useBlocker } from 'react-router-dom'
 import { toast } from 'sonner'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import ReactQuill, { Quill } from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 
@@ -29,7 +30,7 @@ import { ROUTES, buildRoute } from '@/constants/routes'
 import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { ScheduleModal } from '@/shared/components/ScheduleModal'
 import { uploadToCloudinary } from '@/lib/cloudinary'
-import { Settings, ChevronDown } from 'lucide-react'
+import { Settings, ChevronDown, ChevronUp } from 'lucide-react'
 import { BLOG_CONFIG } from '@/config/blog'
 import type { ArticleType } from '@/types/api'
 
@@ -248,6 +249,7 @@ export function EditorPage() {
 
   // ── Unsaved-changes guards ─────────────────────────────────────────────────
   const hasUnsaved = saveStatus === 'unsaved'
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false)
 
   // Browser tab close / refresh warning
   useEffect(() => {
@@ -260,15 +262,11 @@ export function EditorPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [hasUnsaved])
 
-  // In-app navigation warning (React Router)
+  // In-app navigation warning (React Router) — uses custom dialog instead of window.confirm
   const blocker = useBlocker(hasUnsaved)
   useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const confirmed = window.confirm('You have unsaved changes. Leave anyway?')
-      if (confirmed) blocker.proceed()
-      else blocker.reset()
-    }
-  }, [blocker])
+    if (blocker.state === 'blocked') setShowLeaveDialog(true)
+  }, [blocker.state])
 
   // FORMAT popover
   const formatBtnRef = useRef<HTMLButtonElement>(null)
@@ -282,6 +280,8 @@ export function EditorPage() {
 
 const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialized = useRef(false)
+  // Always holds the latest doSave so the timer closure never goes stale
+  const doSaveRef = useRef<(overrideSlug?: string) => void>(() => {})
   const coverFileRef = useRef<HTMLInputElement>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
   const quillRef = useRef<ReactQuill>(null)
@@ -441,17 +441,20 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     [title, body, articleType, companyId, tags, coverImageUrl, summary, seoTitle, seoDesc, currentSlug, createBlog, updateBlog, navigate],
   )
 
+  // Keep the ref current so the timer closure never captures stale state
+  useEffect(() => { doSaveRef.current = doSave }, [doSave])
+
+  // Stable callback — no doSave in deps, reads from ref instead
   const scheduleAutosave = useCallback(() => {
     setSaveStatus('unsaved')
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current)
-    autosaveTimer.current = setTimeout(() => doSave(), 2000)
-  }, [doSave])
+    autosaveTimer.current = setTimeout(() => doSaveRef.current(), 2000)
+  }, [])
 
   useEffect(() => {
     if (!initialized.current || saveStatus === 'idle') return
     scheduleAutosave()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, body])
+  }, [title, body, scheduleAutosave])
 
   function handleSaveDraft() {
     if (title.trim().length < BLOG_CONFIG.TITLE_MIN_LENGTH) {
@@ -547,9 +550,11 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isPublished = existingBlog?.status === 'published'
   const isScheduled = existingBlog?.status === 'scheduled'
 
-  const plainText = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-  const wordCount = plainText ? plainText.split(' ').filter(Boolean).length : 0
-  const readMin = Math.max(1, Math.ceil(wordCount / 200))
+  const { wordCount, readMin } = useMemo(() => {
+    const plain = normalizeToHtml(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    const words = plain ? plain.split(' ').filter(Boolean).length : 0
+    return { wordCount: words, readMin: Math.max(1, Math.ceil(words / 200)) }
+  }, [body])
 
   const statusDot = {
     idle: 'transparent',
@@ -879,7 +884,7 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
                 <div
                   className="ql-editor"
                   style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 19, lineHeight: 1.7, color: 'var(--ls-ink)', padding: 0 }}
-                  dangerouslySetInnerHTML={{ __html: body || '<p style="color:var(--ls-ink-4)"><em>Nothing to preview yet.</em></p>' }}
+                  dangerouslySetInnerHTML={{ __html: body ? DOMPurify.sanitize(body) : '<p style="color:var(--ls-ink-4)"><em>Nothing to preview yet.</em></p>' }}
                 />
               </div>
             ) : (
@@ -915,11 +920,10 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
         }}>
 
           {/* Rail header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid var(--ls-line)' }}>
+          <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--ls-line)' }}>
             <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, fontWeight: 600, letterSpacing: 1.6, textTransform: 'uppercase', color: 'var(--ls-ink-3)' }}>
               Article Settings
             </span>
-            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--ls-ink-3)' }}>1 of 3</span>
           </div>
 
           {/* Tags */}
@@ -1038,10 +1042,14 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           <section style={{ borderTop: '1px solid var(--ls-line)', paddingTop: 18 }}>
             <button
               onClick={() => setShowSeo((v) => !v)}
+              aria-expanded={showSeo}
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--ls-ink)' }}
             >
               SEO settings
-              <span style={{ color: 'var(--ls-ink-3)', fontSize: 12 }}>{showSeo ? '▴' : '▾'}</span>
+              {showSeo
+                ? <ChevronUp size={14} style={{ color: 'var(--ls-ink-3)' }} />
+                : <ChevronDown size={14} style={{ color: 'var(--ls-ink-3)' }} />
+              }
             </button>
 
             {showSeo && (
@@ -1204,6 +1212,46 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           onSchedule={handleSchedule}
           isPending={scheduling}
         />
+      )}
+
+      {/* ══ Unsaved changes dialog (replaces window.confirm) ═══════════════════ */}
+      {showLeaveDialog && blocker.state === 'blocked' && (
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(20,18,14,.4)', zIndex: 60 }}
+            onClick={() => { setShowLeaveDialog(false); blocker.reset() }}
+          />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            zIndex: 61, width: 'min(400px, calc(100vw - 32px))',
+            background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 10,
+            boxShadow: '0 20px 60px rgba(20,18,14,.2)',
+            padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', gap: 16,
+          }}>
+            <div>
+              <h2 style={{ margin: 0, fontFamily: '"Source Serif 4", Georgia, serif', fontWeight: 700, fontSize: 18, color: 'var(--ls-ink)' }}>
+                Unsaved changes
+              </h2>
+              <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--ls-ink-2)', lineHeight: 1.5 }}>
+                You have unsaved changes. If you leave now your latest edits will be lost.
+              </p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                onClick={() => { setShowLeaveDialog(false); blocker.reset() }}
+                style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--ls-line)', borderRadius: 6, fontSize: 13, fontWeight: 500, color: 'var(--ls-ink)', cursor: 'pointer' }}
+              >
+                Keep editing
+              </button>
+              <button
+                onClick={() => { setShowLeaveDialog(false); blocker.proceed() }}
+                style={{ padding: '8px 16px', background: '#ef4444', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer' }}
+              >
+                Leave anyway
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   )

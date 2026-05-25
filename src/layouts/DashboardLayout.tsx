@@ -10,6 +10,7 @@ import { useUiStore } from '@/store/uiStore'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationsStore } from '@/store/notificationsStore'
 import { TopNav } from '@/shared/components/TopNav'
+import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary'
 import { cn } from '@/lib/utils'
 
 const SETTINGS_ITEMS = [
@@ -189,7 +190,9 @@ export function DashboardLayout() {
 
         {/* Main area */}
         <main className="flex-1 min-w-0 overflow-y-auto bg-bg p-4 lg:p-6">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

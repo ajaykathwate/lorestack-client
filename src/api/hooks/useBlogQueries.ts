@@ -43,10 +43,19 @@ export function useEditableBlog(slug: string) {
   })
 }
 
+/** Returns BlogSummary[] (just the items) — used by HomePage for trending/deep-dive sections. */
 export function useExplore(params?: ExploreParams) {
   return useQuery({
     queryKey: QUERY_KEYS.BLOGS.EXPLORE((params ?? {}) as Record<string, unknown>),
     queryFn: () => blogService.explore(params).then((r) => r.data.data.data),
+  })
+}
+
+/** Returns the full paginated response including meta — used by ExplorePage for server-side pagination. */
+export function useExplorePaginated(params?: ExploreParams) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.BLOGS.EXPLORE((params ?? {}) as Record<string, unknown>), 'paginated'] as const,
+    queryFn: () => blogService.explore(params).then((r) => r.data.data),
   })
 }
 

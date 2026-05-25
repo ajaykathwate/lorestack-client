@@ -12,8 +12,7 @@ import {
 import { useNotificationsStore } from '@/store/notificationsStore'
 import { apiClient } from '@/api/client/axiosInstance'
 import { UserAvatar } from '@/shared/components/ui/UserAvatar'
-import { cn } from '@/lib/utils'
-import { formatInstagramTime, notifDeepLink, notifAvatar, notifAvatarName } from '@/shared/components/TopNav'
+import { cn, formatInstagramTime, notifDeepLink, notifAvatar, notifAvatarName } from '@/lib/utils'
 import type { Notification, NotificationPush, NotificationAction } from '@/types/api'
 
 // ── Full relative time for the page (longer format) ───────────────────────────

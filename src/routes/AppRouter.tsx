@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 import { AuthGuard } from './guards/AuthGuard'
@@ -34,7 +35,9 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { MyBlogsPage } from '@/pages/dashboard/MyBlogsPage'
 import { ProfileSettingsPage } from '@/pages/dashboard/ProfileSettingsPage'
 import { NotificationsPage } from '@/pages/dashboard/NotificationsPage'
-import { EditorPage } from '@/pages/dashboard/EditorPage'
+
+// Heavy pages — lazy-loaded to keep the main bundle lean
+const EditorPage = lazy(() => import('@/pages/dashboard/EditorPage').then((m) => ({ default: m.EditorPage })))
 import { CompanyDashboardPage } from '@/pages/dashboard/CompanyDashboardPage'
 import { CompanySettingsPage } from '@/pages/dashboard/CompanySettingsPage'
 import { TeamManagementPage } from '@/pages/dashboard/TeamManagementPage'
@@ -133,9 +136,9 @@ const router = createBrowserRouter([
           { path: ROUTES.SETTINGS_DELETE,        element: <SettingsPlaceholderPage title="Delete account" description="Permanently delete your account and all your data." /> },
         ],
       },
-      // Editor: full-screen layout, no sidebar
-      { path: ROUTES.EDITOR_NEW, element: <EditorPage /> },
-      { path: ROUTES.EDITOR,     element: <EditorPage /> },
+      // Editor: full-screen, lazily loaded (react-quill + marked are heavy)
+      { path: ROUTES.EDITOR_NEW, element: <Suspense fallback={null}><EditorPage /></Suspense> },
+      { path: ROUTES.EDITOR,     element: <Suspense fallback={null}><EditorPage /></Suspense> },
     ],
   },
 

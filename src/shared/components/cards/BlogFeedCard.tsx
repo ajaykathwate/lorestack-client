@@ -1,15 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Heart, Bookmark, Clock } from 'lucide-react'
 import { buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDateShort } from '@/lib/utils'
+import { formatDateShort } from '@/lib/utils'
 import { UserAvatar } from '@/shared/components/ui/UserAvatar'
+import { ArticleTypeBadge } from '@/shared/components/ui/ArticleTypeBadge'
 import type { BlogSummary } from '@/types/api'
 
 export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
   const author = blog.authorProfile
   const company = blog.company
-  const hasMetrics = blog.readingTimeMinutes != null || blog.likesCount > 0 || blog.savesCount > 0
-  const hasTags = blog.tags.length > 0
 
   return (
     <Link
@@ -38,19 +37,14 @@ export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
       {/* Title + thumbnail row */}
       <div className="flex items-start" style={{ gap: 14 }}>
         <div className="flex-1 min-w-0">
-          <span
-            className="font-mono text-ls-accent"
-            style={{ fontSize: 10, letterSpacing: '0.4px' }}
-          >
-            {articleTypeLabel(blog.articleType)}
-          </span>
+          <ArticleTypeBadge type={blog.articleType} />
           <h3
             className="font-serif font-bold text-ink"
             style={{ fontSize: 17, lineHeight: 1.25, marginTop: 3 }}
           >
             {blog.title}
           </h3>
-          {blog.summary && (
+          {blog.summary ? (
             <p
               className="text-ink-2"
               style={{
@@ -61,6 +55,9 @@ export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
             >
               {blog.summary}
             </p>
+          ) : (
+            /* Reserve height so cards without summary stay consistent */
+            <div style={{ height: 40, marginTop: 5 }} />
           )}
         </div>
 
@@ -68,8 +65,11 @@ export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
           {blog.coverImageUrl ? (
             <img
               src={blog.coverImageUrl}
-              alt=""
+              alt={`Cover for ${blog.title}`}
               className="w-full h-full object-cover"
+              loading="lazy"
+              width={110}
+              height={74}
             />
           ) : (
             <div className="w-full h-full bg-bg-soft border border-line rounded-[6px]" />
@@ -77,42 +77,34 @@ export function BlogFeedCard({ blog }: { blog: BlogSummary }) {
         </div>
       </div>
 
-      {/* Tags + metrics row — only if there's something to show */}
-      {(hasTags || hasMetrics) && (
-        <div className="flex items-center flex-wrap" style={{ gap: '4px 10px', paddingTop: 6, borderTop: '1px solid var(--ls-line-soft)' }}>
-          {hasTags && blog.tags.slice(0, 4).map((tag) => (
-            <span
-              key={tag.id}
-              className="font-mono text-ink-3"
-              style={{ fontSize: 11 }}
-            >
-              #{tag.name}
+      {/* Tags + metrics row — always rendered to lock card height */}
+      <div className="flex items-center flex-wrap" style={{ gap: '4px 10px', paddingTop: 6, borderTop: '1px solid var(--ls-line-soft)', minHeight: 22 }}>
+        {blog.tags.slice(0, 4).map((tag) => (
+          <span key={tag.id} className="font-mono text-ink-3" style={{ fontSize: 11 }}>
+            #{tag.name}
+          </span>
+        ))}
+        <div className="flex items-center ml-auto" style={{ gap: 8 }}>
+          {blog.readingTimeMinutes != null && (
+            <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
+              <Clock size={10} />
+              {blog.readingTimeMinutes} min
             </span>
-          ))}
-          {hasMetrics && (
-            <div className="flex items-center ml-auto" style={{ gap: 8 }}>
-              {blog.readingTimeMinutes != null && (
-                <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
-                  <Clock size={10} />
-                  {blog.readingTimeMinutes} min
-                </span>
-              )}
-              {blog.likesCount > 0 && (
-                <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
-                  <Heart size={10} />
-                  {blog.likesCount}
-                </span>
-              )}
-              {blog.savesCount > 0 && (
-                <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
-                  <Bookmark size={10} />
-                  {blog.savesCount}
-                </span>
-              )}
-            </div>
+          )}
+          {blog.likesCount > 0 && (
+            <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
+              <Heart size={10} />
+              {blog.likesCount}
+            </span>
+          )}
+          {blog.savesCount > 0 && (
+            <span className="flex items-center text-ink-3" style={{ gap: 3, fontSize: 11 }}>
+              <Bookmark size={10} />
+              {blog.savesCount}
+            </span>
           )}
         </div>
-      )}
+      </div>
     </Link>
   )
 }

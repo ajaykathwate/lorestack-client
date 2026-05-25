@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { isApiError, normalizeApiError } from '@/api/client/apiError'
 
 function apiErr(err: unknown, fallback: string): string {
-  return (err as any)?.response?.data?.message ?? fallback
+  return isApiError(err) ? normalizeApiError(err).message : fallback
 }
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   Pencil, ExternalLink, Archive, Trash2, RotateCcw,

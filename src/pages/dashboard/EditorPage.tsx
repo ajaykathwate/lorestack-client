@@ -51,9 +51,10 @@ const ARTICLE_TYPE_META: Record<ArticleType, { label: string; desc: string }> = 
 
 const ARTICLE_TYPES = Object.keys(ARTICLE_TYPE_META) as ArticleType[]
 
-// Extract backend error message, fall back to a generic string.
+import { isApiError, normalizeApiError } from '@/api/client/apiError'
+
 function apiErr(err: unknown, fallback: string): string {
-  return (err as any)?.response?.data?.message ?? fallback
+  return isApiError(err) ? normalizeApiError(err).message : fallback
 }
 
 const QUILL_FORMATS = [
@@ -237,6 +238,7 @@ export function EditorPage() {
   const [tagInput, setTagInput] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [isCoverUploading, setIsCoverUploading] = useState(false)
+  const [showCoverUrl, setShowCoverUrl] = useState(false)
   const [summary, setSummary] = useState('')
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDesc, setSeoDesc] = useState('')
@@ -310,8 +312,7 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
         toast.error(err?.message ?? 'Image upload failed.')
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []) // quillRef is a React ref (stable object) — intentionally excluded
 
   const quillModules = useMemo(() => ({
     toolbar: {
@@ -369,8 +370,7 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     setSeoTitle('')
     setSeoDesc('')
     setSaveStatus('idle')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlSlug])
+  }, [urlSlug, setCurrentSlug, setTitle, setBody, setArticleType, setCompanyId, setTags, setCoverImageUrl, setSummary, setSeoTitle, setSeoDesc, setSaveStatus])
 
   // Root-cause #1 fix: populate form once the blog data arrives.
   // `initialized.current` is false until the reset effect has fired, so this
@@ -512,7 +512,13 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
       if (!confirm('Scheduling more than 6 months ahead — confirm?')) return
     }
     scheduleBlog({ slug: currentSlug, payload: { scheduledAt: isoDateTime } }, {
-      onSuccess: () => { toast.success('Blog scheduled!'); setShowScheduleModal(false); navigate(ROUTES.MY_BLOGS) },
+      onSuccess: () => {
+        const dt = new Date(isoDateTime)
+        const formatted = dt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+        toast.success(`Scheduled — publishes on ${formatted}`)
+        setShowScheduleModal(false)
+        navigate(ROUTES.MY_BLOGS)
+      },
       onError: (err) => toast.error(apiErr(err, 'Failed to schedule.')),
     })
   }
@@ -996,20 +1002,24 @@ const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
             {!coverImageUrl && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '10px 0' }}>
-                  <span style={{ flex: 1, height: 1, background: 'var(--ls-line-soft)' }} />
-                  <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, fontWeight: 500, color: 'var(--ls-ink-3)', letterSpacing: 0.6 }}>OR</span>
-                  <span style={{ flex: 1, height: 1, background: 'var(--ls-line-soft)' }} />
-                </div>
-                <div style={{ padding: '10px 12px', background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 6 }}>
-                  <input
-                    type="url"
-                    value={coverImageUrl}
-                    onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }}
-                    placeholder="…or paste a URL"
-                    style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--ls-ink)' }}
-                  />
-                </div>
+                <button
+                  onClick={() => setShowCoverUrl((v) => !v)}
+                  style={{ marginTop: 8, fontSize: 12, color: 'var(--ls-accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2 }}
+                >
+                  {showCoverUrl ? 'Hide URL input ↑' : 'Or paste a URL →'}
+                </button>
+                {showCoverUrl && (
+                  <div style={{ marginTop: 8, padding: '10px 12px', background: 'var(--ls-bg)', border: '1px solid var(--ls-line)', borderRadius: 6 }}>
+                    <input
+                      type="url"
+                      value={coverImageUrl}
+                      onChange={(e) => { setCoverImageUrl(e.target.value); setSaveStatus('unsaved') }}
+                      placeholder="https://example.com/image.jpg"
+                      autoFocus
+                      style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--ls-ink)' }}
+                    />
+                  </div>
+                )}
               </>
             )}
           </section>

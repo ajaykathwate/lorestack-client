@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { marked } from 'marked'
 import { toast } from 'sonner'
-import { Heart, Bookmark, Share2, Check, ArrowLeft, Eye, Clock, FileText } from 'lucide-react'
+import { Heart, Bookmark, Share2, Check, ArrowLeft, Eye, Clock, UserPlus, UserCheck } from 'lucide-react'
 import 'react-quill/dist/quill.snow.css'
 import { useBlogBySlug } from '@/api/hooks/useBlogQueries'
 import { useEngagement, useMyEngagement } from '@/api/hooks/useEngagementQueries'
@@ -11,9 +11,11 @@ import {
   useSaveBlog, useUnsaveBlog,
   useShareBlog, useRecordView,
 } from '@/api/hooks/useEngagementMutations'
+import { useFollowProfile, useUnfollowProfile } from '@/api/hooks/useProfileMutations'
+import { useFollowingAuthors } from '@/api/hooks/useFollowingQueries'
 import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
-import { articleTypeLabel, formatDate } from '@/lib/utils'
+import { articleTypeLabel, cn, formatDate } from '@/lib/utils'
 import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
@@ -44,13 +46,43 @@ export function BlogPage() {
   const { mutate: unsave, isPending: unsaving } = useUnsaveBlog(slug)
   const { mutate: share } = useShareBlog(slug)
 
+  const blogAuthorUsername = blog?.authorProfile?.username ?? ''
+  const { mutate: followProfile, isPending: following } = useFollowProfile(blogAuthorUsername)
+  const { mutate: unfollowProfile, isPending: unfollowing } = useUnfollowProfile(blogAuthorUsername)
+  const { data: followingAuthors } = useFollowingAuthors()
+
   const [copied, setCopied] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [readProgress, setReadProgress] = useState(0)
+  const articleRef = useRef<HTMLElement>(null)
 
   // Record view once when blog loads
   useEffect(() => {
     if (slug) recordView({ source: 'direct' })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
+
+  // Reading progress bar
+  useEffect(() => {
+    function onScroll() {
+      const el = articleRef.current
+      if (!el) return
+      const { top, height } = el.getBoundingClientRect()
+      const windowH = window.innerHeight
+      const scrolled = Math.max(0, windowH - top)
+      const total = height
+      setReadProgress(total > 0 ? Math.min(1, scrolled / total) : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Sync follow state when followingAuthors loads
+  useEffect(() => {
+    if (followingAuthors && blogAuthorUsername) {
+      setIsFollowing(followingAuthors.some((a) => a.username === blogAuthorUsername))
+    }
+  }, [followingAuthors, blogAuthorUsername])
 
   if (isLoading) {
     return (
@@ -116,11 +148,31 @@ export function BlogPage() {
     }
   }
 
+  const authorId = blog.authorId
+  const isOwnArticle = authorId === useAuthStore.getState().user?.id
+
+  function handleFollow() {
+    if (!isAuthenticated) { toast.error('Sign in to follow authors.'); return }
+    if (isFollowing) {
+      unfollowProfile(authorId, { onSuccess: () => setIsFollowing(false) })
+    } else {
+      followProfile(authorId, { onSuccess: () => setIsFollowing(true) })
+    }
+  }
+
   return (
     <div className="flex flex-col">
+      {/* Reading progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">
+        <div
+          className="h-full bg-ls-accent transition-[width] duration-100"
+          style={{ width: `${readProgress * 100}%` }}
+        />
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr min(740px, 100%) 1fr' }}>
         <div />
-        <article className="px-4 sm:px-6 lg:px-0" style={{ paddingTop: 40, paddingBottom: 80 }}>
+        <article ref={articleRef} className="px-4 sm:px-6 lg:px-0" style={{ paddingTop: 40, paddingBottom: 80 }}>
 
           {/* Article type badge */}
           <span
@@ -325,9 +377,32 @@ export function BlogPage() {
                   <div className="font-mono text-ink-3" style={{ fontSize: 11, marginBottom: 8 }}>@{authorUsername}</div>
                 )}
                 {authorUsername && (
-                  <Link to={buildRoute.author(authorUsername)} className="inline-block border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors" style={{ padding: '3px 10px', fontSize: 11 }}>
-                    View profile →
-                  </Link>
+                  <div className="flex flex-wrap items-center" style={{ gap: 6 }}>
+                    <Link
+                      to={buildRoute.author(authorUsername)}
+                      className="inline-block border border-line text-ink-2 rounded-[4px] hover:bg-bg-tint transition-colors"
+                      style={{ padding: '3px 10px', fontSize: 11 }}
+                    >
+                      View profile →
+                    </Link>
+                    {!isOwnArticle && (
+                      <button
+                        onClick={handleFollow}
+                        disabled={following || unfollowing}
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-[4px] border transition-colors',
+                          isFollowing
+                            ? 'border-line text-ink-2 hover:border-red-300 hover:text-red-500'
+                            : 'border-ls-accent text-ls-accent hover:bg-ls-accent hover:text-white',
+                        )}
+                        style={{ padding: '3px 10px', fontSize: 11 }}
+                      >
+                        {isFollowing
+                          ? <><UserCheck size={11} /> Following</>
+                          : <><UserPlus size={11} /> Follow</>}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

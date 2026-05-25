@@ -58,8 +58,12 @@ export function NotificationDrawer({ onClose }: { onClose: () => void }) {
 
   const restItems: Notification[] = page1?.data ?? []
   const restIds = new Set(restItems.map((n) => n.id))
+  // Dedup push items without an id by message+createdAt so REST refresh doesn't create duplicates
+  const restFingerprints = new Set(restItems.map((n) => `${n.message}|${n.createdAt}`))
   const items: (Notification | NotificationPush)[] = [
-    ...liveItems.filter((n) => !n.id || !restIds.has(n.id)),
+    ...liveItems.filter((n) =>
+      n.id ? !restIds.has(n.id) : !restFingerprints.has(`${n.message}|${n.createdAt}`),
+    ),
     ...restItems,
   ]
 

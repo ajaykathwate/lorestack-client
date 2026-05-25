@@ -17,7 +17,7 @@ export function HomePage() {
   const { isAuthenticated, authorProfile } = useAuthStore()
   const [activeType, setActiveType] = useState<ArticleType | ''>('')
 
-  const { data: homeData, isLoading: homeLoading } = useHome()
+  const { data: homeData, isLoading: homeLoading, isError: homeError } = useHome()
   const { data: filteredBlogs } = useExplore(activeType ? { type: activeType } : undefined)
   const { data: stats } = useStats()
 
@@ -39,7 +39,7 @@ export function HomePage() {
 
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       {!isAuthenticated ? (
-        <section className="border-b border-line px-4 sm:px-8 lg:px-14" style={{ paddingTop: 48, paddingBottom: 40 }}>
+        <section className="border-b border-line px-4 sm:px-8 lg:px-12" style={{ paddingTop: 48, paddingBottom: 40 }}>
           <div
             className="grid items-center"
             style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1.4fr))', gap: 'clamp(32px, 5vw, 64px)' }}
@@ -145,7 +145,7 @@ export function HomePage() {
       ) : (
         /* Authenticated hero — clean greeting, no featured article */
         <section
-          className="border-b border-line px-4 sm:px-8 lg:px-14"
+          className="border-b border-line px-4 sm:px-8 lg:px-12"
           style={{ paddingTop: 20, paddingBottom: 18, background: 'var(--ls-bg-soft)' }}
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -200,7 +200,7 @@ export function HomePage() {
         style={{ position: 'sticky', top: 56, zIndex: 20, boxShadow: '0 2px 12px rgba(0,0,0,.06)' }}
       >
         <div
-          className="flex items-center overflow-x-auto px-4 sm:px-8 lg:px-14"
+          className="flex items-center overflow-x-auto px-4 sm:px-8 lg:px-12"
           style={{ gap: 4, paddingTop: 8, paddingBottom: 9, scrollbarWidth: 'none' }}
         >
           <span className="font-mono uppercase text-ink-3 flex-shrink-0 hidden sm:block" style={{ fontSize: 10, letterSpacing: '1.2px', marginRight: 6 }}>
@@ -225,7 +225,7 @@ export function HomePage() {
       </section>
 
       {/* ── TRENDING THIS WEEK ────────────────────────────────────────────────── */}
-      <section className="px-4 sm:px-8 lg:px-14" style={{ paddingTop: 28, paddingBottom: 36 }}>
+      <section className="px-4 sm:px-8 lg:px-12" style={{ paddingTop: 28, paddingBottom: 36 }}>
         <div className="flex items-center gap-3" style={{ marginBottom: 20 }}>
           <h2 className="font-serif font-bold text-ink flex-shrink-0" style={{ fontSize: 20 }}>
             Trending this week
@@ -252,8 +252,19 @@ export function HomePage() {
           </div>
         )}
 
+        {/* Error state */}
+        {homeError && !homeLoading && (
+          <div
+            className="border border-line rounded-[10px] bg-bg-soft flex flex-col items-center justify-center text-center"
+            style={{ padding: '56px 32px' }}
+          >
+            <p className="text-ink-2 font-semibold" style={{ fontSize: 14 }}>Failed to load articles</p>
+            <p className="text-ink-3" style={{ fontSize: 13, marginTop: 4 }}>Check your connection and try again.</p>
+          </div>
+        )}
+
         {/* Empty state */}
-        {!isTrendingLoading && trendingArticles.length === 0 && (
+        {!homeError && !isTrendingLoading && trendingArticles.length === 0 && (
           <div
             className="border border-line rounded-[10px] bg-bg-soft flex flex-col items-center justify-center text-center"
             style={{ padding: '56px 32px' }}
@@ -276,7 +287,7 @@ export function HomePage() {
         )}
 
         {/* Trending grid */}
-        {!isTrendingLoading && trendingArticles.length > 0 && (
+        {!homeError && !isTrendingLoading && trendingArticles.length > 0 && (
           <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)' }}>
 
             {/* ── Large feature card ── */}
@@ -417,7 +428,7 @@ export function HomePage() {
 
       {/* ── RECENT DEEP DIVES + TAGS RAIL ─────────────────────────────────────── */}
       <section
-        className="border-t border-line px-4 sm:px-8 lg:px-14 grid gap-10 lg:gap-14"
+        className="border-t border-line px-4 sm:px-8 lg:px-12 grid gap-10 lg:gap-14"
         style={{
           paddingTop: 32, paddingBottom: 40,
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 520px), 1fr))',
@@ -473,7 +484,7 @@ export function HomePage() {
       {/* ── WRITER CTA (logged out only) ───────────────────────────────────────── */}
       {!isAuthenticated && (
         <section
-          className="px-4 sm:px-8 lg:px-14"
+          className="px-4 sm:px-8 lg:px-12"
           style={{ background: 'var(--ls-ink)', paddingTop: 'clamp(40px, 6vw, 64px)', paddingBottom: 'clamp(40px, 6vw, 64px)' }}
         >
           <div

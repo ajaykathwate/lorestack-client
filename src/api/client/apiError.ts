@@ -1,4 +1,9 @@
+import axios from 'axios'
 import type { AxiosError } from 'axios'
+
+export function isApiError(err: unknown): err is AxiosError {
+  return axios.isAxiosError(err)
+}
 
 export interface ApiError {
   status: number

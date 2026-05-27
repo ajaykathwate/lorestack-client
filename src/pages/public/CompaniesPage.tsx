@@ -18,41 +18,6 @@ const INDUSTRY_MAP: Record<string, string> = {
   Platform: 'platform',
 }
 
-function GalleryStrip({ images }: { images: string[] }) {
-  const [idx, setIdx] = useState(0)
-  if (images.length === 0) return null
-
-  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
-    e.preventDefault()
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    if (x < rect.width / 2) {
-      setIdx((prev) => (prev - 1 + images.length) % images.length)
-    } else {
-      setIdx((prev) => (prev + 1) % images.length)
-    }
-  }
-
-  return (
-    <div style={{ padding: '14px 20px 0' }}>
-      <div
-        className="relative rounded-[6px] overflow-hidden cursor-pointer select-none"
-        style={{ height: 100, border: '1px solid var(--ls-line)' }}
-        onClick={handleClick}
-      >
-        <img src={images[idx]} alt="" className="w-full h-full object-cover" />
-        {images.length > 1 && (
-          <div
-            className="absolute bottom-2 right-2 font-mono text-white rounded-[3px]"
-            style={{ fontSize: 9, padding: '1px 6px', background: 'rgba(0,0,0,.45)' }}
-          >
-            {idx + 1}/{images.length}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 export function CompaniesPage() {
   const [activeIndustry, setActiveIndustry] = useState('All')

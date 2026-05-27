@@ -9,6 +9,7 @@ import { useFollowingCompanies } from '@/api/hooks/useFollowingQueries'
 import { useAuthStore } from '@/store/authStore'
 import { buildRoute } from '@/constants/routes'
 import { articleTypeLabel, formatDate, formatDateShort } from '@/lib/utils'
+import type { ArticleType } from '@/types/api'
 import { UserAvatar } from '@/shared/components/ui/UserAvatar'
 import { Spinner } from '@/shared/components/feedback/Spinner'
 
@@ -32,7 +33,7 @@ export function CompanyProfilePage() {
   const { handle = '' } = useParams()
   const { isAuthenticated, user } = useAuthStore()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [articleTypeFilter, setArticleTypeFilter] = useState<string>('all')
+  const [articleTypeFilter, setArticleTypeFilter] = useState<ArticleType | 'all'>('all')
   const [sort, setSort] = useState<SortOption>('newest')
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
 
@@ -89,7 +90,7 @@ export function CompanyProfilePage() {
 
   const articleTypes = useMemo(() => {
     const types = new Set(allArticles.map((b) => b.articleType).filter(Boolean))
-    return Array.from(types) as string[]
+    return Array.from(types) as ArticleType[]
   }, [allArticles])
 
   const articles = useMemo(() => {
@@ -211,7 +212,6 @@ export function CompanyProfilePage() {
               color: activeTab === tab.key ? 'var(--ls-ink)' : 'var(--ls-ink-3)',
               borderBottom: activeTab === tab.key ? '2px solid var(--ls-accent)' : '2px solid transparent',
               background: 'none', border: 'none',
-              borderBottom: activeTab === tab.key ? '2px solid var(--ls-accent)' : '2px solid transparent',
               cursor: 'pointer',
             }}
           >

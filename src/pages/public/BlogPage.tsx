@@ -138,7 +138,7 @@ export function BlogPage() {
   function handleShare() {
     const url = window.location.href
     if (navigator.share) {
-      navigator.share({ title: blog.title, url }).then(() => share('other'))
+      navigator.share({ title: blog?.title ?? '', url }).then(() => share('other'))
     } else {
       navigator.clipboard.writeText(url).then(() => {
         setCopied(true)

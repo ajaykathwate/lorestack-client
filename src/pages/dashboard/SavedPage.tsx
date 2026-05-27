@@ -15,7 +15,7 @@ export function SavedPage() {
         <h1 className="font-serif font-bold text-ink" style={{ fontSize: 26 }}>Saved articles</h1>
         <p className="text-ink-3" style={{ fontSize: 13, marginTop: 4 }}>
           Articles you've bookmarked for later
-          {data?.total != null && data.total > 0 && ` · ${data.total} saved`}
+          {data?.meta?.total != null && data.meta.total > 0 && ` · ${data.meta.total} saved`}
         </p>
       </div>
 
@@ -110,10 +110,10 @@ export function SavedPage() {
             </Link>
           ))}
 
-          {data && data.total > articles.length && (
+          {data && data.meta.total > articles.length && (
             <div className="flex justify-center" style={{ paddingTop: 24 }}>
               <p className="text-ink-3" style={{ fontSize: 12 }}>
-                Showing {articles.length} of {data.total} saved articles
+                Showing {articles.length} of {data.meta.total} saved articles
               </p>
             </div>
           )}

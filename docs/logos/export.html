@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Lorestack — Logo Export</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f3f1ec;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:48px;padding:48px 24px}
+  h1{font-family:'Instrument Serif',Georgia,serif;font-size:32px;color:#0f0e0c;font-weight:400;text-align:center}
+  h1 span{color:#ff6a3d}
+  .grid{display:flex;flex-wrap:wrap;gap:32px;justify-content:center}
+  .card{background:#fff;border:1px solid #e4e1d6;border-radius:16px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:20px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+  .card h2{font-family:system-ui;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#7a766c}
+  canvas{border-radius:8px;border:1px solid #e4e1d6}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  button{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+  .btn-png{background:#5b3df5;color:#fff}
+  .btn-jpg{background:#0f0e0c;color:#fff}
+  button:hover{opacity:.85}
+  .note{font-size:12px;color:#7a766c;text-align:center;max-width:480px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<h1>Lorestack Logo Export<span>.</span></h1>
+
+<div class="grid">
+  <div class="card">
+    <h2>Logo — Icon + Name</h2>
+    <canvas id="c-logo" width="480" height="120"></canvas>
+    <div class="btns">
+      <button class="btn-png" onclick="download('c-logo','lorestack-logo','png')">↓ PNG</button>
+      <button class="btn-jpg" onclick="download('c-logo','lorestack-logo','jpg')">↓ JPEG</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Logo — Dark background</h2>
+    <canvas id="c-logo-dark" width="480" height="120"></canvas>
+    <div class="btns">
+      <button class="btn-png" onclick="download('c-logo-dark','lorestack-logo-dark','png')">↓ PNG</button>
+      <button class="btn-jpg" onclick="download('c-logo-dark','lorestack-logo-dark','jpg')">↓ JPEG</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Icon only — Gradient</h2>
+    <canvas id="c-icon" width="200" height="200"></canvas>
+    <div class="btns">
+      <button class="btn-png" onclick="download('c-icon','lorestack-icon','png')">↓ PNG</button>
+      <button class="btn-jpg" onclick="download('c-icon','lorestack-icon','jpg')">↓ JPEG</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Icon only — Large (512×512)</h2>
+    <canvas id="c-icon-lg" width="512" height="512" style="width:200px;height:200px"></canvas>
+    <div class="btns">
+      <button class="btn-png" onclick="download('c-icon-lg','lorestack-icon-512','png')">↓ PNG 512</button>
+      <button class="btn-jpg" onclick="download('c-icon-lg','lorestack-icon-512','jpg')">↓ JPEG 512</button>
+    </div>
+  </div>
+</div>
+
+<p class="note">All exports are high-resolution. PNG preserves transparency on the background. JPEG uses a white or dark fill depending on the variant.</p>
+
+<script>
+// ── Colours ──────────────────────────────────────────────────────────────────
+const VIOLET = '#5b3df5'
+const CORAL  = '#ff6a3d'
+const INK    = '#0f0e0c'
+const WHITE  = '#ffffff'
+const BG     = '#fbfaf7'
+
+// ── Draw the icon mark onto a canvas context ─────────────────────────────────
+// x, y = top-left corner, size = width/height of the square tile
+function drawMark(ctx, x, y, size) {
+  const scale = size / 64
+  const rx = 14 * scale
+
+  ctx.save()
+  ctx.translate(x, y)
+
+  // ── Gradient background tile ────────────────────────────────────────────
+  const grad = ctx.createLinearGradient(0, 0, size, size)
+  grad.addColorStop(0,    '#5b3df5')
+  grad.addColorStop(0.55, '#7c4ae0')
+  grad.addColorStop(1,    '#ff6a3d')
+
+  roundRect(ctx, 0, 0, size, size, rx)
+  ctx.fillStyle = grad
+  ctx.fill()
+
+  // subtle shade overlay (top → bottom)
+  const shade = ctx.createLinearGradient(0, 0, 0, size)
+  shade.addColorStop(0,   'rgba(255,255,255,0.15)')
+  shade.addColorStop(1,   'rgba(0,0,0,0.18)')
+  roundRect(ctx, 0, 0, size, size, rx)
+  ctx.fillStyle = shade
+  ctx.fill()
+
+  // ── Three white bars ────────────────────────────────────────────────────
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'
+  // top bar
+  roundRect(ctx, 16*scale, 16*scale, 10*scale, 8*scale, 3*scale)
+  ctx.fill()
+  // middle bar
+  roundRect(ctx, 16*scale, 28*scale, 18*scale, 8*scale, 3*scale)
+  ctx.fill()
+  // bottom bar (full white)
+  ctx.fillStyle = WHITE
+  roundRect(ctx, 16*scale, 40*scale, 32*scale, 8*scale, 3*scale)
+  ctx.fill()
+
+  // ── Accent dot ──────────────────────────────────────────────────────────
+  ctx.beginPath()
+  ctx.arc(48*scale, 20*scale, 3.2*scale, 0, Math.PI*2)
+  ctx.fillStyle = 'rgba(255,255,255,0.90)'
+  ctx.fill()
+
+  ctx.restore()
+}
+
+// ── Rounded rect helper (works without Path2D for Safari compat) ─────────────
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+  ctx.lineTo(x + r, y + h)
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+  ctx.lineTo(x, y + r)
+  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
+}
+
+// ── Draw the wordmark text ────────────────────────────────────────────────────
+function drawWordmark(ctx, x, y, fontSize, textColor, dotColor) {
+  ctx.save()
+  ctx.font = `400 ${fontSize}px 'Instrument Serif', Georgia, serif`
+  ctx.fillStyle = textColor
+  ctx.textBaseline = 'middle'
+  ctx.fillText('Lorestack', x, y)
+  const w = ctx.measureText('Lorestack').width
+  ctx.fillStyle = dotColor
+  ctx.fillText('.', x + w, y)
+  ctx.restore()
+}
+
+// ── Render all canvases ───────────────────────────────────────────────────────
+function renderAll() {
+  // ── Logo light ──────────────────────────────────────────────────────────
+  const cLogo = document.getElementById('c-logo')
+  const lg = cLogo.getContext('2d')
+  cLogo.width  = 480
+  cLogo.height = 120
+  // background
+  lg.fillStyle = WHITE
+  lg.fillRect(0, 0, 480, 120)
+  // icon: 80×80 centred vertically, 20px left pad
+  drawMark(lg, 20, 20, 80)
+  // wordmark
+  lg.font = `400 52px 'Instrument Serif', Georgia, serif`
+  lg.fillStyle = INK
+  lg.textBaseline = 'middle'
+  lg.fillText('Lorestack', 116, 62)
+  const tw = lg.measureText('Lorestack').width
+  lg.fillStyle = CORAL
+  lg.fillText('.', 116 + tw, 62)
+
+  // ── Logo dark ───────────────────────────────────────────────────────────
+  const cDark = document.getElementById('c-logo-dark')
+  const ld = cDark.getContext('2d')
+  cDark.width  = 480
+  cDark.height = 120
+  ld.fillStyle = INK
+  ld.fillRect(0, 0, 480, 120)
+  drawMark(ld, 20, 20, 80)
+  ld.font = `400 52px 'Instrument Serif', Georgia, serif`
+  ld.fillStyle = WHITE
+  ld.textBaseline = 'middle'
+  ld.fillText('Lorestack', 116, 62)
+  const tdw = ld.measureText('Lorestack').width
+  ld.fillStyle = CORAL
+  ld.fillText('.', 116 + tdw, 62)
+
+  // ── Icon 200×200 ─────────────────────────────────────────────────────────
+  const cIcon = document.getElementById('c-icon')
+  const ic = cIcon.getContext('2d')
+  cIcon.width  = 200
+  cIcon.height = 200
+  ic.fillStyle = BG
+  ic.fillRect(0, 0, 200, 200)
+  drawMark(ic, 0, 0, 200)
+
+  // ── Icon 512×512 ─────────────────────────────────────────────────────────
+  const cLg = document.getElementById('c-icon-lg')
+  const il = cLg.getContext('2d')
+  cLg.width  = 512
+  cLg.height = 512
+  drawMark(il, 0, 0, 512)
+}
+
+// ── Download helper ───────────────────────────────────────────────────────────
+function download(canvasId, filename, format) {
+  const canvas = document.getElementById(canvasId)
+  const mime   = format === 'png' ? 'image/png' : 'image/jpeg'
+  const ext    = format === 'png' ? 'png' : 'jpg'
+
+  // For JPEG, composite onto a white/dark bg first (JPEG has no alpha)
+  let src = canvas
+  if (format === 'jpg') {
+    const tmp    = document.createElement('canvas')
+    tmp.width    = canvas.width
+    tmp.height   = canvas.height
+    const tctx   = tmp.getContext('2d')
+    // fill bg colour matching variant
+    tctx.fillStyle = canvasId.includes('dark') ? INK : WHITE
+    tctx.fillRect(0, 0, tmp.width, tmp.height)
+    tctx.drawImage(canvas, 0, 0)
+    src = tmp
+  }
+
+  const a    = document.createElement('a')
+  a.href     = src.toDataURL(mime, 0.95)
+  a.download = `${filename}.${ext}`
+  a.click()
+}
+
+// ── Wait for font to load, then render ───────────────────────────────────────
+if (document.fonts) {
+  document.fonts.ready.then(renderAll)
+} else {
+  window.addEventListener('load', renderAll)
+}
+</script>
+</body>
+</html>

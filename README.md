@@ -3,7 +3,7 @@
 > A company-first publishing platform for engineers, founders, and startups.
 > Write engineering blogs, architecture deep-dives, postmortems, and build-in-public timelines — as yourself or under your company's brand.
 
-**Live →** _coming soon_
+[**Go Live ->**](https://lorestack-client.vercel.app/)
 
 ---
 
